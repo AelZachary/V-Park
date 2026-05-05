@@ -77,7 +77,7 @@ export default function BottomNavbar({ active }: Props) {
           styles.navItem,
           active === 'profile' && styles.activeItem
         ]}
-        onPress={() => router.push('/user/profile')}
+        onPress={() => router.push('../user/profile')}
       >
 
         <Ionicons
