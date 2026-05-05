@@ -28,6 +28,9 @@ export const useAuthVM = () => {
     }
 
     console.log('Login Success');
+
+    // pindah ke home user
+    router.replace('../user/home');
   };
 
   // REGISTER FUNCTION
