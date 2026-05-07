@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 type Props = {
@@ -40,6 +40,7 @@ export default function ActivityTabs({ active }: Props) {
           styles.tabButton,
           active === 'history' && styles.activeTab
         ]}
+        onPress={() => router.push('../user/activityHistory')}
       >
         <Text
           style={[
@@ -57,6 +58,7 @@ export default function ActivityTabs({ active }: Props) {
           styles.tabButton,
           active === 'cancelled' && styles.activeTab
         ]}
+        onPress={() => router.push('../user/activityCancelled')}
       >
         <Text
           style={[
