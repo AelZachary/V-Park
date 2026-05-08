@@ -2,6 +2,7 @@ import BottomNavbar from '@/components/navigation/BottomNavbar';
 import { COLORS, FONT_SIZE, RADIUS, SPACING } from '@/constants/theme';
 import { useHomeVM } from '@/viewmodels/useHomeVM';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
 import {
     Image,
@@ -71,7 +72,15 @@ export default function HomeScreen() {
       {/* LIST */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {filteredMall.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.card}>
+          <TouchableOpacity
+            key={index}
+            style={styles.card}
+            onPress={() => {
+              if (item.name === 'Trans Studio Mall') {
+                router.push('/user/KonfirmasiSelesaiParkir');
+              }
+            }}
+          >
 
             <Image source={item.image} style={styles.cardImage} />
 
