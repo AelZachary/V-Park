@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"v-park/config"
+	"v-park/cmd/config"
 
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
