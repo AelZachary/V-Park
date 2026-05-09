@@ -317,7 +317,7 @@ export default function KonfirmasiKedatangan() {
         <ButtonPrimary
           title="Ya, Saya sudah Tiba di Mall"
           onPress={() => {
-            router.push('/user/konfirmasiSelesaiParkir');
+            router.push('/user/KonfirmasiSelesaiParkir');
           }}
         />
         <ButtonSecondary
