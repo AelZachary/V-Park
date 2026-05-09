@@ -77,7 +77,7 @@ export default function HomeScreen() {
             style={styles.card}
             onPress={() => {
               if (item.name === 'Trans Studio Mall') {
-                router.push('/user/KonfirmasiSelesaiParkir');
+                router.push('/user/konfirmasiKedatangan');
               }
             }}
           >
