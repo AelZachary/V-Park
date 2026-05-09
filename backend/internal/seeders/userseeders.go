@@ -19,8 +19,9 @@ func UsersSeeders(db *gorm.DB) (models.User, models.User) {
 
 	// Seed pengunjung user
 	pengunjung := models.User{
-		Username: "pengunjung_1",
-		Password: string(hashedPassword),
+		Username:     "Pengunjung1",
+		Password:     string(hashedPassword),
+		IsPengunjung: true,
 	}
 	if err := db.Where("username = ?", pengunjung.Username).
 		Assign(models.User{
@@ -37,8 +38,9 @@ func UsersSeeders(db *gorm.DB) (models.User, models.User) {
 
 	// Seed petugas user
 	petugas := models.User{
-		Username: "petugas_1",
-		Password: string(hashedPassword),
+		Username:     "Petugas1",
+		Password:     string(hashedPassword),
+		IsPengunjung: false,
 	}
 	if err := db.Where("username = ?", petugas.Username).
 		Assign(models.User{
