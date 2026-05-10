@@ -2,15 +2,13 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import ButtonPrimary from '@/components/common/ButtonPrimary';
-import ButtonSecondary from '@/components/common/ButtonSecondary';
 
 const INITIAL_SECONDS = 0 * 3600 + 0 * 60 + 0;
 
@@ -147,18 +145,24 @@ export default function KonfirmasiSelesaiParkir() {
           </Text>
         </View>
 
-        <ButtonPrimary
-          title="Konfirmasi Selesai Parkir"
-          icon={<Ionicons name="checkmark-circle-outline" size={22} color="#fff" />}
-          onPress={() => {
-            // Handle parking completion confirmation here
-          }}
-        />
+        <TouchableOpacity style={styles.confirmButton} activeOpacity={0.85}>
+          <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
+          <Text style={styles.confirmText}>Konfirmasi Selesai Parkir</Text>
+        </TouchableOpacity>
 
-        <ButtonSecondary
-          title="Belum, Nanti Saja"
-          onPress={() => router.push('/user/home')}
-        />
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          activeOpacity={0.85}
+          onPress={() => router.push({
+            pathname: '/user/activity',
+            params: {
+                arrived:'true',
+            }
+          })
+          }
+        >
+          <Text style={styles.secondaryText}>Belum, Nanti Saja</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -424,5 +428,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#81C784',
     lineHeight: 18,
+  },
+  confirmButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1565C0',
+    borderRadius: 20,
+    height: 48,
+    gap: 8,
+  },
+  confirmText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  secondaryButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#1565C0',
+    borderRadius: 20,
+    height: 48,
+  },
+  secondaryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1565C0',
   },
 });
