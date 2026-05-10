@@ -314,18 +314,29 @@ export default function KonfirmasiKedatangan() {
 
       {/* Fixed bottom buttons */}
       <View style={styles.bottomSection}>
-        <ButtonPrimary
-          title="Ya, Saya sudah Tiba di Mall"
-          onPress={() => {
-            router.push('/user/KonfirmasiSelesaiParkir');
-          }}
-        />
-        <ButtonSecondary
-          title="Belum, Nanti Saja"
-          onPress={() => {
-            router.push('/user/home');
-          }}
-        />
+        <TouchableOpacity 
+          style={styles.confirmButton} 
+          activeOpacity={0.85} 
+          onPress={() =>
+                router.push('/user/KonfirmasiSelesaiParkir')}
+        >
+          <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
+          <Text style={styles.confirmText}>Ya, Saya sudah Tiba di Mall</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          activeOpacity={0.85}
+          onPress={() => router.push({
+            pathname: '/user/activity',
+            params: {
+                arrived:'false',
+            }
+          })
+          }
+        >
+          <Text style={styles.secondaryText}>Belum, Nanti Saja</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -574,5 +585,37 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     paddingTop: 8,
     gap: 10,
+  },
+
+  confirmButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1565C0',
+    borderRadius: 20,
+    height: 48,
+    gap: 8,
+  },
+
+  confirmText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
+
+  secondaryButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#1565C0',
+    borderRadius: 20,
+    height: 48,
+  },
+
+  secondaryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1565C0',
   },
 });
