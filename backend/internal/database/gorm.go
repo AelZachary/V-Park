@@ -45,7 +45,8 @@ func DatabaseConnect() (*gorm.DB, error) {
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		NamingStrategy: schema.NamingStrategy{SingularTable: true},
+		NamingStrategy:                           schema.NamingStrategy{SingularTable: true},
+		DisableForeignKeyConstraintWhenMigrating: false,
 	})
 	if err != nil {
 		return nil, err

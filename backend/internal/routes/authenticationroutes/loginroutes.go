@@ -1,8 +1,8 @@
-package authentication
+package authenticationroutes
 
 import (
 	"net/http"
-	controllerauthentication "v-park/internal/controllers/authentication"
+	controllerauthentication "v-park/internal/controllers/authenticationcontroller"
 )
 
 func RegisterLoginRoutes(mux *http.ServeMux, controller *controllerauthentication.LoginPengunjung) {

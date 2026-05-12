@@ -4,44 +4,40 @@ import (
 	"log"
 	"net/http"
 
-<<<<<<< Updated upstream
-	controllerauthentication "v-park/internal/controllers/authentication"
 	database "v-park/internal/database"
-	routesauthentication "v-park/internal/routes/authentication"
-=======
-	controllerauthentication "v-park/internal/controllers/authenticationcontroller"
+
+	authenticationcontroller "v-park/internal/controllers/authenticationcontroller"
 	dashboardcontroller "v-park/internal/controllers/dashboardcontroller"
-	database "v-park/internal/database"
-	routesauthentication "v-park/internal/routes/authenticationroutes"
-	routesdashboard "v-park/internal/routes/dashboardcontroller"
->>>>>>> Stashed changes
+
+	authenticationroutes "v-park/internal/routes/authenticationroutes"
+	dashboardroutes "v-park/internal/routes/dashboardcontroller"
 )
 
 func main() {
 	db, err := database.DatabaseConnect()
 	if err != nil {
+		log.Fatal("Failed to connect database:", err)
 	}
 
 	if err := database.MigrateAllModels(db); err != nil {
+		log.Fatal("Failed to migrate models:", err)
 	}
 
 	mux := http.NewServeMux()
-	loginController := &controllerauthentication.LoginPengunjung{DB: db}
-	routesauthentication.RegisterLoginRoutes(mux, loginController)
 
-<<<<<<< Updated upstream
-	log.Println("API server running on http://localhost:8080")
-=======
-	registrasiController := &controllerauthentication.RegistrasiController{DB: db}
-	routesauthentication.RegisterRegistrasiRoutes(mux, registrasiController)
+	loginController := &authenticationcontroller.LoginPengunjung{DB: db}
+	authenticationroutes.RegisterLoginRoutes(mux, loginController)
+
+	registrasiController := &authenticationcontroller.RegistrasiController{DB: db}
+	authenticationroutes.RegisterRegistrasiRoutes(mux, registrasiController)
 
 	dashboardPengunjungController := &dashboardcontroller.DashboardPengunjungController{DB: db}
-	routesdashboard.RegisterDashboardPengunjungRoutes(mux, dashboardPengunjungController)
+	dashboardroutes.RegisterDashboardPengunjungRoutes(mux, dashboardPengunjungController)
 
 	tempatParkirController := &dashboardcontroller.TempatParkirController{DB: db}
-	routesdashboard.TempatParkirRoutes(mux, tempatParkirController)
+	dashboardroutes.TempatParkirRoutes(mux, tempatParkirController)
 
->>>>>>> Stashed changes
 	if err := http.ListenAndServe(":8080", mux); err != nil {
+		log.Fatal("Server error:", err)
 	}
 }

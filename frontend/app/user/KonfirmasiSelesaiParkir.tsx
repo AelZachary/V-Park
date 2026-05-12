@@ -2,12 +2,12 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 const INITIAL_SECONDS = 0 * 3600 + 0 * 60 + 0;
@@ -153,7 +153,13 @@ export default function KonfirmasiSelesaiParkir() {
         <TouchableOpacity
           style={styles.secondaryButton}
           activeOpacity={0.85}
-          onPress={() => router.push('/user/home')}
+          onPress={() => router.push({
+            pathname: '/user/activity',
+            params: {
+                arrived:'true',
+            }
+          })
+          }
         >
           <Text style={styles.secondaryText}>Belum, Nanti Saja</Text>
         </TouchableOpacity>

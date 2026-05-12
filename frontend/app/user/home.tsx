@@ -5,13 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function HomeScreen() {
@@ -77,7 +77,7 @@ export default function HomeScreen() {
             style={styles.card}
             onPress={() => {
               if (item.name === 'Trans Studio Mall') {
-                router.push('/user/KonfirmasiSelesaiParkir');
+                router.push('./detailLocation');
               }
             }}
           >

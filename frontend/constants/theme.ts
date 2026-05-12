@@ -60,3 +60,16 @@ export const SHADOW = {
     elevation: 4,
   },
 };
+
+export const Colors = {
+  light: {
+    background: COLORS.background,
+    text: COLORS.text,
+    icon: '#111111',
+  },
+  dark: {
+    background: '#111827',
+    text: '#FFFFFF',
+    icon: '#FFFFFF',
+  },
+};

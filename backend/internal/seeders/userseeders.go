@@ -10,6 +10,14 @@ import (
 )
 
 func UsersSeeders(db *gorm.DB) (models.User, models.User) {
+	pengunjungUsers, petugasUsers := UsersBulkSeeders(db)
+	if len(pengunjungUsers) == 0 || len(petugasUsers) == 0 {
+		panic("failed to seed users")
+	}
+	return pengunjungUsers[0], petugasUsers[0]
+}
+
+func UsersBulkSeeders(db *gorm.DB) ([]models.User, []models.User) {
 	password := "password123"
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -17,43 +25,49 @@ func UsersSeeders(db *gorm.DB) (models.User, models.User) {
 		panic(fmt.Sprintf("Failed to hash password: %v", err))
 	}
 
-	// Seed pengunjung user
-	pengunjung := models.User{
-		Username:     "Pengunjung1",
-		Password:     string(hashedPassword),
-		IsPengunjung: true,
-	}
-	if err := db.Where("username = ?", pengunjung.Username).
-		Assign(models.User{
-			Password: string(hashedPassword),
-		}).
-		FirstOrCreate(&pengunjung).Error; err != nil {
-		panic(fmt.Sprintf("Failed to seed pengunjung: %v", err))
+	pengunjungUsers := make([]models.User, 0, 30)
+	for i := 1; i <= 30; i++ {
+		username := fmt.Sprintf("pengunjung_%02d", i)
+		user := models.User{
+			Username:     username,
+			Password:     string(hashedPassword),
+			IsPengunjung: true,
+		}
+
+		if err := db.Where("username = ?", username).
+			Assign(models.User{Password: string(hashedPassword), IsPengunjung: true}).
+			FirstOrCreate(&user).Error; err != nil {
+			panic(fmt.Sprintf("Failed to seed user %s: %v", username, err))
+		}
+
+		if err := db.Where("username = ?", username).First(&user).Error; err != nil {
+			panic(fmt.Sprintf("Failed to load user %s: %v", username, err))
+		}
+
+		pengunjungUsers = append(pengunjungUsers, user)
 	}
 
-	// Refresh pengunjung dari database untuk mendapatkan ID
-	if err := db.Where("username = ?", pengunjung.Username).First(&pengunjung).Error; err != nil {
-		panic(fmt.Sprintf("Failed to load pengunjung: %v", err))
+	petugasUsers := make([]models.User, 0, 12)
+	for i := 1; i <= 12; i++ {
+		username := fmt.Sprintf("petugas_%02d", i)
+		user := models.User{
+			Username:     username,
+			Password:     string(hashedPassword),
+			IsPengunjung: false,
+		}
+
+		if err := db.Where("username = ?", username).
+			Assign(models.User{Password: string(hashedPassword), IsPengunjung: false}).
+			FirstOrCreate(&user).Error; err != nil {
+			panic(fmt.Sprintf("Failed to seed user %s: %v", username, err))
+		}
+
+		if err := db.Where("username = ?", username).First(&user).Error; err != nil {
+			panic(fmt.Sprintf("Failed to load user %s: %v", username, err))
+		}
+
+		petugasUsers = append(petugasUsers, user)
 	}
 
-	// Seed petugas user
-	petugas := models.User{
-		Username:     "Petugas1",
-		Password:     string(hashedPassword),
-		IsPengunjung: false,
-	}
-	if err := db.Where("username = ?", petugas.Username).
-		Assign(models.User{
-			Password: string(hashedPassword),
-		}).
-		FirstOrCreate(&petugas).Error; err != nil {
-		panic(fmt.Sprintf("Failed to seed petugas: %v", err))
-	}
-
-	// Refresh petugas dari database untuk mendapatkan ID
-	if err := db.Where("username = ?", petugas.Username).First(&petugas).Error; err != nil {
-		panic(fmt.Sprintf("Failed to load petugas: %v", err))
-	}
-
-	return pengunjung, petugas
+	return pengunjungUsers, petugasUsers
 }

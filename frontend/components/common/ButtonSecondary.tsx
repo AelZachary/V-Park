@@ -3,21 +3,18 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   ViewStyle,
 } from 'react-native';
 
 type Props = {
   title: string;
   onPress?: () => void;
-  icon?: React.ReactNode;
   style?: ViewStyle;
 };
 
-export default function ButtonPrimary({
+export default function ButtonSecondary({
   title,
   onPress,
-  icon,
   style,
 }: Props) {
   return (
@@ -25,36 +22,24 @@ export default function ButtonPrimary({
       style={[styles.button, style]}
       onPress={onPress}
       activeOpacity={0.85}>
-      {icon ? (
-        <View style={styles.buttonContent}>
-          {icon}
-          <Text style={styles.text}>{title}</Text>
-        </View>
-      ) : (
-        <Text style={styles.text}>{title}</Text>
-      )}
+      <Text style={styles.text}>{title}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#1565C0',
+    borderWidth: 1,
+    borderColor: '#1565C0',
+    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 20,
-    marginTop: 10,
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
   text: {
-    color: '#FFFFFF',
+    color: '#1565C0',
     textAlign: 'center',
     fontWeight: '700',
     fontSize: 14,

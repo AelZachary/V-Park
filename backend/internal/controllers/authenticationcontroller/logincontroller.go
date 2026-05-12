@@ -1,4 +1,4 @@
-package authentication
+package authenticationcontroller
 
 import (
 	"encoding/json"
@@ -16,8 +16,8 @@ type LoginPengunjung struct {
 }
 
 type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"Username"`
+	Password string `json:"Password"`
 }
 
 type PengunjungLoginResponse struct {
