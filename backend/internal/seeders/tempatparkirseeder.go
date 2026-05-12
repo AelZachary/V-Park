@@ -17,6 +17,7 @@ func TempatParkirSeeders(db *gorm.DB, lokasiMallID uint) []models.TempatParkir {
 			samples = append(samples, models.TempatParkir{
 				IDLokasiMall:       lokasiMallID,
 				KodeTempat:         fmt.Sprintf("%s-%02d", zoneCode, n),
+				LokasiTempatParkir: fmt.Sprintf("Zona %s - Blok %d", zoneCode, n),
 				StatusTempatParkir: statuses[(zone+n)%len(statuses)],
 			})
 		}
@@ -30,6 +31,7 @@ func TempatParkirSeeders(db *gorm.DB, lokasiMallID uint) []models.TempatParkir {
 		if err := db.Where("id_lokasi_mall = ? AND kode_tempat = ?", lokasiMallID, sample.KodeTempat).
 			Assign(models.TempatParkir{
 				StatusTempatParkir: sample.StatusTempatParkir,
+				LokasiTempatParkir: sample.LokasiTempatParkir,
 			}).
 			FirstOrCreate(&tempatParkir).Error; err != nil {
 			panic(fmt.Sprintf("Failed to seed tempat parkir %s: %v", sample.KodeTempat, err))

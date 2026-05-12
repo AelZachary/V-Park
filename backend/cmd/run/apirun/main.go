@@ -4,9 +4,13 @@ import (
 	"log"
 	"net/http"
 
-	controllerauthentication "v-park/internal/controllers/authenticationcontroller"
 	database "v-park/internal/database"
-	routesauthentication "v-park/internal/routes/authenticationroutes"
+
+	authenticationcontroller "v-park/internal/controllers/authenticationcontroller"
+	dashboardcontroller "v-park/internal/controllers/dashboardcontroller"
+
+	authenticationroutes "v-park/internal/routes/authenticationroutes"
+	dashboardroutes "v-park/internal/routes/dashboardcontroller"
 )
 
 func main() {
@@ -21,16 +25,17 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	loginController := &controllerauthentication.LoginPengunjung{DB: db}
-	routesauthentication.RegisterLoginRoutes(mux, loginController)
+	loginController := &authenticationcontroller.LoginPengunjung{DB: db}
+	authenticationroutes.RegisterLoginRoutes(mux, loginController)
 
-	registrasiController := &controllerauthentication.RegistrasiController{DB: db}
-	routesauthentication.RegisterRegistrasiRoutes(mux, registrasiController)
+	registrasiController := &authenticationcontroller.RegistrasiController{DB: db}
+	authenticationroutes.RegisterRegistrasiRoutes(mux, registrasiController)
 
-	log.Println("API server running on http://localhost:8080")
-	log.Println("Available endpoints:")
-	log.Println("  POST /api/authentication/login")
-	log.Println("  POST /api/authentication/registrasi")
+	dashboardPengunjungController := &dashboardcontroller.DashboardPengunjungController{DB: db}
+	dashboardroutes.RegisterDashboardPengunjungRoutes(mux, dashboardPengunjungController)
+
+	tempatParkirController := &dashboardcontroller.TempatParkirController{DB: db}
+	dashboardroutes.TempatParkirRoutes(mux, tempatParkirController)
 
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal("Server error:", err)
