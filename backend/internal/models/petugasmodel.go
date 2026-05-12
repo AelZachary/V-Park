@@ -8,4 +8,6 @@ type Petugas struct {
 	MallBertugas         string    `gorm:"type:varchar(50); not null"`
 	ShiftMulaiBertugas   time.Time `gorm:"not null"`
 	ShiftSelesaiBertugas time.Time `gorm:"not null"`
+
+	Monitoring []Monitoring `gorm:"foreignKey:IDPetugas;references:IDPetugas"`
 }
