@@ -232,9 +232,7 @@ export default function KonfirmasiKedatangan() {
         {/* Hero Image */}
         <View style={styles.heroContainer}>
           <Image
-            source={{
-              uri: 'https://api.builder.io/api/v1/image/assets/TEMP/98f1b0cad281935f3def159832d8ca1473bb9b9f?width=738',
-            }}
+            source={require('../../assets/images/Rectangle-4010.png')}
             style={styles.heroImage}
             resizeMode="cover"
           />

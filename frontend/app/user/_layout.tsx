@@ -11,6 +11,7 @@ export default function UserLayout() {
   const hideNavbarPage = [
     '/user/KonfirmasiSelesaiParkir',
     '/user/konfirmasiKedatangan',
+    '/user/detailLocation',
   ];
 
   /* CEK APAKAH NAVBAR DISSEMBUNYIKAN */
