@@ -1,4 +1,7 @@
+import ActivityTabs from '@/components/navigation/ActivityTabs';
 import BottomNavbar from '@/components/navigation/BottomNavbar';
+import HeaderActivity from '@/components/navigation/HeaderActivity';
+
 import { Stack, usePathname } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
@@ -18,6 +21,11 @@ export default function UserLayout() {
   const shouldHideNavbar =
     hideNavbarPage.includes(pathname);
 
+  /* CEK HALAMAN ACTIVITY */
+  const isActivityPage =
+    pathname.includes('activity');
+
+  /* ACTIVE TAB NAVBAR */
   const getActiveTab = () => {
 
     if (pathname.includes('profile')) {
@@ -31,12 +39,51 @@ export default function UserLayout() {
     return 'home';
   };
 
+  /* ACTIVE TAB ACTIVITY */
+  const getActivityTab = () => {
+
+    if (pathname.includes('activityHistory')) {
+      return 'history';
+    }
+
+    if (pathname.includes('activityCancelled')) {
+      return 'cancelled';
+    }
+
+    return 'aktif';
+  };
+
   return (
-    <View style={{ flex: 1 }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#EEF4FA',
+      }}
+    >
 
-      <Stack screenOptions={{ headerShown: false }} />
+      {/* HEADER + TABS KHUSUS ACTIVITY */}
+      {isActivityPage && (
+        <>
+          <HeaderActivity />
 
-      {/* NAVBAR */}
+          <ActivityTabs
+            active={getActivityTab()}
+          />
+        </>
+      )}
+
+      {/* SCREEN */}
+      <Stack
+        screenOptions={{
+          headerShown: false,
+
+          contentStyle: {
+            backgroundColor: '#EEF4FA',
+          },
+        }}
+      />
+
+      {/* BOTTOM NAVBAR */}
       {!shouldHideNavbar && (
         <BottomNavbar active={getActiveTab()} />
       )}

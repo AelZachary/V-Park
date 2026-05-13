@@ -56,7 +56,7 @@ export default function BottomNavbar({ active }: Props) {
         style={styles.navItem}
         onPress={() => {
           if (active !== 'home') {
-            router.push('/user/home');
+            router.replace('/user/home');
           }
         }}
       >
@@ -84,7 +84,7 @@ export default function BottomNavbar({ active }: Props) {
         style={styles.navItem}
         onPress={() => {
           if (active !== 'activity') {
-            router.push('/user/activity');
+            router.replace('/user/activity');
           }
         }}
       >
@@ -112,7 +112,7 @@ export default function BottomNavbar({ active }: Props) {
         style={styles.navItem}
         onPress={() => {
           if (active !== 'profile') {
-            router.push('/user/profile');
+            router.replace('/user/profile');
           }
         }}
       >
