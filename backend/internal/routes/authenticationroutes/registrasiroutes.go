@@ -6,5 +6,5 @@ import (
 )
 
 func RegisterRegistrasiRoutes(mux *http.ServeMux, controller *controllerauth.RegistrasiController) {
-	mux.HandleFunc("POST /api/authentication/registrasi", controller.RegistrasiHandler)
+	mux.HandleFunc("/api/authentication/registrasi", controller.RegistrasiHandler)
 }
