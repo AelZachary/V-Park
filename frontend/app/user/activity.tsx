@@ -1,14 +1,12 @@
-import ActivityTabs from '@/components/navigation/ActivityTabs';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 
 export default function ActivityScreen(){
@@ -59,18 +57,6 @@ export default function ActivityScreen(){
   
   return (
     <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Image
-          source={require('../../assets/images/V-Park.png')}
-          style={styles.logo}
-        />
-        <Text style={styles.title}>Activity</Text>
-      </View>
-
-      {/* TAB */}
-      <ActivityTabs active="aktif"/>
-
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{paddingBottom: 120}}
@@ -309,30 +295,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1, 
      backgroundColor: '#EEF4FA',
-     paddingTop: 50, 
   },  
 
-  header: {
-    height: 50, 
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    marginBottom: 15,
-  },
-
-  logo: {
-    width: 57,
-    height: 66,
-    resizeMode: 'contain',
-    position: 'absolute',
-    left: 20,
-  }, 
-
-  title: {
-    fontSize: 20, 
-    fontWeight: '800',
-    color: '#1565C0',
-  },
+  
 
   sectionTitle: {
     fontSize: 18,
