@@ -273,11 +273,9 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontFamily: 'Poppins',
-    fontWeight: '700',
     fontSize: 20,
+    fontWeight: '700',
     color: '#1565C0',
-    lineHeight: 22,
   },
   headerSpacer: {
     width: 35,

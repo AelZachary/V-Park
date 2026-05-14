@@ -223,6 +223,7 @@ export default function KonfirmasiKedatangan() {
           <Ionicons name="chevron-back" size={28} color="#1565C0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Konfirmasi Kedatangan</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView
@@ -353,13 +354,20 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   backBtn: {
-    padding: 4,
+    width: 35,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
+    flex: 1,
+    textAlign: 'center',
     fontSize: 20,
     fontWeight: '700',
     color: '#1565C0',
-    marginLeft: 4,
+  },
+  headerSpacer: {
+    width: 35,
   },
 
   scrollContent: {

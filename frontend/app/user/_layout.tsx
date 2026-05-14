@@ -15,6 +15,8 @@ export default function UserLayout() {
     '/user/KonfirmasiSelesaiParkir',
     '/user/konfirmasiKedatangan',
     '/user/detailLocation',
+    '/user/payment',
+    '/user/paymentSuccessful',
   ];
 
   /* CEK APAKAH NAVBAR DISSEMBUNYIKAN */

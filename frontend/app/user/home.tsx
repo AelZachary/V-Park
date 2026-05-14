@@ -78,6 +78,10 @@ export default function HomeScreen() {
             onPress={() => {
               if (item.name === 'Trans Studio Mall') {
                 router.push('./detailLocation');
+              } else if (item.name === 'Phinisi Point Mall') {
+                router.push('./paymentSuccessful');
+              } else if (item.name === 'Manado Town Square') {
+                router.push('./paymentProcessing');
               }
             }}
           >
