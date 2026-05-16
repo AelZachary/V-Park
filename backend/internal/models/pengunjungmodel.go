@@ -6,4 +6,6 @@ type Pengunjung struct {
 	NoHandphone    string `gorm:"type:varchar(30); not null"`
 	JenisKendaraan string `gorm:"type:varchar(50); null"`
 	PlatKendaraan  string `gorm:"type:varchar(10); null"`
+
+	Booking []Booking `gorm:"foreignKey:IDPengunjung;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }

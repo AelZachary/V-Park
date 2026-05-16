@@ -14,6 +14,9 @@ func MigrateAllModels(db *gorm.DB) error {
 		&models.LokasiMall{},
 		&models.TempatParkir{},
 		&models.Monitoring{},
+		&models.Booking{},
+		&models.RiwayatBooking{},
+		&models.Pembayaran{},
 	); err != nil {
 		return err
 	}
@@ -27,6 +30,10 @@ func MigrateAllModels(db *gorm.DB) error {
 		{model: &models.TempatParkir{}, name: "LokasiMall"},
 		{model: &models.Monitoring{}, name: "Petugas"},
 		{model: &models.Monitoring{}, name: "TempatParkir"},
+		{model: &models.Booking{}, name: "Pengunjung"},
+		{model: &models.Booking{}, name: "TempatParkir"},
+		{model: &models.RiwayatBooking{}, name: "Booking"},
+		{model: &models.Pembayaran{}, name: "Booking"},
 	}
 
 	for _, item := range constraints {

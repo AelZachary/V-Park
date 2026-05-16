@@ -41,6 +41,10 @@ func SeedAllSeeders(db *gorm.DB) error {
 
 		seeders.MonitoringBulkSeeders(tx, petugasIDs, allTempatParkir)
 
+		bookings := seeders.BookingBulkSeeders(tx, pengunjungIDs, allTempatParkir)
+		riwayats := seeders.RiwayatBookingBulkSeeders(tx, bookings)
+		seeders.PembayaranBulkSeeders(tx, riwayats)
+
 		return nil
 
 	}); err != nil {
