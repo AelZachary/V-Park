@@ -8,9 +8,11 @@ import (
 
 	authenticationcontroller "v-park/internal/controllers/authenticationcontroller"
 	dashboardcontroller "v-park/internal/controllers/dashboardcontroller"
+	statuscontroller "v-park/internal/controllers/statustempatparkircontroller"
 
 	authenticationroutes "v-park/internal/routes/authenticationroutes"
-	dashboardroutes "v-park/internal/routes/dashboardcontroller"
+	dashboardroutes "v-park/internal/routes/dashboardroutes"
+	statusroutes "v-park/internal/routes/statustempatparkirroutes"
 )
 
 func main() {
@@ -36,6 +38,9 @@ func main() {
 
 	tempatParkirController := &dashboardcontroller.TempatParkirController{DB: db}
 	dashboardroutes.TempatParkirRoutes(mux, tempatParkirController)
+
+	bookingPengunjungController := &statuscontroller.BookingPengunjungController{DB: db}
+	statusroutes.RegisterBookingPengunjungRoutes(mux, bookingPengunjungController)
 
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal("Server error:", err)
