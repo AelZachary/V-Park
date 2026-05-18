@@ -17,6 +17,7 @@ export default function UserLayout() {
     '/user/detailLocation',
     '/user/payment',
     '/user/paymentSuccessful',
+    '/user/selectParkingSpot',
   ];
 
   /* CEK APAKAH NAVBAR DISSEMBUNYIKAN */
