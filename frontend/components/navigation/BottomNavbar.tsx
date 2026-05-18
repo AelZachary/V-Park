@@ -39,118 +39,131 @@ export default function BottomNavbar({ active }: Props) {
     }
   }
   return (
-    <View style={styles.bottomNav}>
+    <View style={styles.bottomWrapper}>
+      <View style={styles.bottomNav}>
 
-      {/* ACTIVE BUBBLE */}
-      <Animated.View
-        style={[
-          styles.activeBubble,
-          {
-            transform: [{ translateX: getPosition() }],
-          },
-        ]}
-      />
-
-      {/* HOME */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => {
-          if (active !== 'home') {
-            router.replace('/user/home');
-          }
-        }}
-      >
-
-        <Ionicons
-          name="home-outline"
-          size={24}
-          color={active === 'home' ? '#fff' : '#1565C0'}
+        {/* ACTIVE BUBBLE */}
+        <Animated.View
+          style={[
+            styles.activeBubble,
+            {
+              transform: [{ translateX: getPosition() }],
+            },
+          ]}
         />
 
-        <Text
-          style={
-            active === 'home'
-              ? styles.activeText
-              : styles.inactiveText
-          }
+        {/* HOME */}
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => {
+            if (active !== 'home') {
+              router.replace('/user/home');
+            }
+          }}
         >
-          Home
-        </Text>
 
-      </TouchableOpacity>
+          <Ionicons
+            name="home-outline"
+            size={24}
+            color={active === 'home' ? '#fff' : '#1565C0'}
+          />
 
-      {/* ACTIVITY */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => {
-          if (active !== 'activity') {
-            router.replace('/user/activity');
-          }
-        }}
-      >
+          <Text
+            style={
+              active === 'home'
+                ? styles.activeText
+                : styles.inactiveText
+            }
+          >
+            Home
+          </Text>
 
-        <Ionicons
-          name="time-outline"
-          size={24}
-          color={active === 'activity' ? '#fff' : '#1565C0'}
-        />
+        </TouchableOpacity>
 
-        <Text
-          style={
-            active === 'activity'
-              ? styles.activeText
-              : styles.inactiveText
-          }
+        {/* ACTIVITY */}
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => {
+            if (active !== 'activity') {
+              router.replace('/user/activity');
+            }
+          }}
         >
-          Activity
-        </Text>
 
-      </TouchableOpacity>
+          <Ionicons
+            name="time-outline"
+            size={24}
+            color={active === 'activity' ? '#fff' : '#1565C0'}
+          />
 
-      {/* PROFILE */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => {
-          if (active !== 'profile') {
-            router.replace('/user/profile');
-          }
-        }}
-      >
+          <Text
+            style={
+              active === 'activity'
+                ? styles.activeText
+                : styles.inactiveText
+            }
+          >
+            Activity
+          </Text>
 
-        <Ionicons
-          name="person-outline"
-          size={24}
-          color={active === 'profile' ? '#fff' : '#1565C0'}
-        />
+        </TouchableOpacity>
 
-        <Text
-          style={
-            active === 'profile'
-              ? styles.activeText
-              : styles.inactiveText
-          }
+        {/* PROFILE */}
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => {
+            if (active !== 'profile') {
+              router.replace('/user/profile');
+            }
+          }}
         >
-          Profile
-        </Text>
 
-      </TouchableOpacity>
+          <Ionicons
+            name="person-outline"
+            size={24}
+            color={active === 'profile' ? '#fff' : '#1565C0'}
+          />
 
+          <Text
+            style={
+              active === 'profile'
+                ? styles.activeText
+                : styles.inactiveText
+            }
+          >
+            Profile
+          </Text>
+
+        </TouchableOpacity>
+
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
 
-  bottomNav: {
+  bottomWrapper: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
+    bottom: 0,
+    left: 0,
+    right: 0,
 
+    backgroundColor: '#F3F8FD',
+
+    paddingBottom: 30,
+    paddingTop: 8,
+
+    alignItems: 'center',
+  },
+
+  bottomNav: {
+    width: '90%',
     height: 72,
 
     flexDirection: 'row',
     backgroundColor: '#D9ECFF',
+
     borderRadius: 40,
     padding: 6,
     alignItems: 'center',
@@ -199,5 +212,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 3,
   },
-
 });
