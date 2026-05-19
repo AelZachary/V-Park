@@ -114,6 +114,15 @@ func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.Resp
 			return err
 		}
 
+		riwayat := models.RiwayatBooking{
+			IDBooking:     booking.IDBooking,
+			StatusBooking: "MenungguKonfirmasi",
+		}
+
+		if err := tx.Create(&riwayat).Error; err != nil {
+			return err
+		}
+
 		if err := tx.Model(&models.TempatParkir{}).
 			Where("id_tempat_parkir = ?", req.IDTempatParkir).
 			Update("status_tempat_parkir", "BookingOnline").Error; err != nil {
@@ -140,6 +149,9 @@ func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.Resp
 				AlamatLokasi: lokasiMall.AlamatLokasi,
 			},
 		}
+
+		txHeader := fmt.Sprintf("%d", riwayat.IDRiwayatBooking)
+		w.Header().Set("X-Riwayat-ID", txHeader)
 
 		return nil
 	}); err != nil {
