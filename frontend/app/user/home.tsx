@@ -62,7 +62,7 @@ export default function HomeScreen() {
             style={styles.card}
             onPress={() => {
               if (item.name === 'Ground Floor') {
-                router.push('/staff/confirmParkingSpot');
+                router.push('/user/selectParkingSpot');
               }
             }}
           >
