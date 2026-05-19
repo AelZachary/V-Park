@@ -9,8 +9,8 @@ import P3 from '@/components/booking/floors/P3';
 import P4 from '@/components/booking/floors/P4';
 
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -19,14 +19,27 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import GroundFloorA from '@/components/booking/floors/GroundFloorA';
 
 export default function SelectParkingSpot() {
   const handlePressBack = () => {
     router.back();
   };
 
+  const params = useLocalSearchParams();
+
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [selectedFloor, setSelectedFloor] = useState('Ground Floor');
+  const [selectedFloor, setSelectedFloor] = useState<string>(
+    (params.initialFloor as string) || 'Ground Floor'
+  );
+
+  // dropdown dan layout di dalam sini ikut ter-update secara otomatis.
+  useEffect(() => {
+    if (params.initialFloor) {
+      setSelectedFloor(params.initialFloor as string);
+      setSelectedSlot(null); // Reset slot terpilih jika lantai berubah dari luar
+    }
+  }, [params.initialFloor]);
 
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (currentStatus === 'available') {
@@ -41,15 +54,15 @@ export default function SelectParkingSpot() {
   const floorOptions = [
     'Ground Floor',
     'Ground Floor - Area A',
-    'Lantai 1',
-    'Lantai 1 - Area A',
-    'Lantai 2',
-    'Lantai 2 - Area A',
-    'Lantai 3',
-    'Lantai 3 - Area A',
-    'Lantai 4',
-    'Lantai 4 - Area A',
-    'Lantai 5'
+    'Lantai P1',
+    'Lantai P1 - Area A',
+    'Lantai P2',
+    'Lantai P2 - Area A',
+    'Lantai P3',
+    'Lantai P3 - Area A',
+    'Lantai P4',
+    'Lantai P4 - Area A',
+    'Lantai P5'
   ];
 
   // 2. FUNGSI UNTUK MENENTUKAN KOMPONEN BERDASARKAN LANTAI YANG DIPILIH
@@ -62,28 +75,37 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot} 
           />
         );
-      case 'Lantai 2':
+
+      case 'Ground Floor - Area A':
+        return (
+          <GroundFloorA 
+            selectedSlot={selectedSlot} 
+            onSelectSlot={handleSelectSlot} 
+          />
+        );
+
+      case 'Lantai P2':
         return (
           <P2
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
           />
         );
-      case 'Lantai 3':
+      case 'Lantai P3':
         return (
           <P3
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
           />
         );
-      case 'Lantai 4':
+      case 'Lantai P4':
         return (
           <P4
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
           />
         );
-      case 'Lantai 4 - Area A':
+      case 'Lantai P4 - Area A':
         return (
           <P4A
             selectedSlot={selectedSlot}
