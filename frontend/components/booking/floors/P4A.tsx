@@ -102,8 +102,6 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
-          <View style={styles.spacerSlot} />
-          <View style={styles.spacerSlot} />
           <Text style={styles.floorText}>P4A</Text>
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
@@ -114,7 +112,9 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
-          <Text style={styles.floorText}>P4</Text>
+          <Text style={styles.floorText}>P4A</Text>
+          <View style={styles.spacerSlot} />
+          <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     height: 110,
     backgroundColor: '#fff',
     position: 'absolute',
-    top: 540,
+    top: 490,
     left: 68  ,
   },
   leftBranchLine: {
@@ -329,11 +329,11 @@ const styles = StyleSheet.create({
   bottomArrowHead2: {
     position: 'absolute',
     bottom: 120.5,
-    right: 3,
+    right: 3,   
   },
   bottomArrowHead3: {
     position: 'absolute',
-    top: 523  ,
+    top: 473  ,
     left: 58.8,
   },
   bottomArrow: {
