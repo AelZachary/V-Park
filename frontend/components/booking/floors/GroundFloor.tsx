@@ -6,6 +6,7 @@ import ParkingSlot from '../ParkingSlot'; // Sesuaikan path jika berbeda
 type SlotStatus = 'available' | 'selected' | 'manual' | 'online' | 'occupied';
 
 type FloorProps = {
+  selectedSlot?: string | null;
   onSelectSlot: (slotId: string, currentStatus: string) => void;
   slotStatuses?: Record<string, SlotStatus>;
 };
@@ -13,16 +14,21 @@ type FloorProps = {
 const resolveSlotStatus = (
   slot: string,
   baseStatus: SlotStatus,
-  slotStatuses?: Record<string, SlotStatus>
+  slotStatuses?: Record<string, SlotStatus>,
+  selectedSlot?: string | null
 ) => {
   if (slotStatuses && slot in slotStatuses) {
     return slotStatuses[slot];
   }
 
+  if (selectedSlot === slot) {
+    return 'selected';
+  }
+
   return baseStatus;
 };
 
-export default function GroundFloor({ onSelectSlot, slotStatuses }: FloorProps) {
+export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }: FloorProps) {
   return (
     <View style={styles.parkingLayout}>
       <View style={styles.rowGroup}>
