@@ -3,6 +3,7 @@ import LegendItem from '@/components/booking/LegendItem';
 
 // 1. IMPORT KOMPONEN LANTAI BARU KAMU DI SINI
 import GroundFloor from '@/components/booking/floors/GroundFloor';
+import P2 from '@/components/booking/floors/P2';
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -27,12 +28,12 @@ export default function SelectParkingSpot() {
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (currentStatus === 'available') {
       if (selectedSlot === slotId) {
-        setSelectedSlot(null);
-      } else {
-        setSelectedSlot(slotId);
-      }
-    }
-  };
+        setSelectedSlot(null); 
+      } else { 
+        setSelectedSlot(slotId); 
+      } 
+    } 
+  }; 
 
   const floorOptions = [
     'Ground Floor',
@@ -56,6 +57,14 @@ export default function SelectParkingSpot() {
           <GroundFloor 
             selectedSlot={selectedSlot} 
             onSelectSlot={handleSelectSlot} 
+          />
+        );
+      case 'Lantai 2':
+      case 'Lantai 2 - Area A':
+        return (
+          <P2
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
           />
         );
       // Nanti untuk lantai lain tinggal tambahkan case baru di sini:

@@ -22,8 +22,7 @@ import { router } from 'expo-router';
 const TRANSACTION = {
   noOrder: '1876543234567876',
   lokasi: 'Trans Studio Mall Makassar',
-  area: 'Basement',
-  slot: 'C4',
+  area: 'Ground Floor',
   platKendaraan: 'DD 2605 TA',
   waktuTiba: '20 Mar 2024, 19:28',
   durasi: '4 Jam',
@@ -36,7 +35,6 @@ const DETAIL_ROWS = [
   { label: 'No. Order', value: TRANSACTION.noOrder },
   { label: 'Lokasi', value: TRANSACTION.lokasi },
   { label: 'Area', value: TRANSACTION.area },
-  { label: 'Slot', value: TRANSACTION.slot },
   { label: 'Plat Kendaraan', value: TRANSACTION.platKendaraan },
   { label: 'Waktu Tiba', value: TRANSACTION.waktuTiba },
   { label: 'Durasi', value: TRANSACTION.durasi },

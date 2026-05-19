@@ -15,7 +15,7 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const TRANSACTION = {
   lokasi: 'Trans Studio Mall Makassar',
-  slotParkir: 'C4',
+  slotParkir: 'Ground Floor',
   totalPembayaran: 'Rp 20.000',
 };
 
@@ -258,7 +258,7 @@ export default function MemprosesPembayaran() {
           </View>
 
           <View style={styles.biayaRow}>
-            <Text style={styles.biayaLabel}>Slot Parkir</Text>
+            <Text style={styles.biayaLabel}>Area</Text>
             <Text style={styles.biayaValue}>{TRANSACTION.slotParkir}</Text>
           </View>
 
