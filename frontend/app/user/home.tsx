@@ -61,7 +61,7 @@ export default function HomeScreen() {
             key={index}
             style={styles.card}
             onPress={() => {
-              if (item.name === 'Ground Floor' || item.name === 'Ground Floor - Area A' || item.name === 'Lantai P2' || item.name === 'Lantai P3' || item.name === 'Lantai P4' || item.name === 'Lantai P4A') {
+              if (item.name === 'Ground Floor' || item.name === 'Ground Floor - Area A' || item.name === 'Lantai P1' || item.name === 'Lantai P1 - Area A' || item.name === 'Lantai P2' || item.name === 'Lantai P2 - Area A' || item.name === 'Lantai P3' || item.name === 'Lantai P3 - Area A' || item.name === 'Lantai P4' || item.name === 'Lantai P4 - Area A' || item.name === 'Lantai P4A' || item.name === 'Lantai P5') {
                 router.push({
                   pathname: '/user/selectParkingSpot',
                   params: { initialFloor: item.name }
