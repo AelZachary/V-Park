@@ -41,7 +41,7 @@ export default function HomeScreen() {
         <View style={styles.searchBox}>
           <Ionicons name="search" size={18} color="#666" />
           <TextInput
-            placeholder="Cari lokasi tempat parkir"
+            placeholder="Cari mall atau lokasi"
             style={styles.searchInput}
             value={search}
             onChangeText={setSearch}
@@ -61,8 +61,11 @@ export default function HomeScreen() {
             key={index}
             style={styles.card}
             onPress={() => {
-              if (item.name === 'Ground Floor') {
-                router.push('/user/selectParkingSpot');
+              if (item.name === 'Ground Floor' || item.name === 'Ground Floor - Area A' || item.name === 'Lantai P2') {
+                router.push({
+                  pathname: '/user/selectParkingSpot',
+                  params: { initialFloor: item.name }
+                });
               }
             }}
           >

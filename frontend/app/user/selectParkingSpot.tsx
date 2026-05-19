@@ -3,11 +3,12 @@ import LegendItem from '@/components/booking/LegendItem';
 
 // 1. IMPORT KOMPONEN LANTAI BARU KAMU DI SINI
 import GroundFloor from '@/components/booking/floors/GroundFloor';
+import GroundFloorA from '@/components/booking/floors/GroundFloorA';
 import P2 from '@/components/booking/floors/P2';
 
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -22,31 +23,43 @@ export default function SelectParkingSpot() {
     router.back();
   };
 
+  const params = useLocalSearchParams();
+
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [selectedFloor, setSelectedFloor] = useState('Ground Floor');
+  const [selectedFloor, setSelectedFloor] = useState<string>(
+    (params.initialFloor as string) || 'Ground Floor'
+  );
+
+  // dropdown dan layout di dalam sini ikut ter-update secara otomatis.
+  useEffect(() => {
+    if (params.initialFloor) {
+      setSelectedFloor(params.initialFloor as string);
+      setSelectedSlot(null); // Reset slot terpilih jika lantai berubah dari luar
+    }
+  }, [params.initialFloor]);
 
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (currentStatus === 'available') {
       if (selectedSlot === slotId) {
-        setSelectedSlot(null); 
-      } else { 
-        setSelectedSlot(slotId); 
-      } 
-    } 
-  }; 
+        setSelectedSlot(null);
+      } else {
+        setSelectedSlot(slotId);
+      }
+    }
+  };
 
   const floorOptions = [
     'Ground Floor',
     'Ground Floor - Area A',
-    'Lantai 1',
-    'Lantai 1 - Area A',
-    'Lantai 2',
-    'Lantai 2 - Area A',
-    'Lantai 3',
-    'Lantai 3 - Area A',
-    'Lantai 4',
-    'Lantai 4 - Area A',
-    'Lantai 5'
+    'Lantai P1',
+    'Lantai P1 - Area A',
+    'Lantai P2',
+    'Lantai P2 - Area A',
+    'Lantai P3',
+    'Lantai P3 - Area A',
+    'Lantai P4',
+    'Lantai P4 - Area A',
+    'Lantai P5'
   ];
 
   // 2. FUNGSI UNTUK MENENTUKAN KOMPONEN BERDASARKAN LANTAI YANG DIPILIH
@@ -59,21 +72,28 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot} 
           />
         );
-      case 'Lantai 2':
-      case 'Lantai 2 - Area A':
+      case 'Lantai P2':
+      case 'Lantai P2 - Area A':
         return (
           <P2
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
           />
         );
-      // Nanti untuk lantai lain tinggal tambahkan case baru di sini:
-      // case 'Lantai 1':
-      //   return <Lantai1 selectedSlot={selectedSlot} onSelectSlot={handleSelectSlot} />;
+      case 'Ground Floor - Area A':
+        return (
+          <GroundFloorA 
+            selectedSlot={selectedSlot} 
+            onSelectSlot={handleSelectSlot} 
+          />
+        );
+
       default:
         return (
           <View style={{ padding: 20 }}>
-            <Text style={{ color: '#fff', textAlign: 'center' }}>Layout untuk {selectedFloor} belum dibuat.</Text>
+            <Text style={{ color: '#fff', textAlign: 'center' }}>
+              Layout untuk {selectedFloor} belum dibuat.
+            </Text>
           </View>
         );
     }
@@ -105,7 +125,7 @@ export default function SelectParkingSpot() {
             selectedValue={selectedFloor}
             onValueChange={(value) => {
               setSelectedFloor(value);
-              setSelectedSlot(null); // Reset pilihan slot saat ganti lantai
+              setSelectedSlot(null); // Reset pilihan slot saat ganti lantai di dalam dropdown
             }}
           />
         </View>
@@ -129,7 +149,6 @@ export default function SelectParkingSpot() {
       >
         <View style={styles.mapContainer}>
           
-          {/* 👇 PANGGIL LOGIKA RENDER DINAMISNYA DI SINI */}
           {renderFloorLayout()}
           
         </View>
@@ -304,55 +323,55 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: '#FFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28, // Disesuaikan lengkungan halus sesuai Figma barumu
+    borderTopRightRadius: 28,
     paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 30,
+    paddingTop: 24,
+    paddingBottom: 34,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
     elevation: 10,
     borderWidth: 1.5,
-    borderColor: '#ECEFF1',
+    borderColor: '#E3F2FD',
   },
   popupHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start', // Diubah agar judul rapat berdampingan dengan badge status
     alignItems: 'center',
+    gap: 12,
     marginBottom: 6,
   },
   popupTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#1A237E',
+    color: '#1565C0',
   },
-
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6, // Jarak antara bulatan hijau dengan tulisan "Tersedia"
+    gap: 6,
   },
   statusDot: {
-    width: 20, // Ukuran dot hijau bulat pas sesuai gambar figma
+    width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#7BC67B', // Hijau indikator tersedia
+    backgroundColor: '#7BC67B',
   },
   statusText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#7BC67B', // Tulisan "Tersedia" berwarna hijau tebal
+    color: '#7BC67B',
   },
   popupDividerLine: {
     height: 1.5,
-    backgroundColor: '#B0BEC5', // Garis abu-abu pembatas horizontal tengah
+    backgroundColor: '#B0BEC5',
     width: '100%',
     marginVertical: 10,
   },
   popupSubDesc: {
     fontSize: 15,
-    color: '#1565C0', // Warna biru soft untuk sub deskripsi lokasi
+    color: '#1565C0',
     fontWeight: '500',
     marginBottom: 20,
   },

@@ -317,7 +317,7 @@ export default function KonfirmasiKedatangan() {
           style={styles.confirmButton} 
           activeOpacity={0.85} 
           onPress={() =>
-                router.push('/user/konfirmasiSelesaiParkir')}
+                router.push('/user/KonfirmasiSelesaiParkir')}
         >
           <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
           <Text style={styles.confirmText}>Ya, Saya sudah Tiba di Mall</Text>
