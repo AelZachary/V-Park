@@ -169,9 +169,12 @@ export default function PembayaranQris() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Scan QR untuk Membayar</Text>
 
-          <View style={styles.qrWrapper}>
+          <TouchableOpacity 
+            style={styles.qrWrapper}
+            onPress={() => router.push('/user/paymentProcessing')}
+          >
             <Image source={QR_IMAGE} style={styles.qrImage} resizeMode="contain" />
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.qrisLabelRow}>
             <Image source={QRIS_LOGO} style={styles.qrisLogo} resizeMode="contain" />
@@ -325,21 +328,18 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   timerLabel: {
-    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 10,
     color: '#9D6C23',
     lineHeight: 14,
   },
   timerValue: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 16,
     color: '#FEAB42',
     lineHeight: 22,
   },
   timerWarning: {
-    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 10,
     color: '#9D6C23',
@@ -363,7 +363,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardTitle: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 16,
     color: '#1565C0',
@@ -377,14 +376,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   paymentLabel: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 14,
     color: '#1565C0',
     lineHeight: 22,
   },
   paymentAmount: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 28,
     color: '#000',
@@ -397,7 +394,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   detailToggleText: {
-    fontFamily: 'Poppins',
     fontWeight: '600',
     fontSize: 12,
     color: '#1565C0',
@@ -416,7 +412,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   feeLabel: {
-    fontFamily: 'Poppins',
     fontWeight: '600',
     fontSize: 12,
     color: '#1565C0',
@@ -424,7 +419,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.12,
   },
   feeValue: {
-    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 12,
     color: '#000',
@@ -467,7 +461,6 @@ const styles = StyleSheet.create({
     height: 15,
   },
   qrisLabelText: {
-    fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 10,
     color: '#000',
@@ -485,7 +478,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   paymentMethodsTitle: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 12,
     color: '#1565C0',
@@ -519,7 +511,6 @@ const styles = StyleSheet.create({
     height: 22,
   },
   paymentMethodLabel: {
-    fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 7,
     color: '#000',
@@ -527,7 +518,6 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   andMoreText: {
-    fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 9,
     color: '#000',
@@ -563,14 +553,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepNumber: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 8,
     color: '#000',
     marginTop: 2,
   },
   stepLabel: {
-    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 9,
     color: '#000',
@@ -599,7 +587,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   securityText: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 12,
     color: '#81C784',
@@ -620,7 +607,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   refreshButtonText: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 12,
     color: '#1565C0',
