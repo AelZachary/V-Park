@@ -35,7 +35,7 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
         
         {/* ========== LEFT SIDE COLUMN ========== */}
         <View style={styles.sideColumn}>
-          {/* BLOK 1: A1, A2, spacer */}
+          {/* BLOK 1: A1, A2, spacer */} 
           <View style={styles.groupDividerLeft} />
           <View style={styles.block3Rows}>
             <ParkingSlot slot="A1" status={resolveSlotStatus("A1", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A1", resolveSlotStatus("A1", "manual", slotStatuses))} />
@@ -166,7 +166,8 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
           <View style={styles.leftBranchLine3} />
           <View style={styles.leftBranchLine4} />
           <View style={styles.mainVerticalLine2  } />
-          <Ionicons name="caret-up" size={24} color="#fff" style={styles.topArrowHead2} />
+          <Ionicons name="caret-back" size={24} color="#fff" style={styles.topArrowHead2} />
+          <Ionicons name="caret-back" size={24} color="#fff" style={styles.topArrowHead3} />
           <Ionicons name="caret-down" size={24} color="#fff" style={styles.bottomArrowHead2} />
           
         </View>
@@ -403,8 +404,13 @@ const styles = StyleSheet.create({
   },
   topArrowHead2: {
     position: 'absolute',
-    bottom: 110,
-    left: 58.8,
+    bottom: 82.5,
+    left: 5,
+  },
+  topArrowHead3: {
+    position: 'absolute',
+    bottom: 20,
+    left: 5,
   },
   bottomArrowHead2: {
     position: 'absolute',
