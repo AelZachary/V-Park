@@ -7,6 +7,7 @@ import P2 from '@/components/booking/floors/P2';
 import P4A from '@/components/booking/floors/P4A';
 import P3 from '@/components/booking/floors/P3';
 import P4 from '@/components/booking/floors/P4';
+import P5 from '@/components/booking/floors/P5';
 
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -108,6 +109,13 @@ export default function SelectParkingSpot() {
       case 'Lantai P4 - Area A':
         return (
           <P4A
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
+          />
+        );
+      case 'Lantai 5':
+        return (
+          <P5
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
           />
