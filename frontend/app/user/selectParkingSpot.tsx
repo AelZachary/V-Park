@@ -4,6 +4,9 @@ import LegendItem from '@/components/booking/LegendItem';
 // 1. IMPORT KOMPONEN LANTAI BARU KAMU DI SINI
 import GroundFloor from '@/components/booking/floors/GroundFloor';
 import P2 from '@/components/booking/floors/P2';
+import P4A from '@/components/booking/floors/P4A';
+import P3 from '@/components/booking/floors/P3';
+import P4 from '@/components/booking/floors/P4';
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -60,16 +63,33 @@ export default function SelectParkingSpot() {
           />
         );
       case 'Lantai 2':
-      case 'Lantai 2 - Area A':
         return (
           <P2
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
           />
         );
-      // Nanti untuk lantai lain tinggal tambahkan case baru di sini:
-      // case 'Lantai 1':
-      //   return <Lantai1 selectedSlot={selectedSlot} onSelectSlot={handleSelectSlot} />;
+      case 'Lantai 3':
+        return (
+          <P3
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
+          />
+        );
+      case 'Lantai 4':
+        return (
+          <P4
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
+          />
+        );
+      case 'Lantai 4 - Area A':
+        return (
+          <P4A
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
+          />
+        );
       default:
         return (
           <View style={{ padding: 20 }}>
