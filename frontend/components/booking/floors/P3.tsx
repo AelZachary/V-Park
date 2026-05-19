@@ -38,38 +38,38 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
           {/* BLOK 1: A1, A2, spacer */} 
           <View style={styles.groupDividerLeft} />
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="A1" status={resolveSlotStatus("A1", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A1", resolveSlotStatus("A1", "manual", slotStatuses))} />
+            <ParkingSlot slot="A1" status={resolveSlotStatus("A1", "available", slotStatuses)} side="left" onPress={() => onSelectSlot("A1", resolveSlotStatus("A1", "available", slotStatuses))} />
             <ParkingSlot slot="A2" status={resolveSlotStatus("A2", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A2", resolveSlotStatus("A2", "manual", slotStatuses))} />
             <ParkingSlot slot="A3" status={resolveSlotStatus("A3", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A3", resolveSlotStatus("A3", "manual", slotStatuses))} />
           </View>
           <View style={styles.groupDividerLeftLong} />
 
           <View style={styles.block3Rows}>
-            <Text style={styles.mallText}>P1A - P2</Text>
+            <Text style={styles.mallText}>P2A - P3</Text>
             <View style={styles.spacerSlot} />
-            <Text style={styles.mallText}>P2A - P2</Text>
+            <Text style={styles.mallText}>P3A - P3</Text>
 
           </View>
 
           <View style={styles.groupDividerLeftLong} />
           <View style={styles.block3Rows}>
             <ParkingSlot slot="A4" status={resolveSlotStatus("A4", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A4", resolveSlotStatus("A4", "manual", slotStatuses))} />
-            <ParkingSlot slot="A5" status={resolveSlotStatus("A5", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A5", resolveSlotStatus("A5", "manual", slotStatuses))} />
-            <ParkingSlot slot="A6" status={resolveSlotStatus("A6", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A6", resolveSlotStatus("A6", "manual", slotStatuses))} />
+            <ParkingSlot slot="A5" status={resolveSlotStatus("A5", "available", slotStatuses)} side="left" onPress={() => onSelectSlot("A5", resolveSlotStatus("A5", "available", slotStatuses))} />
+            <ParkingSlot slot="A6" status={resolveSlotStatus("A6", "available", slotStatuses)} side="left" onPress={() => onSelectSlot("A6", resolveSlotStatus("A6", "available", slotStatuses))} />
           </View>
           <View style={styles.groupDividerLeft} />
 
           {/* BLOK 3: A6, A7, A8 */}
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="A7" status={resolveSlotStatus("A7", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A7", resolveSlotStatus("A7", "manual", slotStatuses))} />
-            <ParkingSlot slot="A8" status={resolveSlotStatus("A8", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A8", resolveSlotStatus("A8", "manual", slotStatuses))} />
-            <ParkingSlot slot="A9" status={resolveSlotStatus("A9", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A9", resolveSlotStatus("A9", "manual", slotStatuses))} />
+            <ParkingSlot slot="A7" status={resolveSlotStatus("A7", "available", slotStatuses)} side="left" onPress={() => onSelectSlot("A7", resolveSlotStatus("A7", "available", slotStatuses))} />
+            <ParkingSlot slot="A8" status={resolveSlotStatus("A8", "available", slotStatuses)} side="left" onPress={() => onSelectSlot("A8", resolveSlotStatus("A8", "available", slotStatuses))} />
+            <ParkingSlot slot="A9" status={resolveSlotStatus("A9", "available", slotStatuses)} side="left" onPress={() => onSelectSlot("A9", resolveSlotStatus("A9", "available", slotStatuses))} />
           </View>
           <View style={styles.groupDividerLeft} />
 
           {/* BLOK 4: A9, A10, A11 */}
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="A10" status={resolveSlotStatus("A10", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A10", resolveSlotStatus("A10", "manual", slotStatuses))} />
+            <ParkingSlot slot="A10" status={resolveSlotStatus("A10", "available", slotStatuses)} side="left" onPress={() => onSelectSlot("A10", resolveSlotStatus("A10", "available", slotStatuses))} />
             <ParkingSlot slot="A11" status={resolveSlotStatus("A11", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A11", resolveSlotStatus("A11", "manual", slotStatuses))} />
             <ParkingSlot slot="A12" status={resolveSlotStatus("A12", "manual", slotStatuses)} side="left" onPress={() => onSelectSlot("A12", resolveSlotStatus("A12", "manual", slotStatuses))} />
           </View>
@@ -100,9 +100,9 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
           <View style={styles.groupDividerLeft} />
 
           <View style={styles.block3Rows}>
-            <Text style={styles.mallText}>P1A - P2</Text>
+            <Text style={styles.mallText}>P1A - P3</Text>
             <View style={styles.spacerSlot} />
-            <Text style={styles.mallText}>P2A - P2</Text>
+            <Text style={styles.mallText}>P2A - P3</Text>
           </View>
 
           <View style={styles.groupDividerLeft} />
@@ -133,7 +133,7 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
-          <Text style={styles.floorText}>P2</Text>
+          <Text style={styles.floorText}>P3</Text>
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
@@ -143,7 +143,7 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
-          <Text style={styles.floorText}>P2</Text>
+          <Text style={styles.floorText}>P3</Text>
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
           <View style={styles.spacerSlot} />
@@ -164,11 +164,11 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
 
           {/* PI BAWAH*/}
           <View style={styles.leftBranchLine3} />
-          <View style={styles.leftBranchLine4} />
-          <View style={styles.mainVerticalLine2  } />
-          <Ionicons name="caret-back" size={24} color="#fff" style={styles.topArrowHead2} />
-          <Ionicons name="caret-back" size={24} color="#fff" style={styles.topArrowHead3} />
-          <Ionicons name="caret-down" size={24} color="#fff" style={styles.bottomArrowHead2} />
+                    <View style={styles.leftBranchLine4} />
+                    <View style={styles.mainVerticalLine2  } />
+                    <Ionicons name="caret-back" size={24} color="#fff" style={styles.topArrowHead2} />
+                    <Ionicons name="caret-back" size={24} color="#fff" style={styles.topArrowHead3} />
+                    <Ionicons name="caret-down" size={24} color="#fff" style={styles.bottomArrowHead2} />
           
         </View>
 
