@@ -16,6 +16,7 @@ export default function UserLayout() {
     '/user/konfirmasiKedatangan',
     '/user/detailLocation',
     '/user/payment',
+    '/user/paymentProcessing',
     '/user/paymentSuccessful',
     '/user/selectParkingSpot',
   ];

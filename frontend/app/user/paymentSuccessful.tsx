@@ -222,7 +222,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   successTitle: {
-    fontFamily: 'Poppins',
     fontWeight: '600',
     fontSize: 18,
     color: '#2E7D32',
@@ -230,7 +229,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   successSubtitle: {
-    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 14,
     color: '#000',
@@ -255,7 +253,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   detailSectionTitle: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 16,
     color: '#1565C0',
@@ -274,14 +271,12 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   detailLabel: {
-    fontFamily: 'Poppins',
     fontWeight: '600',
     fontSize: 13,
     color: '#1565C0',
     lineHeight: 22,
   },
   detailValue: {
-    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 13,
     color: '#000',
@@ -297,14 +292,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   totalPaymentLabel: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 16,
     color: '#1565C0',
     lineHeight: 22,
   },
   totalPaymentAmount: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 20,
     color: '#FF383C',
@@ -312,7 +305,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   taxNote: {
-    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 12,
     color: '#000',
@@ -334,7 +326,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   downloadButtonText: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 14,
     color: '#1565C0',
@@ -350,7 +341,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   homeButtonText: {
-    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 14,
     color: '#FFF',
