@@ -42,6 +42,9 @@ func main() {
 	bookingPengunjungController := &statuscontroller.BookingPengunjungController{DB: db}
 	statusroutes.RegisterBookingPengunjungRoutes(mux, bookingPengunjungController)
 
+	monitoringPetugasController := &statuscontroller.MonitoringPetugasController{DB: db}
+	statusroutes.RegisterMonitoringPetugasRoutes(mux, monitoringPetugasController)
+
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal("Server error:", err)
 	}
