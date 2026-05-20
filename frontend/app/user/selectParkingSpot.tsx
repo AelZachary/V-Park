@@ -21,6 +21,10 @@ import {
   View,
 } from 'react-native';
 import GroundFloorA from '@/components/booking/floors/GroundFloorA';
+import P1 from '@/components/booking/floors/P1';
+import P1A from '@/components/booking/floors/P1A';
+import P2A from '@/components/booking/floors/P2A';
+import P3A from '@/components/booking/floors/P3A';
 
 export default function SelectParkingSpot() {
   const handlePressBack = () => {
@@ -84,6 +88,22 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot} 
           />
         );
+      
+      case 'Lantai P1':
+        return (
+          <P1
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
+          />
+        );
+      
+      case 'Lantai P1 - Area A':
+        return (
+          <P1A
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
+          />
+        );
 
       case 'Lantai P2':
         return (
@@ -92,6 +112,15 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot}
           />
         );
+
+      case 'Lantai P2 - Area A':
+        return (
+          <P2A
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
+          />
+        );
+
       case 'Lantai P3':
         return (
           <P3
@@ -99,6 +128,15 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot}
           />
         );
+    
+      case 'Lantai P3 - Area A':
+        return (
+          <P3A
+            selectedSlot={selectedSlot}
+            onSelectSlot={handleSelectSlot}
+          />
+        );
+
       case 'Lantai P4':
         return (
           <P4

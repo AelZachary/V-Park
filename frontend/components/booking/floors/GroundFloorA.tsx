@@ -147,12 +147,6 @@ export default function GroundFloorA({ selectedSlot, onSelectSlot }: GroundFloor
 
         {/* ========== CENTER ROAD SECTION (MURNI PUNYA KAMU, TIDAK DIUBAH) ========== */}
         <View style={styles.roadSection}>
-
-          <View style={styles.longArrowUpWrapper}>
-            <View style={styles.longArrowLine} />
-            <Ionicons name="caret-up" size={24} color="#fff" style={styles.longArrowHead} />
-          </View>
-
           <Text style={styles.floorText}>GA</Text>
 
           <View style={styles.intersectionRightWrapper}>
@@ -210,14 +204,14 @@ export default function GroundFloorA({ selectedSlot, onSelectSlot }: GroundFloor
             <Ionicons name="caret-back" size={24} color="#fff" style={styles.outLeftArrowHead} />
           </View>
 
+          <View style={styles.spacerSlot} />
+
           <Text style={styles.floorText}>GA</Text>
           
           <View style={styles.longArrowUpWrapper}>
             <View style={styles.longArrowLine} />
             <Ionicons name="caret-up" size={24} color="#fff" style={styles.longArrowHead} />
           </View>
-
-          <Text style={styles.floorText}>GA</Text>
         </View>
 
         {/* ========== RIGHT SIDE COLUMN ========== */}
@@ -566,7 +560,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 15,
+    marginVertical: 40,
   },
   roadDotsRow: {
     flexDirection: 'row',
