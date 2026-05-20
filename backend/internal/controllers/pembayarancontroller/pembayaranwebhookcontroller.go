@@ -126,7 +126,8 @@ func (c *PembayaranInformasiController) PaymentWebhookHandler(w http.ResponseWri
 		if statusPembayaran == "Lunas" {
 			if err := tx.Model(&models.RiwayatBooking{}).
 				Where("id_riwayat_booking = ?", pembayaran.IDRiwayatBooking).
-				Update("status_booking", "PaymentComplete").Error; err != nil {
+				Where("status_booking = ?", "KonfirmasiSelesai").
+				Update("status_booking", "Selesai").Error; err != nil {
 				// Log error but don't fail
 				fmt.Printf("Failed to update riwayat status: %v\n", err)
 			}

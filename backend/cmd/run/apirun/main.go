@@ -9,12 +9,14 @@ import (
 	authenticationcontroller "v-park/internal/controllers/authenticationcontroller"
 	dashboardcontroller "v-park/internal/controllers/dashboardcontroller"
 	konfirmasiController "v-park/internal/controllers/konfirmasipengunjung"
+	riwayatcontroller "v-park/internal/controllers/riwayatcontroller"
 	statuscontroller "v-park/internal/controllers/statustempatparkircontroller"
 
 	authenticationroutes "v-park/internal/routes/authenticationroutes"
 	dashboardroutes "v-park/internal/routes/dashboardroutes"
 	konfirmasiRoutes "v-park/internal/routes/konfirmasipengunjung"
 	pembayaranroutes "v-park/internal/routes/pembayaranroutes"
+	riwayatroutes "v-park/internal/routes/riwayatroutes"
 	statusroutes "v-park/internal/routes/statustempatparkirroutes"
 )
 
@@ -56,6 +58,15 @@ func main() {
 
 	konfirmasiSelesaiController := &konfirmasiController.KonfirmasiSelesaiPengunjungController{DB: db}
 	konfirmasiRoutes.RegisterKonfirmasiSelesaiRoutes(mux, konfirmasiSelesaiController)
+
+	riwayatAktifController := &riwayatcontroller.RiwayatAktifController{DB: db}
+	riwayatroutes.RegisterRiwayatAktifRoutes(mux, riwayatAktifController)
+
+	riwayatSelesaiController := &riwayatcontroller.RiwayatSelesaiController{DB: db}
+	riwayatroutes.RegisterRiwayatSelesaiRoutes(mux, riwayatSelesaiController)
+
+	riwayatBatalController := &riwayatcontroller.RiwayatBatalController{DB: db}
+	riwayatroutes.RegisterRiwayatBatalRoutes(mux, riwayatBatalController)
 
 	// Register pembayaran routes using the informasi controller-backed route registrations
 	pembayaranroutes.PembayaranInformasiRoutes(mux, db)
