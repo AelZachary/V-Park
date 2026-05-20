@@ -17,14 +17,12 @@ const resolveSlotStatus = (
   slotStatuses?: Record<string, SlotStatus>,
   selectedSlot?: string | null
 ) => {
-  if (slotStatuses && slot in slotStatuses) {
-    return slotStatuses[slot];
-  }
-
   if (selectedSlot === slot) {
     return 'selected';
   }
-
+  if (slotStatuses && slot in slotStatuses) {
+    return slotStatuses[slot];
+  }
   return baseStatus;
 };
 

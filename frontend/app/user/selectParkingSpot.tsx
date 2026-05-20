@@ -113,7 +113,7 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot}
           />
         );
-      case 'Lantai 5':
+      case 'Lantai P5':
         return (
           <P5
             selectedSlot={selectedSlot}
