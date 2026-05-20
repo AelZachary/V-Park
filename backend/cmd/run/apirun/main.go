@@ -9,12 +9,16 @@ import (
 	authenticationcontroller "v-park/internal/controllers/authenticationcontroller"
 	dashboardcontroller "v-park/internal/controllers/dashboardcontroller"
 	konfirmasiController "v-park/internal/controllers/konfirmasipengunjung"
+	profilecontroller "v-park/internal/controllers/profilecontroller"
+	riwayatcontroller "v-park/internal/controllers/riwayatcontroller"
 	statuscontroller "v-park/internal/controllers/statustempatparkircontroller"
 
 	authenticationroutes "v-park/internal/routes/authenticationroutes"
 	dashboardroutes "v-park/internal/routes/dashboardroutes"
 	konfirmasiRoutes "v-park/internal/routes/konfirmasipengunjung"
 	pembayaranroutes "v-park/internal/routes/pembayaranroutes"
+	profileroutes "v-park/internal/routes/profileroutes"
+	riwayatroutes "v-park/internal/routes/riwayatroutes"
 	statusroutes "v-park/internal/routes/statustempatparkirroutes"
 )
 
@@ -45,16 +49,36 @@ func main() {
 	bookingPengunjungController := &statuscontroller.BookingPengunjungController{DB: db}
 	statusroutes.RegisterBookingPengunjungRoutes(mux, bookingPengunjungController)
 
+	profileInformasiController := &profilecontroller.ProfileInformasiPengunjungController{DB: db}
+	profileroutes.RegisterProfileInformasiPengunjungRoutes(mux, profileInformasiController)
+
+	profileEditPengunjungController := &profilecontroller.ProfileEditPengunjungController{DB: db}
+	profileroutes.RegisterProfileEditPengunjungRoutes(mux, profileEditPengunjungController)
+
+	profileInformasiPetugasController := &profilecontroller.ProfileInformasiPetugasController{DB: db}
+	profileroutes.RegisterProfileInformasiPetugasRoutes(mux, profileInformasiPetugasController)
+
 	monitoringPetugasController := &statuscontroller.MonitoringPetugasController{DB: db}
 	statusroutes.RegisterMonitoringPetugasRoutes(mux, monitoringPetugasController)
 
 	konfirmasiTibaController := &konfirmasiController.KonfirmasiTibaPengunjungController{DB: db}
 	konfirmasiRoutes.RegisterKonfirmasiTibaRoutes(mux, konfirmasiTibaController)
 
+	konfirmasiBatalController := &konfirmasiController.KonfirmasiBatalPengunjungController{DB: db}
+	konfirmasiRoutes.RegisterKonfirmasiBatalRoutes(mux, konfirmasiBatalController)
+
 	konfirmasiSelesaiController := &konfirmasiController.KonfirmasiSelesaiPengunjungController{DB: db}
 	konfirmasiRoutes.RegisterKonfirmasiSelesaiRoutes(mux, konfirmasiSelesaiController)
 
-	// Register pembayaran routes using the informasi controller-backed route registrations
+	riwayatAktifController := &riwayatcontroller.RiwayatAktifController{DB: db}
+	riwayatroutes.RegisterRiwayatAktifRoutes(mux, riwayatAktifController)
+
+	riwayatSelesaiController := &riwayatcontroller.RiwayatSelesaiController{DB: db}
+	riwayatroutes.RegisterRiwayatSelesaiRoutes(mux, riwayatSelesaiController)
+
+	riwayatBatalController := &riwayatcontroller.RiwayatBatalController{DB: db}
+	riwayatroutes.RegisterRiwayatBatalRoutes(mux, riwayatBatalController)
+
 	pembayaranroutes.PembayaranInformasiRoutes(mux, db)
 	pembayaranroutes.PembayaranBayarBookingRoutes(mux, db)
 	pembayaranroutes.PembayaranWebhookRoutes(mux, db)
