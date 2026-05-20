@@ -33,6 +33,9 @@ func main() {
 	registrasiController := &authenticationcontroller.RegistrasiController{DB: db}
 	authenticationroutes.RegisterRegistrasiRoutes(mux, registrasiController)
 
+	profileController := &authenticationcontroller.ProfileController{DB: db}
+	authenticationroutes.RegisterProfileRoutes(mux, profileController)
+
 	dashboardPengunjungController := &dashboardcontroller.DashboardPengunjungController{DB: db}
 	dashboardroutes.RegisterDashboardPengunjungRoutes(mux, dashboardPengunjungController)
 

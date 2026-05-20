@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useProfileVM } from '@/viewmodels/useProfileVM';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Image,
   Modal,
@@ -25,6 +26,11 @@ export default function ProfileScreen() {
 
     const [vehicle, setVehicle] = useState(profile.vehicle);
     const [plate, setPlate] = useState(profile.plate);
+
+    useEffect(() => {
+      setVehicle(profile.vehicle);
+      setPlate(profile.plate);
+    }, [profile.vehicle, profile.plate]);
 
   return (
     <View style={styles.container}>
