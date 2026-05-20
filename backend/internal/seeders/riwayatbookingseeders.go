@@ -18,25 +18,38 @@ func RiwayatBookingBulkSeeders(db *gorm.DB, bookings []models.Booking) []models.
 	riwayats := make([]models.RiwayatBooking, 0, len(bookings))
 
 	for _, b := range bookings {
-		// Choose status with weighted probability
+		// Choose status with weighted probability (NEW flow)
 		r := rand.Intn(100)
-		status := "Selesai"
-		if r < 10 {
+		var status string
+		if r < 15 {
 			status = "Dibatalkan"
 		} else if r < 40 {
-			status = "Dalam Parkir"
+			status = "MenungguKonfirmasi"
+		} else if r < 70 {
+			status = "KonfirmasiTiba"
+		} else {
+			status = "KonfirmasiSelesai"
 		}
 
-		// Waktu masuk shortly after booking
-		masukOffset := time.Duration(rand.Intn(60)) * time.Minute
-		waktuMasuk := b.WaktuBooking.Add(masukOffset)
-
+		var waktuMasuk time.Time
 		var waktuKeluar time.Time
 		var durasi int
-		if status == "Selesai" {
-			// duration between 15 minutes and 8 hours
-			durasi = rand.Intn((8*60)-15) + 15
-			waktuKeluar = waktuMasuk.Add(time.Duration(durasi) * time.Minute)
+
+		if status == "Dibatalkan" || status == "MenungguKonfirmasi" {
+			// No check-in yet
+			durasi = 0
+		} else if status == "KonfirmasiTiba" {
+			// Check-in done, no check-out yet
+			masukOffset := time.Duration(rand.Intn(120)) * time.Minute
+			waktuMasuk = b.WaktuBooking.Add(masukOffset)
+			durasi = 0
+		} else if status == "KonfirmasiSelesai" {
+			// Check-in and check-out done, with duration in seconds
+			masukOffset := time.Duration(rand.Intn(120)) * time.Minute
+			waktuMasuk = b.WaktuBooking.Add(masukOffset)
+			// Duration: 30 minutes to 8 hours (in seconds)
+			durasi = rand.Intn((8*3600)-(30*60)) + (30 * 60)
+			waktuKeluar = waktuMasuk.Add(time.Duration(durasi) * time.Second)
 		}
 
 		riwayat := models.RiwayatBooking{

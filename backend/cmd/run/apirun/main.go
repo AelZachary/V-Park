@@ -8,10 +8,13 @@ import (
 
 	authenticationcontroller "v-park/internal/controllers/authenticationcontroller"
 	dashboardcontroller "v-park/internal/controllers/dashboardcontroller"
+	konfirmasiController "v-park/internal/controllers/konfirmasipengunjung"
 	statuscontroller "v-park/internal/controllers/statustempatparkircontroller"
 
 	authenticationroutes "v-park/internal/routes/authenticationroutes"
 	dashboardroutes "v-park/internal/routes/dashboardroutes"
+	konfirmasiRoutes "v-park/internal/routes/konfirmasipengunjung"
+	pembayaranroutes "v-park/internal/routes/pembayaranroutes"
 	statusroutes "v-park/internal/routes/statustempatparkirroutes"
 )
 
@@ -44,6 +47,17 @@ func main() {
 
 	monitoringPetugasController := &statuscontroller.MonitoringPetugasController{DB: db}
 	statusroutes.RegisterMonitoringPetugasRoutes(mux, monitoringPetugasController)
+
+	konfirmasiTibaController := &konfirmasiController.KonfirmasiTibaPengunjungController{DB: db}
+	konfirmasiRoutes.RegisterKonfirmasiTibaRoutes(mux, konfirmasiTibaController)
+
+	konfirmasiSelesaiController := &konfirmasiController.KonfirmasiSelesaiPengunjungController{DB: db}
+	konfirmasiRoutes.RegisterKonfirmasiSelesaiRoutes(mux, konfirmasiSelesaiController)
+
+	// Register pembayaran routes using the informasi controller-backed route registrations
+	pembayaranroutes.PembayaranInformasiRoutes(mux, db)
+	pembayaranroutes.PembayaranBayarBookingRoutes(mux, db)
+	pembayaranroutes.PembayaranWebhookRoutes(mux, db)
 
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal("Server error:", err)
