@@ -2,7 +2,6 @@ package seeders
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"time"
 
@@ -11,40 +10,58 @@ import (
 	"gorm.io/gorm"
 )
 
-// PembayaranBulkSeeders creates pembayaran records for completed riwayat bookings.
-// It calculates totals based on duration and a simple hourly rate.
 func PembayaranBulkSeeders(db *gorm.DB, riwayats []models.RiwayatBooking) []models.Pembayaran {
-	rand.Seed(time.Now().UnixNano())
+	payments := make([]models.Pembayaran, 0, len(riwayats))
 
-	ratePerHour := 5000 // example rate in currency units per hour
-	payments := make([]models.Pembayaran, 0)
+	const tarifPerJam = 5000
+	const tarifLayanan = 1000
+	const tarifPajakRate = 0.1
+
+	statusPaymentList := []string{"Lunas", "Pending", "Tertunda"}
 
 	for _, r := range riwayats {
-		if r.StatusBooking != "Selesai" || r.DurasiParkir <= 0 {
+		if r.StatusBooking != "KonfirmasiSelesai" {
 			continue
 		}
 
-		// bill by rounding up to the next hour
-		hours := int(math.Ceil(float64(r.DurasiParkir) / 60.0))
-		total := hours * ratePerHour
-
-		// simulate payment time shortly after exit
-		waktuPembayaran := r.WaktuKeluar.Add(time.Duration(rand.Intn(60)) * time.Minute)
-
-		pembayaran := models.Pembayaran{
-			IDRiwayatBooking: r.IDRiwayatBooking,
-			TotalPembayaran:  total,
-			WaktuPembayaran:  waktuPembayaran,
-			StatusPembayaran: "Lunas",
+		if r.DurasiParkir <= 0 {
+			continue
 		}
 
-		if err := db.Where("id_riwayat_booking = ?", pembayaran.IDRiwayatBooking).
-			Assign(models.Pembayaran{
-				TotalPembayaran:  pembayaran.TotalPembayaran,
-				WaktuPembayaran:  pembayaran.WaktuPembayaran,
-				StatusPembayaran: pembayaran.StatusPembayaran,
-			}).
-			FirstOrCreate(&pembayaran).Error; err != nil {
+		durasiJam := (r.DurasiParkir + 3599) / 3600
+
+		tarifParkir := durasiJam * tarifPerJam
+
+		biayaLayanan := tarifLayanan
+
+		biayaPajak := int(float64(tarifParkir) * tarifPajakRate)
+		totalBiaya := tarifParkir + biayaLayanan + biayaPajak
+
+		if rand.Intn(10) < 2 {
+			biayaLayanan += 2000 // Add late fee
+			totalBiaya += 2000
+		}
+
+		statusPembayaran := statusPaymentList[rand.Intn(len(statusPaymentList))]
+
+		var waktuPembayaran *time.Time
+
+		if statusPembayaran == "Lunas" {
+			waktu := r.WaktuKeluar.Add(time.Duration(rand.Intn(60)) * time.Minute)
+			waktuPembayaran = &waktu
+		}
+
+		pembayaran := models.Pembayaran{
+			IDRiwayatBooking:   r.IDRiwayatBooking,
+			MetodePembayaranID: nil,
+			BiayaLayanan:       biayaLayanan,
+			BiayaPajak:         biayaPajak,
+			TotalPembayaran:    totalBiaya,
+			WaktuPembayaran:    waktuPembayaran,
+			StatusPembayaran:   statusPembayaran,
+		}
+
+		if err := db.Create(&pembayaran).Error; err != nil {
 			panic(fmt.Sprintf("Failed to seed pembayaran for riwayat %d: %v", r.IDRiwayatBooking, err))
 		}
 

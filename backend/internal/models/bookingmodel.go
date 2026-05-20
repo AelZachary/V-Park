@@ -6,6 +6,7 @@ type Booking struct {
 	IDBooking         uint      `gorm:"primaryKey;not null;autoIncrement"`
 	IDPengunjung      uint      `gorm:"not null"`
 	IDTempatParkir    uint      `gorm:"not null"`
+	NoOrderan         int       `gorm:"type:varchar(20); not null; unique"`
 	NamaPengguna      string    `gorm:"type:varchar(50); not null"`
 	NoPengguna        string    `gorm:"type:varchar(30); not null"`
 	KendaraanPengguna string    `gorm:"type:varchar(70); not null"`

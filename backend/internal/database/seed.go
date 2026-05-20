@@ -43,7 +43,14 @@ func SeedAllSeeders(db *gorm.DB) error {
 
 		bookings := seeders.BookingBulkSeeders(tx, pengunjungIDs, allTempatParkir)
 		riwayats := seeders.RiwayatBookingBulkSeeders(tx, bookings)
-		seeders.PembayaranBulkSeeders(tx, riwayats)
+
+		// seed pembayaran first so metode pembayaran can reference valid payment IDs
+		payments := seeders.PembayaranBulkSeeders(tx, riwayats)
+
+		// seed metode pembayaran using seeded pembayaran records
+		if _, err := seeders.MetodePembayaranSeeders(tx, payments); err != nil {
+			return err
+		}
 
 		return nil
 
