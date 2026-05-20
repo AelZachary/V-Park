@@ -45,13 +45,13 @@ type LokasiMallResponse struct {
 }
 
 type PembayaranResponse struct {
-	IDPembayaran     uint      `json:"IDPembayaran"`
-	IDRiwayatBooking uint      `json:"IDRiwayatBooking"`
-	BiayaLayanan     int       `json:"BiayaLayanan"`
-	BiayaPajak       int       `json:"BiayaPajak"`
-	TotalPembayaran  int       `json:"TotalPembayaran"`
-	WaktuPembayaran  time.Time `json:"WaktuPembayaran"`
-	StatusPembayaran string    `json:"StatusPembayaran"`
+	IDPembayaran     uint       `json:"IDPembayaran"`
+	IDRiwayatBooking uint       `json:"IDRiwayatBooking"`
+	BiayaLayanan     int        `json:"BiayaLayanan"`
+	BiayaPajak       int        `json:"BiayaPajak"`
+	TotalPembayaran  int        `json:"TotalPembayaran"`
+	WaktuPembayaran  *time.Time `json:"WaktuPembayaran"`
+	StatusPembayaran string     `json:"StatusPembayaran"`
 }
 
 func (c *KonfirmasiTibaPengunjungController) CreateKonfirmasiTibaHandler(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +117,7 @@ func (c *KonfirmasiTibaPengunjungController) CreateKonfirmasiTibaHandler(w http.
 			BiayaLayanan:     biayaLayanan,
 			BiayaPajak:       biayaPajak,
 			TotalPembayaran:  totalPembayaran,
-			WaktuPembayaran:  time.Time{},
+			WaktuPembayaran:  nil,
 			StatusPembayaran: "MemerlukanPembayaran",
 		}
 

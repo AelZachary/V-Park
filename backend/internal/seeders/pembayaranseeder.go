@@ -42,15 +42,23 @@ func PembayaranBulkSeeders(db *gorm.DB, riwayats []models.RiwayatBooking) []mode
 			totalBiaya += 2000
 		}
 
-		waktuPembayaran := r.WaktuKeluar.Add(time.Duration(rand.Intn(60)) * time.Minute)
+		statusPembayaran := statusPaymentList[rand.Intn(len(statusPaymentList))]
+
+		var waktuPembayaran *time.Time
+
+		if statusPembayaran == "Lunas" {
+			waktu := r.WaktuKeluar.Add(time.Duration(rand.Intn(60)) * time.Minute)
+			waktuPembayaran = &waktu
+		}
 
 		pembayaran := models.Pembayaran{
-			IDRiwayatBooking: r.IDRiwayatBooking,
-			BiayaLayanan:     biayaLayanan,
-			BiayaPajak:       biayaPajak,
-			TotalPembayaran:  totalBiaya,
-			WaktuPembayaran:  waktuPembayaran,
-			StatusPembayaran: statusPaymentList[rand.Intn(len(statusPaymentList))],
+			IDRiwayatBooking:   r.IDRiwayatBooking,
+			MetodePembayaranID: nil,
+			BiayaLayanan:       biayaLayanan,
+			BiayaPajak:         biayaPajak,
+			TotalPembayaran:    totalBiaya,
+			WaktuPembayaran:    waktuPembayaran,
+			StatusPembayaran:   statusPembayaran,
 		}
 
 		if err := db.Create(&pembayaran).Error; err != nil {

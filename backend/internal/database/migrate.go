@@ -16,6 +16,7 @@ func MigrateAllModels(db *gorm.DB) error {
 		&models.Monitoring{},
 		&models.Booking{},
 		&models.RiwayatBooking{},
+		&models.MetodePembayaran{},
 		&models.Pembayaran{},
 	); err != nil {
 		return err
