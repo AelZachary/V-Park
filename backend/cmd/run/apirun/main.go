@@ -51,6 +51,9 @@ func main() {
 	konfirmasiTibaController := &konfirmasiController.KonfirmasiTibaPengunjungController{DB: db}
 	konfirmasiRoutes.RegisterKonfirmasiTibaRoutes(mux, konfirmasiTibaController)
 
+	konfirmasiBatalController := &konfirmasiController.KonfirmasiBatalPengunjungController{DB: db}
+	konfirmasiRoutes.RegisterKonfirmasiBatalRoutes(mux, konfirmasiBatalController)
+
 	konfirmasiSelesaiController := &konfirmasiController.KonfirmasiSelesaiPengunjungController{DB: db}
 	konfirmasiRoutes.RegisterKonfirmasiSelesaiRoutes(mux, konfirmasiSelesaiController)
 
