@@ -133,6 +133,16 @@ func (c *KonfirmasiTibaPengunjungController) CreateKonfirmasiTibaHandler(w http.
 			return err
 		}
 
+		if tempatParkir.StatusTempatParkir == "BookingOnline" {
+			if err := tx.Model(&models.TempatParkir{}).
+				Where("id_tempat_parkir = ?", tempatParkir.IDTempatParkir).
+				Update("status_tempat_parkir", "Terisi").Error; err != nil {
+				return err
+			}
+
+			tempatParkir.StatusTempatParkir = "Terisi"
+		}
+
 		var lokasiMall models.LokasiMall
 		if err := tx.First(&lokasiMall, tempatParkir.IDLokasiMall).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {

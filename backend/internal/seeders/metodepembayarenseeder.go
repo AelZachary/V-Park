@@ -33,12 +33,13 @@ func MetodePembayaranSeeders(db *gorm.DB, payments []models.Pembayaran) ([]model
 		methodName := paymentMethods[rand.Intn(len(paymentMethods))]
 		expiresAt := time.Now().Add(15 * time.Minute)
 		metode := models.MetodePembayaran{
-			IDPembayaran:  payment.IDPembayaran,
-			QRCodeBase64:  "",
-			QRCodeURL:     "",
-			ExpiresAt:     &expiresAt,
-			CallbackURL:   "https://callback.v-park.local/payment",
-			PaymentMethod: methodName,
+			IDPembayaran:     payment.IDPembayaran,
+			QRCodeBase64:     "",
+			QRCodeURL:        "",
+			ExpiresAt:        &expiresAt,
+			CallbackURL:      "https://callback.v-park.local/payment",
+			JumlahPembayaran: payment.TotalPembayaran,
+			PaymentMethod:    methodName,
 		}
 
 		if err := db.Create(&metode).Error; err != nil {

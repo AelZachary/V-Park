@@ -165,6 +165,7 @@ func (c *PembayaranInformasiController) InitiatePembayaranHandler(w http.Respons
 		}
 		if metodePembayaran.IDMetodePembayaran == 0 {
 			metodePembayaran = models.MetodePembayaran{
+				IDPembayaran:  pembayaran.IDPembayaran,
 				QRCodeBase64:  "",
 				QRCodeURL:     "",
 				ExpiresAt:     nil,
@@ -183,12 +184,21 @@ func (c *PembayaranInformasiController) InitiatePembayaranHandler(w http.Respons
 
 		// Update metodePembayaran with QR and expiry (store per-transaction details)
 		if err := tx.Model(&metodePembayaran).Updates(map[string]any{
+			"id_pembayaran":  pembayaran.IDPembayaran,
 			"qr_code_base64": req.QRCodeBase64,
 			"expires_at":     expiresAt,
 			"callback_url":   callbackURL,
 			"payment_method": req.PaymentMethod,
 		}).Error; err != nil {
 			return err
+		}
+		metodePembayaran.IDPembayaran = pembayaran.IDPembayaran
+
+		if pembayaran.StatusPembayaran == "MemerlukanPembayaran" {
+			if err := tx.Model(&pembayaran).Update("status_pembayaran", "MemprosesPembayaran").Error; err != nil {
+				return err
+			}
+			pembayaran.StatusPembayaran = "MemprosesPembayaran"
 		}
 
 		// Link pembayaran -> metodePembayaran
@@ -205,7 +215,7 @@ func (c *PembayaranInformasiController) InitiatePembayaranHandler(w http.Respons
 				BiayaLayanan:     pembayaran.BiayaLayanan,
 				BiayaPajak:       pembayaran.BiayaPajak,
 				TotalPembayaran:  pembayaran.TotalPembayaran,
-				StatusPembayaran: "MemerlukanPembayaran",
+				StatusPembayaran: pembayaran.StatusPembayaran,
 			},
 			MetodePembayaran: PembayaranBayarBookingMetodeResponse{
 				IDMetodePembayaran: metodePembayaran.IDMetodePembayaran,

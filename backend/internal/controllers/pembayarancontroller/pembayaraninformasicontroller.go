@@ -15,19 +15,96 @@ type PembayaranInformasiController struct {
 	DB *gorm.DB
 }
 
-// GetPembayaranDetailResponse untuk GET detail pembayaran
-type GetPembayaranDetailResponse struct {
-	IDPembayaran     uint       `json:"IDPembayaran"`
-	IDRiwayatBooking uint       `json:"IDRiwayatBooking"`
+// New nested response types for booking-based informasi
+type LokasiResponse struct {
+	AlamatLokasi string `json:"AlamatLokasi"`
+}
+
+type TempatParkirSimple struct {
+	KodeTempat string `json:"KodeTempat"`
+}
+
+type BookingSimple struct {
+	NoOrderan     int    `json:"NoOrderan"`
+	PlatKendaraan string `json:"PlatKendaraan"`
+}
+
+type RiwayatSimple struct {
+	WaktuTiba time.Time `json:"WaktuTiba"`
+	Durasi    int       `json:"Durasi"`
+}
+
+type PembayaranSimple struct {
 	TotalPembayaran  int        `json:"TotalPembayaran"`
+	WaktuPembayaran  *time.Time `json:"WaktuPembayaran"`
 	StatusPembayaran string     `json:"StatusPembayaran"`
+}
+
+type MetodePembayaranSimple struct {
 	QRCodeBase64     string     `json:"QRCodeBase64"`
 	ExpiresAt        *time.Time `json:"ExpiresAt"`
-	ExpiresIn        int        `json:"ExpiresIn"` // seconds remaining
-	PaymentMethods   []string   `json:"PaymentMethods"`
-	PaymentMethod    *string    `json:"PaymentMethod"` // selected method (if any)
-	WaktuPembayaran  *time.Time `json:"WaktuPembayaran"`
+	ExpiresIn        int        `json:"ExpiresIn"`
+	JumlahPembayaran int        `json:"JumlahPembayaran"`
 	MetodePembayaran string     `json:"MetodePembayaran"`
+}
+
+type PembayaranByBookingResponse struct {
+	Lokasi           LokasiResponse         `json:"Lokasi"`
+	TempatParkir     TempatParkirSimple     `json:"TempatParkir"`
+	Booking          BookingSimple          `json:"Booking"`
+	RiwayatBooking   RiwayatSimple          `json:"RiwayatBooking"`
+	Pembayaran       PembayaranSimple       `json:"Pembayaran"`
+	MetodePembayaran MetodePembayaranSimple `json:"MetodePembayaran"`
+}
+
+func buildPembayaranByBookingResponse(db *gorm.DB, pembayaran *models.Pembayaran) (PembayaranByBookingResponse, error) {
+	var riwayat models.RiwayatBooking
+	if err := db.First(&riwayat, pembayaran.IDRiwayatBooking).Error; err != nil {
+		return PembayaranByBookingResponse{}, err
+	}
+
+	var booking models.Booking
+	if err := db.First(&booking, riwayat.IDBooking).Error; err != nil {
+		return PembayaranByBookingResponse{}, err
+	}
+
+	var tempat models.TempatParkir
+	if err := db.First(&tempat, booking.IDTempatParkir).Error; err != nil {
+		return PembayaranByBookingResponse{}, err
+	}
+
+	var lokasi models.LokasiMall
+	if err := db.First(&lokasi, tempat.IDLokasiMall).Error; err != nil {
+		return PembayaranByBookingResponse{}, err
+	}
+
+	metode := MetodePembayaranSimple{}
+	if pembayaran.MetodePembayaran != nil {
+		expiresAt := pembayaran.MetodePembayaran.ExpiresAt
+		expiresIn := 0
+		if expiresAt != nil {
+			expiresIn = int(expiresAt.Sub(time.Now()).Seconds())
+			if expiresIn < 0 {
+				expiresIn = 0
+			}
+		}
+		metode = MetodePembayaranSimple{
+			QRCodeBase64:     pembayaran.MetodePembayaran.QRCodeBase64,
+			ExpiresAt:        expiresAt,
+			ExpiresIn:        expiresIn,
+			JumlahPembayaran: pembayaran.MetodePembayaran.JumlahPembayaran,
+			MetodePembayaran: pembayaran.MetodePembayaran.PaymentMethod,
+		}
+	}
+
+	return PembayaranByBookingResponse{
+		Lokasi:           LokasiResponse{AlamatLokasi: lokasi.AlamatLokasi},
+		TempatParkir:     TempatParkirSimple{KodeTempat: tempat.KodeTempat},
+		Booking:          BookingSimple{NoOrderan: booking.NoOrderan, PlatKendaraan: booking.PlatPengguna},
+		RiwayatBooking:   RiwayatSimple{WaktuTiba: riwayat.WaktuMasuk, Durasi: riwayat.DurasiParkir},
+		Pembayaran:       PembayaranSimple{TotalPembayaran: pembayaran.TotalPembayaran, WaktuPembayaran: pembayaran.WaktuPembayaran, StatusPembayaran: pembayaran.StatusPembayaran},
+		MetodePembayaran: metode,
+	}, nil
 }
 
 // GetPembayaranDetailHandler GET /api/pembayaran/{IDPembayaran}
@@ -55,41 +132,14 @@ func (c *PembayaranInformasiController) GetPembayaranDetailHandler(w http.Respon
 		return
 	}
 
-	// Prefer getting QR and expiry from related MetodePembayaran (per-transaction details)
-	qrCode := ""
-	var expiresAt *time.Time
-	metodeName := ""
-	expiresIn := 0
-	if pembayaran.MetodePembayaran != nil {
-		qrCode = pembayaran.MetodePembayaran.QRCodeBase64
-		expiresAt = pembayaran.MetodePembayaran.ExpiresAt
-		metodeName = pembayaran.MetodePembayaran.PaymentMethod
-		if expiresAt != nil {
-			expiresIn = int(expiresAt.Sub(time.Now()).Seconds())
-			if expiresIn < 0 {
-				expiresIn = 0
-			}
+	responseData, err := buildPembayaranByBookingResponse(c.DB, &pembayaran)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Related booking data not found"})
+			return
 		}
-	}
-
-	// prepare pointer for selected payment method name (if any)
-	var paymentMethodPtr *string
-	if metodeName != "" {
-		paymentMethodPtr = &metodeName
-	}
-
-	responseData := GetPembayaranDetailResponse{
-		IDPembayaran:     pembayaran.IDPembayaran,
-		IDRiwayatBooking: pembayaran.IDRiwayatBooking,
-		TotalPembayaran:  pembayaran.TotalPembayaran,
-		StatusPembayaran: pembayaran.StatusPembayaran,
-		QRCodeBase64:     qrCode,
-		ExpiresAt:        expiresAt,
-		ExpiresIn:        expiresIn,
-		PaymentMethods:   []string{"QRIS", "OVO", "GoPay", "Dana", "BCA", "Wanda"},
-		PaymentMethod:    paymentMethodPtr,
-		WaktuPembayaran:  pembayaran.WaktuPembayaran,
-		MetodePembayaran: metodeName,
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
+		return
 	}
 
 	response.JSON(w, http.StatusOK, responseData)
@@ -111,8 +161,25 @@ func (c *PembayaranInformasiController) GetPembayaranByRiwayatHandler(w http.Res
 		return
 	}
 
+	// Load booking with riwayat
+	var booking models.Booking
+	if err := c.DB.Preload("RiwayatBooking").First(&booking, uint(id)).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Booking not found"})
+			return
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
+		return
+	}
+
+	if booking.RiwayatBooking == nil {
+		response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Riwayat booking not found"})
+		return
+	}
+
+	// Load pembayaran and metode
 	var pembayaran models.Pembayaran
-	if err := c.DB.Preload("MetodePembayaran").Where("id_riwayat_booking = ?", uint(id)).First(&pembayaran).Error; err != nil {
+	if err := c.DB.Preload("MetodePembayaran").Where("id_riwayat_booking = ?", booking.RiwayatBooking.IDRiwayatBooking).First(&pembayaran).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Pembayaran not found for given riwayat"})
 			return
@@ -121,40 +188,14 @@ func (c *PembayaranInformasiController) GetPembayaranByRiwayatHandler(w http.Res
 		return
 	}
 
-	// Build same response structure as GetPembayaranDetailHandler
-	qrCode := ""
-	var expiresAt *time.Time
-	metodeName := ""
-	expiresIn := 0
-	if pembayaran.MetodePembayaran != nil {
-		qrCode = pembayaran.MetodePembayaran.QRCodeBase64
-		expiresAt = pembayaran.MetodePembayaran.ExpiresAt
-		metodeName = pembayaran.MetodePembayaran.PaymentMethod
-		if expiresAt != nil {
-			expiresIn = int(expiresAt.Sub(time.Now()).Seconds())
-			if expiresIn < 0 {
-				expiresIn = 0
-			}
+	responseData, err := buildPembayaranByBookingResponse(c.DB, &pembayaran)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Related booking data not found"})
+			return
 		}
-	}
-
-	var paymentMethodPtr *string
-	if metodeName != "" {
-		paymentMethodPtr = &metodeName
-	}
-
-	responseData := GetPembayaranDetailResponse{
-		IDPembayaran:     pembayaran.IDPembayaran,
-		IDRiwayatBooking: pembayaran.IDRiwayatBooking,
-		TotalPembayaran:  pembayaran.TotalPembayaran,
-		StatusPembayaran: pembayaran.StatusPembayaran,
-		QRCodeBase64:     qrCode,
-		ExpiresAt:        expiresAt,
-		ExpiresIn:        expiresIn,
-		PaymentMethods:   []string{"QRIS", "OVO", "GoPay", "Dana", "BCA", "Wanda"},
-		PaymentMethod:    paymentMethodPtr,
-		WaktuPembayaran:  pembayaran.WaktuPembayaran,
-		MetodePembayaran: metodeName,
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
+		return
 	}
 
 	response.JSON(w, http.StatusOK, responseData)

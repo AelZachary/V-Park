@@ -12,7 +12,7 @@ import (
 func PembayaranInformasiRoutes(mux *http.ServeMux, db *gorm.DB) {
 	ctrl := &pembayarancontroller.PembayaranInformasiController{DB: db}
 
-	// Get pembayaran detail by booking - GET /api/pembayaran/booking/{IDBooking}
-	// Returns current status, QR, expiry, payment methods
-	mux.HandleFunc("GET /api/pembayaran/booking/{IDBooking}", ctrl.GetPembayaranByRiwayatHandler)
+	// Get pembayaran detail by booking - GET /api/pembayaran/informasi/booking/{IDBooking}
+	// Returns response based on IDBooking from the path
+	mux.HandleFunc("GET /api/pembayaran/informasi/booking/{IDBooking}", ctrl.GetPembayaranByRiwayatHandler)
 }

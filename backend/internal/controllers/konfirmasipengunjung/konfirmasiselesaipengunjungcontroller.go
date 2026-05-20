@@ -17,10 +17,21 @@ type KonfirmasiSelesaiPengunjungController struct {
 	DB *gorm.DB
 }
 
+type PembayaranDetail struct {
+	IDPembayaran     uint       `json:"IDPembayaran"`
+	IDRiwayatBooking uint       `json:"IDRiwayatBooking"`
+	BiayaLayanan     int        `json:"BiayaLayanan"`
+	BiayaPajak       int        `json:"BiayaPajak"`
+	TotalPembayaran  int        `json:"TotalPembayaran"`
+	WaktuPembayaran  *time.Time `json:"WaktuPembayaran"`
+	StatusPembayaran string     `json:"StatusPembayaran"`
+}
+
 type KonfirmasiSelesaiResponse struct {
 	RiwayatBooking RiwayatBookingResponse `json:"RiwayatBooking"`
 	TempatParkir   TempatParkirResponse   `json:"TempatParkir"`
 	LokasiMall     LokasiMallResponse     `json:"LokasiMall"`
+	Pembayaran     PembayaranDetail       `json:"Pembayaran"`
 }
 
 func (c *KonfirmasiSelesaiPengunjungController) CreateKonfirmasiSelesaiHandler(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +108,18 @@ func (c *KonfirmasiSelesaiPengunjungController) CreateKonfirmasiSelesaiHandler(w
 			return err
 		}
 
+		var pembayaran models.Pembayaran
+		if err := tx.Where("id_riwayat_booking = ?", updatedRiwayat.IDRiwayatBooking).First(&pembayaran).Error; err != nil {
+			if err != gorm.ErrRecordNotFound {
+				return err
+			}
+			// Pembayaran might not exist yet, set default values
+			pembayaran = models.Pembayaran{
+				IDRiwayatBooking: updatedRiwayat.IDRiwayatBooking,
+				StatusPembayaran: "MemerlukanPembayaran",
+			}
+		}
+
 		responseData = KonfirmasiSelesaiResponse{
 			RiwayatBooking: RiwayatBookingResponse{
 				IDRiwayatBooking: updatedRiwayat.IDRiwayatBooking,
@@ -114,6 +137,15 @@ func (c *KonfirmasiSelesaiPengunjungController) CreateKonfirmasiSelesaiHandler(w
 			LokasiMall: LokasiMallResponse{
 				IDLokasiMall: lokasiMall.IDLokasiMall,
 				AlamatLokasi: lokasiMall.AlamatLokasi,
+			},
+			Pembayaran: PembayaranDetail{
+				IDPembayaran:     pembayaran.IDPembayaran,
+				IDRiwayatBooking: pembayaran.IDRiwayatBooking,
+				BiayaLayanan:     pembayaran.BiayaLayanan,
+				BiayaPajak:       pembayaran.BiayaPajak,
+				TotalPembayaran:  pembayaran.TotalPembayaran,
+				WaktuPembayaran:  pembayaran.WaktuPembayaran,
+				StatusPembayaran: pembayaran.StatusPembayaran,
 			},
 		}
 

@@ -3,6 +3,7 @@ package statustempatparkircontroller
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -100,7 +101,29 @@ func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.Resp
 			return err
 		}
 
+		// generate unique NoOrderan
+		var noOrderan int
+		maxAttempts := 5
+		for i := 0; i < maxAttempts; i++ {
+			// combine timestamp and randomness to reduce collision probability
+			candidate := int(time.Now().UnixNano()/int64(time.Millisecond))%1000000000 + rand.Intn(9000)
+			var existing models.Booking
+			if err := tx.Where("no_orderan = ?", candidate).First(&existing).Error; err != nil {
+				if err == gorm.ErrRecordNotFound {
+					noOrderan = candidate
+					break
+				}
+				return err
+			}
+			// small backoff before retry
+			time.Sleep(5 * time.Millisecond)
+		}
+		if noOrderan == 0 {
+			return fmt.Errorf("failed to generate unique NoOrderan")
+		}
+
 		booking := models.Booking{
+			NoOrderan:         noOrderan,
 			IDPengunjung:      uint(idPengunjung),
 			IDTempatParkir:    req.IDTempatParkir,
 			NamaPengguna:      req.NamaPengguna,

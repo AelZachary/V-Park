@@ -6,10 +6,11 @@ import (
 
 type MetodePembayaran struct {
 	IDMetodePembayaran uint       `gorm:"primaryKey;autoIncrement"`
-	IDPembayaran       uint       `gorm:"not null;index"`
+	IDPembayaran       uint       `gorm:"column:id_pembayaran;not null;index"`
 	QRCodeBase64       string     `gorm:"type:text;null"`
 	QRCodeURL          string     `gorm:"type:varchar(500);null"`
 	ExpiresAt          *time.Time `gorm:"null"`
 	CallbackURL        string     `gorm:"type:varchar(500);null"`
+	JumlahPembayaran   int        `gorm:"null"`
 	PaymentMethod      string     `gorm:"type:varchar(50);null"` // e.g. QRIS, OVO, GoPay
 }

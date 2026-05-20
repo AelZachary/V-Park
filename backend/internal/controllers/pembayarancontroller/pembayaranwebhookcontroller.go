@@ -15,11 +15,11 @@ import (
 
 // PembayaranWebhook menerima notifikasi pembayaran dari payment gateway
 type PembayaranWebhook struct {
-	IDMetodePembayaran uint   `json:"id_metode_pembayaran"`
-	Status             string `json:"status"` // SUCCESS, FAILED, PENDING, EXPIRED
-	Amount             int64  `json:"amount"`
-	PaymentMethod      string `json:"payment_method"` // QRIS, OVO, GoPay, Dana, BCA, Wanda
-	SuccessTimestamp   int64  `json:"success_timestamp"`
+	IDMetodePembayaran uint   `json:"IDMetodePembayaran"` // ID metode pembayaran di database
+	StatusPembayaran   string `json:"StatusPembayaran"`   // SUCCESS, FAILED, PENDING, EXPIRED
+	JumlahPembayaran   int64  `json:"JumlahPembayaran"`
+	MetodePembayaran   string `json:"MetodePembayaran"` // QRIS, OVO, GoPay, Dana, BCA, Wanda
+	SuccessTimestamp   int64  `json:"SuccessTimestamp"`
 }
 
 // PaymentWebhookHandler POST /api/pembayaran/webhook
@@ -43,7 +43,7 @@ func (c *PembayaranInformasiController) PaymentWebhookHandler(w http.ResponseWri
 
 	// Map external payment status to internal status (normalize to lower-case)
 	var statusPembayaran string
-	s := strings.ToLower(strings.TrimSpace(payload.Status))
+	s := strings.ToLower(strings.TrimSpace(payload.StatusPembayaran))
 	switch s {
 	case "success", "paid", "settlement":
 		statusPembayaran = "Lunas"
@@ -56,20 +56,22 @@ func (c *PembayaranInformasiController) PaymentWebhookHandler(w http.ResponseWri
 	}
 
 	// Validate payment method exists
-	if payload.PaymentMethod != "" {
+	if payload.MetodePembayaran != "" {
 		var metode models.MetodePembayaran
-		if err := c.DB.Where("payment_method = ?", payload.PaymentMethod).First(&metode).Error; err != nil {
+		if err := c.DB.Where("payment_method = ?", payload.MetodePembayaran).First(&metode).Error; err != nil {
 			if err != gorm.ErrRecordNotFound {
 				response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 				return
 			}
 			// Method not found, but don't fail - just log and continue
-			fmt.Printf("Warning: Payment method %s not found in database\n", payload.PaymentMethod)
+			fmt.Printf("Warning: Payment method %s not found in database\n", payload.MetodePembayaran)
 		}
 	}
 
 	// Update Pembayaran record via MetodePembayaran id
 	if err := c.DB.Transaction(func(tx *gorm.DB) error {
+		lunasAt := time.Now().UTC()
+
 		// Find metode by provided id
 		var metode models.MetodePembayaran
 		if err := tx.First(&metode, payload.IDMetodePembayaran).Error; err != nil {
@@ -86,9 +88,21 @@ func (c *PembayaranInformasiController) PaymentWebhookHandler(w http.ResponseWri
 		}
 
 		// Update metode payment method if provided
-		if payload.PaymentMethod != "" {
-			if err := tx.Model(&metode).Update("payment_method", payload.PaymentMethod).Error; err != nil {
-				return err
+		if payload.MetodePembayaran != "" || payload.JumlahPembayaran > 0 {
+			updates := map[string]any{}
+			if payload.MetodePembayaran != "" {
+				updates["payment_method"] = payload.MetodePembayaran
+				metode.PaymentMethod = payload.MetodePembayaran
+			}
+			if payload.JumlahPembayaran > 0 {
+				// store as int in DB (model uses int)
+				updates["total_di_bayar"] = int(payload.JumlahPembayaran)
+				metode.JumlahPembayaran = int(payload.JumlahPembayaran)
+			}
+			if len(updates) > 0 {
+				if err := tx.Model(&metode).Updates(updates).Error; err != nil {
+					return err
+				}
 			}
 		}
 
@@ -100,7 +114,7 @@ func (c *PembayaranInformasiController) PaymentWebhookHandler(w http.ResponseWri
 			if payload.SuccessTimestamp > 0 {
 				updateData["waktu_pembayaran"] = time.Unix(payload.SuccessTimestamp, 0).UTC()
 			} else {
-				updateData["waktu_pembayaran"] = time.Now().UTC()
+				updateData["waktu_pembayaran"] = lunasAt
 			}
 		}
 
