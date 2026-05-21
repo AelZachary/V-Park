@@ -23,6 +23,7 @@ type ProfileInformasiPetugasDataResponse struct {
 	MallBertugas         string    `json:"MallBertugas"`
 	ShiftMulaiBertugas   time.Time `json:"ShiftMulaiBertugas"`
 	ShiftSelesaiBertugas time.Time `json:"ShiftSelesaiBertugas"`
+	FotoPetugas          *string   `json:"FotoPetugas"`
 }
 
 type ProfileInformasiPetugasResponse struct {
@@ -68,12 +69,19 @@ func (c *ProfileInformasiPetugasController) GetProfileInformasiPetugasHandler(w 
 		return
 	}
 
+	var fotoPetugas *string
+	if petugas.FotoPetugas != "" {
+		foto := petugas.FotoPetugas
+		fotoPetugas = &foto
+	}
+
 	responseData := ProfileInformasiPetugasResponse{
 		User: ProfileInformasiPetugasUserResponse{Username: user.Username},
 		Petugas: ProfileInformasiPetugasDataResponse{
 			MallBertugas:         petugas.MallBertugas,
 			ShiftMulaiBertugas:   petugas.ShiftMulaiBertugas,
 			ShiftSelesaiBertugas: petugas.ShiftSelesaiBertugas,
+			FotoPetugas:          fotoPetugas,
 		},
 	}
 

@@ -1,9 +1,15 @@
 package profilecontroller
 
 import (
-	"encoding/json"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 
 	"v-park/internal/models"
 	"v-park/internal/response"
@@ -16,14 +22,41 @@ type ProfileEditPengunjungController struct {
 }
 
 type ProfileEditPengunjungRequest struct {
-	JenisKendaraan string `json:"JenisKendaraan"`
-	PlatKendaraan  string `json:"PlatKendaraan"`
+	JenisKendaraan string
+	PlatKendaraan  string
 }
 
 type ProfileEditPengunjungDataResponse struct {
 	IDPengunjung   uint   `json:"IDPengunjung"`
 	JenisKendaraan string `json:"JenisKendaraan"`
 	PlatKendaraan  string `json:"PlatKendaraan"`
+	FotoPengunjung *string `json:"FotoPengunjung"`
+}
+
+func savePengunjungPhoto(file multipart.File, header *multipart.FileHeader) (string, error) {
+	if err := os.MkdirAll(filepath.Join("..", "..", "..", "internal", "foto", "uploads", "fotoprofile"), 0755); err != nil {
+		return "", err
+	}
+
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if ext == "" {
+		ext = ".jpg"
+	}
+
+	fileName := fmt.Sprintf("pengunjung_%d%s", time.Now().UnixNano(), ext)
+	fullPath := filepath.Join("..", "..", "..", "internal", "foto", "uploads", "fotoprofile", fileName)
+
+	dst, err := os.Create(fullPath)
+	if err != nil {
+		return "", err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		return "", err
+	}
+
+	return "/uploads/fotoprofile/" + fileName, nil
 }
 
 func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,9 +78,35 @@ func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.Re
 	}
 
 	var req ProfileEditPengunjungRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "Invalid JSON format"})
-		return
+	var fotoPath string
+
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "Invalid multipart form data"})
+			return
+		}
+
+		req.JenisKendaraan = r.FormValue("JenisKendaraan")
+		req.PlatKendaraan = r.FormValue("PlatKendaraan")
+
+		file, header, err := r.FormFile("FotoPengunjung")
+		if err == nil {
+			defer file.Close()
+
+			fotoPath, err = savePengunjungPhoto(file, header)
+			if err != nil {
+				response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to save photo"})
+				return
+			}
+		}
+	} else {
+		if err := r.ParseForm(); err != nil {
+			response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "Invalid form data"})
+			return
+		}
+
+		req.JenisKendaraan = r.FormValue("JenisKendaraan")
+		req.PlatKendaraan = r.FormValue("PlatKendaraan")
 	}
 
 	if req.JenisKendaraan == "" || req.PlatKendaraan == "" {
@@ -56,6 +115,12 @@ func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.Re
 	}
 
 	var responseData ProfileEditPengunjungDataResponse
+
+	var fotoResponse *string
+	if fotoPath != "" {
+		foto := fotoPath
+		fotoResponse = &foto
+	}
 
 	if err := c.DB.Transaction(func(tx *gorm.DB) error {
 		var pengunjung models.Pengunjung
@@ -71,6 +136,7 @@ func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.Re
 			Updates(map[string]any{
 				"jenis_kendaraan": req.JenisKendaraan,
 				"plat_kendaraan":  req.PlatKendaraan,
+				"foto_pengunjung": fotoPath,
 			}).Error; err != nil {
 			return err
 		}
@@ -83,6 +149,7 @@ func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.Re
 			IDPengunjung:   pengunjung.IDPengunjung,
 			JenisKendaraan: pengunjung.JenisKendaraan,
 			PlatKendaraan:  pengunjung.PlatKendaraan,
+			FotoPengunjung: fotoResponse,
 		}
 
 		return nil
