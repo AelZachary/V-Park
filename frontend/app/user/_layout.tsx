@@ -12,7 +12,7 @@ export default function UserLayout() {
 
   /* HALAMAN YANG TIDAK PAKAI NAVBAR */
   const hideNavbarPage = [
-    '/user/konfirmasiSelesaiParkir',
+    '/user/KonfirmasiSelesaiParkir',
     '/user/konfirmasiKedatangan',
     '/user/detailLocation',
     '/user/payment',

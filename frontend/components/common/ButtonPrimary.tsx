@@ -40,12 +40,13 @@ export default function ButtonPrimary({
 const styles = StyleSheet.create({
   button: {
     backgroundColor: '#1565C0',
-    padding: 16,
     borderRadius: 20,
     marginTop: 10,
-    height: 48,
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   buttonContent: {
     flexDirection: 'row',

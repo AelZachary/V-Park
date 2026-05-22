@@ -29,11 +29,11 @@ export default function ParkingSlot({
       case 'selected':
         return '#F5C542'; // Kuning (Terpilih)
       case 'manual':
-        return '#FF5C46';
+        return '#FF5C46'; // Merah
       case 'online':
-        return '#2E8BEF'; // Biru (Opsional)
+        return '#2E8BEF'; // Biru
       case 'occupied':
-        return '#4E4E4E'; // Gelap saat terisi setelah konfirmasi
+        return '#4E4E4E'; // Gelap setelah konfirmasi
       default:
         return 'transparent';
     }
@@ -61,9 +61,12 @@ export default function ParkingSlot({
       ]}
       activeOpacity={0.8}
       onPress={onPress}
-      disabled={disabled !== undefined ? disabled : status === 'online' || status === 'manual' || status === 'occupied'}
+      disabled={
+        disabled !== undefined 
+          ? disabled 
+          : status === 'online' || status === 'manual' || status === 'occupied' || status === 'selected'
+      }
     >
-
       {status !== 'available' && (
         <Image
           source={getCarImage()}
@@ -73,7 +76,6 @@ export default function ParkingSlot({
           ]}
         />
       )}
-
     </TouchableOpacity>
   );
 }

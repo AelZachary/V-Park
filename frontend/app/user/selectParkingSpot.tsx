@@ -4,11 +4,16 @@ import LegendItem from '@/components/booking/LegendItem';
 // 1. IMPORT KOMPONEN LANTAI BARU KAMU DI SINI
 import GroundFloor from '@/components/booking/floors/GroundFloor';
 import P2 from '@/components/booking/floors/P2';
-import P4A from '@/components/booking/floors/P4A';
 import P3 from '@/components/booking/floors/P3';
 import P4 from '@/components/booking/floors/P4';
+import P4A from '@/components/booking/floors/P4A';
 import P5 from '@/components/booking/floors/P5';
 
+import GroundFloorA from '@/components/booking/floors/GroundFloorA';
+import P1 from '@/components/booking/floors/P1';
+import P1A from '@/components/booking/floors/P1A';
+import P2A from '@/components/booking/floors/P2A';
+import P3A from '@/components/booking/floors/P3A';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -20,11 +25,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import GroundFloorA from '@/components/booking/floors/GroundFloorA';
-import P1 from '@/components/booking/floors/P1';
-import P1A from '@/components/booking/floors/P1A';
-import P2A from '@/components/booking/floors/P2A';
-import P3A from '@/components/booking/floors/P3A';
 
 export default function SelectParkingSpot() {
   const handlePressBack = () => {
@@ -224,38 +224,38 @@ export default function SelectParkingSpot() {
       </ScrollView>
 
       {/* DYNAMIC CARD POP-UP */}
-      {selectedSlot && (
-        <View style={styles.popupContainer}>
-          {/* Baris Atas: Judul & Status Tersedia */}
-          <View style={styles.popupHeaderRow}>
-            <Text style={styles.popupTitle}>Slot Terpilih</Text>
-            <View style={styles.statusBadge}>
-              {/* Bulatan Dot Hijau */}
-              <View style={styles.statusDot} />
-              {/* Tulisan Tersedia */}
-              <Text style={styles.statusText}>Tersedia</Text>
-            </View>
-          </View>
-          
-          {/* Garis Abu Pembatas Tipis */}
-          <View style={styles.popupDividerLine} />
+{selectedSlot && (
+  <View style={styles.popupContainer}>
+    {/* Baris Atas: Judul & Status Nomor Slot */}
+    <View style={styles.popupHeaderRow}>
+      <Text style={styles.popupTitle}>Slot Terpilih</Text>
+      <View style={styles.statusBadge}>
+        {/* Bulatan Dot Hijau */}
+        <View style={styles.statusDot} />
+        {/* 👇 PERBAIKAN: Mengubah teks "Tersedia" menjadi nomor slot hijau (A1, A2, A3, dll.) */}
+        <Text style={styles.statusText}>{selectedSlot}</Text>
+      </View>
+    </View>
+    
+    {/* Garis Abu Pembatas Tipis */}
+    <View style={styles.popupDividerLine} />
 
-          {/* Sub Deskripsi Lokasi */}
-          <Text style={styles.popupSubDesc}>{selectedFloor} • Dekat Lift & Pintu Keluar</Text>
-          
-          {/* Tombol Lanjutkan */}
-          <TouchableOpacity 
-            style={styles.confirmButton} 
-            activeOpacity={0.85} 
-            onPress={() => router.push({
-              pathname: '/user/detailLocation',
-              params: { slot: selectedSlot, floor: selectedFloor }
-            })}
-          >
-            <Text style={styles.confirmText}>Lanjutkan</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+    {/* Sub Deskripsi Lokasi */}
+    <Text style={styles.popupSubDesc}>{selectedFloor} • Dekat Lift & Pintu Keluar</Text>
+    
+    {/* Tombol Lanjutkan */}
+    <TouchableOpacity 
+      style={styles.confirmButton} 
+      activeOpacity={0.85} 
+      onPress={() => router.push({
+        pathname: '/user/detailLocation',
+        params: { slot: selectedSlot, floor: selectedFloor }
+      })}
+    >
+      <Text style={styles.confirmText}>Lanjutkan</Text>
+    </TouchableOpacity>
+  </View>
+)}
 
       {/* Default footer jika belum memilih slot */}
       {!selectedSlot && (

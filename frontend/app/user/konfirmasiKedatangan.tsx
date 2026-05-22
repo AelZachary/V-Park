@@ -1,18 +1,19 @@
+import { COLORS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import ButtonPrimary from '@/components/common/ButtonPrimary';
-import ButtonSecondary from '@/components/common/ButtonSecondary';
 import Svg, { Circle, Path } from 'react-native-svg';
+
+// Impor komponen denah lokasi parkir Ground Floor Area A
+import GroundFloorA from '@/components/booking/floors/GroundFloorA';
 
 const INITIAL_SECONDS = 30 * 60 + 0;
 
@@ -57,38 +58,6 @@ function ClockIcon() {
         stroke="#1565C0"
         strokeWidth={2}
         strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function BuildingIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path
-        d="M10 1.6665H5C2.93167 1.6665 2.5 2.09817 2.5 4.1665V18.3332H12.5V4.1665C12.5 2.09817 12.0683 1.6665 10 1.6665Z"
-        stroke="#141B34"
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M15 6.6665H12.5V18.3332H17.5V9.1665C17.5 7.09817 17.0683 6.6665 15 6.6665Z"
-        stroke="#141B34"
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M6.66675 5L8.33341 5M6.66675 7.5L8.33341 7.5M6.66675 10L8.33341 10"
-        stroke="#141B34"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M9.58341 18.3335V15.0002C9.58341 14.2145 9.58341 13.8217 9.33934 13.5776C9.09526 13.3335 8.70242 13.3335 7.91675 13.3335H7.08341C6.29774 13.3335 5.9049 13.3335 5.66083 13.5776C5.41675 13.8217 5.41675 14.2145 5.41675 15.0002V18.3335"
-        stroke="#141B34"
-        strokeWidth={1.5}
         strokeLinejoin="round"
       />
     </Svg>
@@ -175,19 +144,14 @@ function PlatCarIcon() {
 
 const bookingDetails = [
   {
-    icon: <BuildingIcon />,
-    label: 'Lokasi Mall',
-    value: 'Trans Studio Mall Makassar',
-  },
-  {
     icon: <CarIcon />,
     label: 'Area Parkir',
-    value: 'Basement',
+    value: 'Ground Floor - Area A',
   },
   {
     icon: <ParkingAreaIcon />,
     label: 'Slot Parkir',
-    value: 'C4',
+    value: 'A4',
   },
   {
     icon: <CarIcon />,
@@ -215,15 +179,19 @@ export default function KonfirmasiKedatangan() {
     };
   }, []);
 
+  // 👇 FIKSASI LOGIKA: Mengonversi nilai 'C4' di bookingDetails menjadi 'GA-A4' agar terbaca Kuning oleh Map
+  const rawSlotValue = bookingDetails[1].value; // Mengambil string 'C4'
+  const slotNumber = rawSlotValue.replace(/[^0-9]/g, ''); // Mengambil angka '4' saja
+  const targetSlotId = `A${slotNumber}`; // Otomatis dicetak menjadi format 'GA-A4'
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={28} color="#1565C0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Konfirmasi Kedatangan</Text>
-        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView
@@ -233,7 +201,9 @@ export default function KonfirmasiKedatangan() {
         {/* Hero Image */}
         <View style={styles.heroContainer}>
           <Image
-            source={require('../../assets/images/Rectangle-4010.png')}
+            source={{
+              uri: 'https://api.builder.io/api/v1/image/assets/TEMP/98f1b0cad281935f3def159832d8ca1473bb9b9f?width=738',
+            }}
             style={styles.heroImage}
             resizeMode="cover"
           />
@@ -270,6 +240,29 @@ export default function KonfirmasiKedatangan() {
                 {formatCountdown(secondsLeft)}
               </Text>
             </View>
+          </View>
+        </View>
+
+        {/* 🗺️ KARTU UTAMA BARU: Detail Lokasi Tempat Parkir */}
+        <View style={styles.locationMapCard}>
+          <Text style={styles.locationMapHeading}>Detail Lokasi Tempat Parkir</Text>
+          
+          <View style={styles.miniMapFrame}>
+            {/* Scroll Vertikal (Naik-Turun Denah) */}
+            <ScrollView 
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={true}
+              contentContainerStyle={styles.miniMapVerticalContent}
+            >
+              {/* Scroll Horizontal (Geser Kanan-Kiri Denah) */}
+              <ScrollView 
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+              >
+                {/* Menampilkan Peta Mini. Properti selectedSlot disuplai variabel targetSlotId ('GA-A4') */}
+                <GroundFloorA selectedSlot={targetSlotId} onSelectSlot={() => {}} />
+              </ScrollView>
+            </ScrollView>
           </View>
         </View>
 
@@ -316,8 +309,7 @@ export default function KonfirmasiKedatangan() {
         <TouchableOpacity 
           style={styles.confirmButton} 
           activeOpacity={0.85} 
-          onPress={() =>
-                router.push('/user/konfirmasiSelesaiParkir')}
+          onPress={() => router.push('/user/KonfirmasiSelesaiParkir')}
         >
           <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
           <Text style={styles.confirmText}>Ya, Saya sudah Tiba di Mall</Text>
@@ -328,54 +320,45 @@ export default function KonfirmasiKedatangan() {
           activeOpacity={0.85}
           onPress={() => router.push({
             pathname: '/user/activity',
-            params: {
-                arrived:'false',
-            }
-          })
-          }
+            params: { arrived: 'false' }
+          })}
         >
           <Text style={styles.secondaryText}>Belum, Nanti Saja</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#F0F7FF',
+    backgroundColor: COLORS.background,
+    paddingTop: 50,
   },
-
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  backBtn: {
-    width: 35,
-    height: 35,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 10,
+    position: 'relative',
+    marginBottom: 5,
+  },
+  backBtn: {
+    position: 'absolute',
+    left: 12,
+    top: 10,
+    padding: 4,
   },
   headerTitle: {
-    flex: 1,
-    textAlign: 'center',
     fontSize: 20,
     fontWeight: '700',
     color: '#1565C0',
   },
-  headerSpacer: {
-    width: 35,
-  },
-
   scrollContent: {
     paddingHorizontal: 17,
     paddingBottom: 16,
     gap: 12,
   },
-
   heroContainer: {
     borderRadius: 15,
     overflow: 'hidden',
@@ -386,22 +369,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 164,
   },
-
   pageTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#000',
     textAlign: 'center',
-    marginTop: -4,
+    marginTop: -5,
   },
   pageSubtitle: {
     fontSize: 12,
     fontWeight: '400',
     color: '#1E88E5',
     textAlign: 'center',
-    marginTop: -4,
+    marginTop: -8,
   },
-
   greenBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -412,11 +393,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 2,
-    elevation: 2,
+    marginTop: -4,
   },
   greenBannerText: {
     flex: 1,
@@ -425,7 +402,6 @@ const styles = StyleSheet.create({
     color: '#81C784',
     lineHeight: 18,
   },
-
   timerBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -441,6 +417,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 2,
     elevation: 2,
+    marginTop: -4,
   },
   timerBannerContent: {
     flex: 1,
@@ -479,6 +456,41 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  /* STYLE KUSTOM BARU UNTUK JENDELA MAP SCROLL SEBAGIAN */
+  locationMapCard: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(30,136,229,0.50)',
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 2,
+    elevation: 3,
+    marginTop: -4,
+  },
+  locationMapHeading: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1565C0',
+    marginBottom: 12,
+  },
+  miniMapFrame: {
+    height: 330,
+    backgroundColor: '#54595F', 
+    borderRadius: 16,
+    overflow: 'hidden',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  miniMapVerticalContent: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+
   card: {
     backgroundColor: '#fff',
     borderRadius: 15,
@@ -492,6 +504,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 2,
     elevation: 3,
+    marginTop: -4,
   },
   cardHeading: {
     fontSize: 16,
@@ -534,7 +547,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#D9D9D9',
     marginLeft: 38,
   },
-
   perhatianBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -545,11 +557,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 2,
-    elevation: 2,
+    marginTop: -4,
   },
   perhatianContent: {
     flex: 1,
@@ -568,7 +576,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.12,
     lineHeight: 19,
   },
-
   batalkanBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -579,20 +586,19 @@ const styles = StyleSheet.create({
     height: 44,
     gap: 8,
     backgroundColor: '#fff',
+    marginTop: -4,
   },
   batalkanText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#FF6249',
   },
-
   bottomSection: {
     paddingHorizontal: 17,
     paddingBottom: 16,
     paddingTop: 8,
     gap: 10,
   },
-
   confirmButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -602,13 +608,11 @@ const styles = StyleSheet.create({
     height: 48,
     gap: 8,
   },
-
   confirmText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#fff',
   },
-
   secondaryButton: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -617,8 +621,8 @@ const styles = StyleSheet.create({
     borderColor: '#1565C0',
     borderRadius: 20,
     height: 48,
+    marginBottom: 20,
   },
-
   secondaryText: {
     fontSize: 14,
     fontWeight: '700',
