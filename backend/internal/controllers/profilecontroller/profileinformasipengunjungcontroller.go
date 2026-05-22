@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"v-park/internal/loggers"
 	"v-park/internal/logic"
 	"v-park/internal/models"
 	"v-park/internal/response"
@@ -38,6 +39,11 @@ type ProfileInformasiPengunjungResponse struct {
 }
 
 func (c *ProfileInformasiPengunjungController) GetProfileInformasiPengunjungHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.ProfileControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "GetProfileInformasiPengunjungHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodGet {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

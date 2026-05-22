@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -55,6 +57,11 @@ type PetugasEnvelope struct {
 }
 
 func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.AuthenticationControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "LoginHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

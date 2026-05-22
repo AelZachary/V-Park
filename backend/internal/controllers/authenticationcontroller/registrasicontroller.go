@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -23,6 +25,11 @@ type RegistrasiRequest struct {
 }
 
 func (reg *RegistrasiController) RegistrasiHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.AuthenticationControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "RegistrasiHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

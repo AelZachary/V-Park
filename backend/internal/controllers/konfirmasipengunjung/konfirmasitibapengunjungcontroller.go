@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"v-park/internal/loggers"
 	"v-park/internal/logic"
 	"v-park/internal/models"
 	"v-park/internal/response"
@@ -55,6 +56,11 @@ type PembayaranResponse struct {
 }
 
 func (c *KonfirmasiTibaPengunjungController) CreateKonfirmasiTibaHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.KonfirmasiPengunjungControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "CreateKonfirmasiTibaHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

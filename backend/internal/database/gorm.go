@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"v-park/cmd/config"
+	"v-park/internal/loggers"
 
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
@@ -14,11 +15,18 @@ import (
 )
 
 func DatabaseConnect() (*gorm.DB, error) {
+	logger := loggers.DatabaseGormLogger
+	if logger != nil {
+		logger.Info("starting database connection")
+	}
 
 	cfg := config.DatabaseConfig()
 
 	if cfg.User == "" || cfg.Password == "" || cfg.Host == "" || cfg.Name == "" {
 		err := fmt.Errorf("missing database env vars")
+		if logger != nil {
+			logger.Error("database config is incomplete", "error", err)
+		}
 		return nil, err
 	}
 
@@ -49,6 +57,9 @@ func DatabaseConnect() (*gorm.DB, error) {
 		DisableForeignKeyConstraintWhenMigrating: false,
 	})
 	if err != nil {
+		if logger != nil {
+			logger.Error("failed to open gorm database", "error", err)
+		}
 		return nil, err
 	}
 
@@ -58,6 +69,10 @@ func DatabaseConnect() (*gorm.DB, error) {
 		sqlDB.SetMaxOpenConns(30)
 		sqlDB.SetMaxIdleConns(5)
 		sqlDB.SetConnMaxLifetime(5 * time.Minute)
+	}
+
+	if logger != nil {
+		logger.Info("database connection established")
 	}
 
 	return db, nil
