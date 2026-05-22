@@ -25,10 +25,11 @@ func SeedAllSeeders(db *gorm.DB) error {
 		petugas := seeders.PetugasBulkSeeders(tx, petugasUserIDs)
 
 		lokasiMall := seeders.LokasiMallBulkSeeders(tx)
+		seeders.FotoLokasiMallBulkSeeders(tx, lokasiMall)
 
 		allTempatParkir := make([]uint, 0, len(lokasiMall)*60)
 		for _, lokasi := range lokasiMall {
-			tempatParkir := seeders.TempatParkirSeeders(tx, lokasi.IDLokasiMall)
+			tempatParkir := seeders.TempatParkirSeeders(tx, lokasi)
 			for _, item := range tempatParkir {
 				allTempatParkir = append(allTempatParkir, item.IDTempatParkir)
 			}
