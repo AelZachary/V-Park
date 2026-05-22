@@ -168,14 +168,20 @@ func (c *KonfirmasiSelesaiPengunjungController) CreateKonfirmasiSelesaiHandler(w
 		return nil
 	}); err != nil {
 		statusCode := http.StatusInternalServerError
+		message := "Failed to confirm completion"
 		switch err.Error() {
 		case "booking not found", "riwayat booking not found", "tempat parkir not found", "lokasi mall not found":
 			statusCode = http.StatusNotFound
+			message = err.Error()
 		case "status booking tidak dapat diselesaikan":
 			statusCode = http.StatusBadRequest
+			message = err.Error()
 		}
 
-		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: err.Error()})
+		if logger != nil {
+			logger.Error("failed to confirm completion", "error", err)
+		}
+		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: message})
 		return
 	}
 

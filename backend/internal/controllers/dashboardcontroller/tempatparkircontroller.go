@@ -129,6 +129,9 @@ func (c *TempatParkirController) GetByLokasiSSE(w http.ResponseWriter, r *http.R
 	}
 
 	if err := send(ctx); err != nil {
+		if logger != nil {
+			logger.Error("failed to load tempat parkir stream", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to load tempat parkir"})
 		return
 	}
@@ -139,6 +142,9 @@ func (c *TempatParkirController) GetByLokasiSSE(w http.ResponseWriter, r *http.R
 			return
 		case <-ticker.C:
 			if err := send(ctx); err != nil {
+				if logger != nil {
+					logger.Error("failed to refresh tempat parkir stream", "error", err)
+				}
 				fmt.Fprintf(w, "event: error\n")
 				fmt.Fprintf(w, "data: %q\n\n", "failed to query data")
 				flusher.Flush()

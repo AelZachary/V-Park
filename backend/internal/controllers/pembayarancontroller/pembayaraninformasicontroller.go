@@ -134,6 +134,9 @@ func (c *PembayaranInformasiController) GetPembayaranDetailHandler(w http.Respon
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Pembayaran not found"})
 			return
 		}
+		if logger != nil {
+			logger.Error("failed to load pembayaran detail", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
@@ -143,6 +146,9 @@ func (c *PembayaranInformasiController) GetPembayaranDetailHandler(w http.Respon
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Related booking data not found"})
 			return
+		}
+		if logger != nil {
+			logger.Error("failed to build pembayaran detail response", "error", err)
 		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
@@ -179,6 +185,9 @@ func (c *PembayaranInformasiController) GetPembayaranByRiwayatHandler(w http.Res
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Booking not found"})
 			return
 		}
+		if logger != nil {
+			logger.Error("failed to load booking for pembayaran", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
@@ -195,6 +204,9 @@ func (c *PembayaranInformasiController) GetPembayaranByRiwayatHandler(w http.Res
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Pembayaran not found for given riwayat"})
 			return
 		}
+		if logger != nil {
+			logger.Error("failed to load pembayaran for riwayat", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
@@ -204,6 +216,9 @@ func (c *PembayaranInformasiController) GetPembayaranByRiwayatHandler(w http.Res
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Related booking data not found"})
 			return
+		}
+		if logger != nil {
+			logger.Error("failed to build pembayaran detail response by riwayat", "error", err)
 		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return

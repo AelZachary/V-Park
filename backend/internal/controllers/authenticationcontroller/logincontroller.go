@@ -85,6 +85,9 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 			response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Invalid username or password"})
 			return
 		}
+		if logger != nil {
+			logger.Error("failed to query user", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to query user"})
 		return
 	}
@@ -98,6 +101,9 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 		var loadedUser models.User
 		err = call.DB.Preload("Pengunjung").Where("id_user = ?", user.IDUser).First(&loadedUser).Error
 		if err != nil {
+			if logger != nil {
+				logger.Error("failed to load pengunjung data", "error", err)
+			}
 			response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to load pengunjung data"})
 			return
 		}
@@ -127,6 +133,9 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 	var loadedUser models.User
 	err = call.DB.Preload("Petugas").Where("id_user = ?", user.IDUser).First(&loadedUser).Error
 	if err != nil {
+		if logger != nil {
+			logger.Error("failed to load petugas data", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to load petugas data"})
 		return
 	}

@@ -61,6 +61,9 @@ func (c *ProfileInformasiPetugasController) GetProfileInformasiPetugasHandler(w 
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Petugas not found"})
 			return
 		}
+		if logger != nil {
+			logger.Error("failed to load petugas profile", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
@@ -70,6 +73,9 @@ func (c *ProfileInformasiPetugasController) GetProfileInformasiPetugasHandler(w 
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Profile not found"})
 			return
+		}
+		if logger != nil {
+			logger.Error("failed to load user profile", "error", err)
 		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
