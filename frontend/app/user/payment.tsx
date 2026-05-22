@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import QRCode from 'react-native-qrcode-svg'; // 🌟 FIKS 1: Import library QR Code pesanan dosen
 
 const PAYMENT_LOGOS = {
   ovo: require('../../assets/images/payment/ovo.jpeg'),
@@ -20,7 +21,8 @@ const PAYMENT_LOGOS = {
   bni: require('../../assets/images/payment/bni.jpeg'),
 };
 
-const QR_IMAGE = require('../../assets/images/payment/qr.jpeg');
+// 🌟 Hapus QR_IMAGE statis lama karena sudah diganti QR otomatis
+
 const QRIS_LOGO = require('../../assets/images/payment/qris.jpeg');
 
 const PAYMENT_METHODS = [
@@ -71,6 +73,21 @@ export default function PembayaranQris() {
   const [stepsExpanded, setStepsExpanded] = useState(true);
   const [countdown, setCountdown] = useState(PAYMENT_COUNTDOWN_SECONDS);
 
+  // 🌟 FIKS 2: Buat data transaksi tiruan agar QR Code-nya berisi informasi valid saat di-scan
+  const [transactionData, setTransactionData] = useState({
+    ticketId: 'VPK-20260522-88',
+    slotCode: 'GA-L2',
+    amount: 20000,
+  });
+
+  // 🌟 FIKS 3: Gabungkan data di atas menjadi string JSON untuk di-inject ke QR Code
+  const qrisValue = JSON.stringify({
+    id: transactionData.ticketId,
+    slot: transactionData.slotCode,
+    total: transactionData.amount,
+    gateway: 'V-PARK_QRIS_GATEWAY'
+  });
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -92,7 +109,12 @@ export default function PembayaranQris() {
   };
 
   const handleRefreshQr = () => {
-    // Refresh QR logic
+    // Refresh QR logic: Simulasi ganti ID tiket baru agar QR berubah bentuk
+    setTransactionData(prev => ({
+      ...prev,
+      ticketId: `VPK-20260522-${Math.floor(10 + Math.random() * 90)}`
+    }));
+    setCountdown(PAYMENT_COUNTDOWN_SECONDS);
   };
 
   return (
@@ -132,7 +154,7 @@ export default function PembayaranQris() {
           <View style={styles.paymentHeaderRow}>
             <View>
               <Text style={styles.paymentLabel}>Total Pembayaran</Text>
-              <Text style={styles.paymentAmount}>Rp 20.000</Text>
+              <Text style={styles.paymentAmount}>Rp {transactionData.amount.toLocaleString('id-ID')}</Text>
             </View>
             <TouchableOpacity
               style={styles.detailToggle}
@@ -166,11 +188,18 @@ export default function PembayaranQris() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Scan QR untuk Membayar</Text>
 
+          {/* 🌟 FIKS 4: Ganti Image statis menjadi komponen QRCode dinamis library */}
           <TouchableOpacity 
             style={styles.qrWrapper}
             onPress={() => router.push('/user/paymentProcessing')}
+            activeOpacity={0.9}
           >
-            <Image source={QR_IMAGE} style={styles.qrImage} resizeMode="contain" />
+            <QRCode
+              value={qrisValue}         // Data string transaksi unik
+              size={140}                // Pas dengan ukuran container wrapper kamu
+              backgroundColor="#FFF"    // Latar belakang putih bersih
+              color="#000"              // Warna batang hitam QR
+            />
           </TouchableOpacity>
 
           <View style={styles.qrisLabelRow}>
@@ -234,6 +263,7 @@ export default function PembayaranQris() {
           )}
         </View>
       </ScrollView>
+
       <View style={styles.bottomSection}>
         <View style={styles.alertBanner}>
           <MaterialCommunityIcons name="shield-check-outline" size={24} color="#81C784" />
@@ -258,7 +288,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     paddingTop: 50,
   },
-
   scrollView: {
     flex: 1,
   },
@@ -266,8 +295,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 17,
     paddingBottom: 8,
   },
-
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -290,8 +317,6 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 35,
   },
-
-  // Subtitle
   subtitle: {
     fontWeight: '400',
     fontSize: 11,
@@ -300,8 +325,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
-
-  // Timer Card
   timerCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -342,7 +365,6 @@ const styles = StyleSheet.create({
     color: '#FEAB42',
     lineHeight: 22,
   },
-  // Shared Card
   card: {
     borderRadius: 15,
     borderWidth: 1,
@@ -363,8 +385,6 @@ const styles = StyleSheet.create({
     color: '#1565C0',
     lineHeight: 22,
   },
-
-  // Payment Total
   paymentHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -425,8 +445,6 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     letterSpacing: 0.12,
   },
-
-  // QR Code
   qrWrapper: {
     alignSelf: 'center',
     width: 160,
@@ -444,10 +462,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  qrImage: {
-    width: 150,
-    height: 140,
   },
   qrisLabelRow: {
     flexDirection: 'row',
@@ -467,8 +481,6 @@ const styles = StyleSheet.create({
     color: '#000',
     lineHeight: 15,
   },
-
-  // Payment Methods Box
   paymentMethodsBox: {
     borderRadius: 10,
     borderWidth: 1,
@@ -529,8 +541,6 @@ const styles = StyleSheet.create({
     lineHeight: 11,
     marginTop: 4,
   },
-
-  // How to Pays
   howToHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -572,8 +582,6 @@ const styles = StyleSheet.create({
     lineHeight: 11,
     marginTop: 2,
   },
-
-  // Refresh Button
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -594,13 +602,11 @@ const styles = StyleSheet.create({
     color: '#1565C0',
     lineHeight: 22,
   },
-
   bottomSection: {
     paddingHorizontal: 17,
     paddingBottom: 16,
     gap: 10,
   },
-
   alertBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -614,7 +620,6 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 10,
   },
-
   alertText: {
     fontFamily: 'Poppins',
     fontWeight: '700',
