@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"v-park/internal/loggers"
 	"v-park/internal/logic"
 	"v-park/internal/models"
 	"v-park/internal/response"
@@ -38,6 +39,11 @@ type TempatParkirPayloadWithTotal struct {
 }
 
 func (c *TempatParkirController) GetByLokasiSSE(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.DashboardControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "GetByLokasiSSE", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodGet {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	database "v-park/internal/database"
+	"v-park/internal/loggers"
 
 	authenticationcontroller "v-park/internal/controllers/authenticationcontroller"
 	dashboardcontroller "v-park/internal/controllers/dashboardcontroller"
@@ -24,6 +26,14 @@ import (
 )
 
 func main() {
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "dev"
+	}
+	loggers.Init(env)
+	loggers.InitController()
+	loggers.InitRoutes()
+
 	db, err := database.DatabaseConnect()
 	if err != nil {
 		log.Fatal("Failed to connect database:", err)

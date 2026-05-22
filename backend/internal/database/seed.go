@@ -1,6 +1,7 @@
 package database
 
 import (
+	"v-park/internal/loggers"
 	"v-park/internal/seeders"
 
 	"gorm.io/gorm"
@@ -8,6 +9,11 @@ import (
 
 // SeedAllSeeders menjalankan semua seeder dalam satu transaction
 func SeedAllSeeders(db *gorm.DB) error {
+	logger := loggers.DatabaseSeedLogger
+	if logger != nil {
+		logger.Info("starting database seeding")
+	}
+
 	if err := db.Transaction(func(tx *gorm.DB) error {
 
 		// pengunjungUsers, petugasUsers := seeders.UsersBulkSeeders(tx)
@@ -56,7 +62,14 @@ func SeedAllSeeders(db *gorm.DB) error {
 		return nil
 
 	}); err != nil {
+		if logger != nil {
+			logger.Error("database seeding failed", "error", err)
+		}
 		return err
+	}
+
+	if logger != nil {
+		logger.Info("database seeding completed")
 	}
 
 	return nil

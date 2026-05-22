@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -27,9 +28,9 @@ type ProfileEditPengunjungRequest struct {
 }
 
 type ProfileEditPengunjungDataResponse struct {
-	IDPengunjung   uint   `json:"IDPengunjung"`
-	JenisKendaraan string `json:"JenisKendaraan"`
-	PlatKendaraan  string `json:"PlatKendaraan"`
+	IDPengunjung   uint    `json:"IDPengunjung"`
+	JenisKendaraan string  `json:"JenisKendaraan"`
+	PlatKendaraan  string  `json:"PlatKendaraan"`
 	FotoPengunjung *string `json:"FotoPengunjung"`
 }
 
@@ -60,6 +61,11 @@ func savePengunjungPhoto(file multipart.File, header *multipart.FileHeader) (str
 }
 
 func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.ProfileControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "EditProfilePengunjungHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

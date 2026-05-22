@@ -3,6 +3,7 @@ package dashboardcontroller
 import (
 	"net/http"
 
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -28,6 +29,11 @@ type LokasiMallDashboardResponse struct {
 }
 
 func (c *DashboardPengunjungController) GetAllPengunjungHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.DashboardControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "GetAllPengunjungHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodGet {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -110,6 +111,11 @@ func buildPembayaranByBookingResponse(db *gorm.DB, pembayaran *models.Pembayaran
 // GetPembayaranDetailHandler GET /api/pembayaran/{IDPembayaran}
 // Get current payment detail (for polling status, QR refresh)
 func (c *PembayaranInformasiController) GetPembayaranDetailHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.PembayaranControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "GetPembayaranDetailHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodGet {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return
@@ -149,6 +155,11 @@ func (c *PembayaranInformasiController) GetPembayaranDetailHandler(w http.Respon
 // GetPembayaranByRiwayatHandler GET /api/pembayaran/booking/{IDBooking}
 // Returns the pembayaran record for a given riwayat booking id (useful to poll by booking)
 func (c *PembayaranInformasiController) GetPembayaranByRiwayatHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.PembayaranControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "GetPembayaranByRiwayatHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodGet {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -25,6 +26,11 @@ type PembayaranWebhook struct {
 // PaymentWebhookHandler POST /api/pembayaran/webhook
 // Menerima notifikasi dari payment gateway tentang status pembayaran
 func (c *PembayaranInformasiController) PaymentWebhookHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.PembayaranControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "PaymentWebhookHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

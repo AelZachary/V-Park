@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -54,6 +55,11 @@ type LokasiMallResponse struct {
 }
 
 func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.StatusTempatParkirControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "CreateBookingPengunjungHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

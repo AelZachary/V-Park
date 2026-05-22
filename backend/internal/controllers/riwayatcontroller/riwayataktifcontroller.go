@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -50,6 +51,11 @@ type RiwayatAktifResponse struct {
 }
 
 func (c *RiwayatAktifController) GetRiwayatAktifByPengunjungHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.RiwayatsControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "GetRiwayatAktifByPengunjungHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodGet {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return

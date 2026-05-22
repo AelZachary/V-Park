@@ -1,12 +1,18 @@
 package database
 
 import (
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 
 	"gorm.io/gorm"
 )
 
 func MigrateAllModels(db *gorm.DB) error {
+	logger := loggers.DatabaseMigrateLogger
+	if logger != nil {
+		logger.Info("starting database migration")
+	}
+
 	if err := db.AutoMigrate(
 		&models.User{},
 		&models.Pengunjung{},
@@ -20,6 +26,9 @@ func MigrateAllModels(db *gorm.DB) error {
 		&models.MetodePembayaran{},
 		&models.Pembayaran{},
 	); err != nil {
+		if logger != nil {
+			logger.Error("auto migration failed", "error", err)
+		}
 		return err
 	}
 
@@ -41,8 +50,15 @@ func MigrateAllModels(db *gorm.DB) error {
 
 	for _, item := range constraints {
 		if err := db.Migrator().CreateConstraint(item.model, item.name); err != nil {
+			if logger != nil {
+				logger.Error("create constraint failed", "constraint", item.name, "error", err)
+			}
 			return err
 		}
+	}
+
+	if logger != nil {
+		logger.Info("database migration completed")
 	}
 
 	return nil

@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"v-park/internal/loggers"
 	"v-park/internal/logic"
 	"v-park/internal/models"
 	"v-park/internal/response"
@@ -72,6 +73,11 @@ func getPaymentCallbackURL(r *http.Request) string {
 // InitiatePembayaranHandler POST /api/pembayaran/bayar/booking/{IDBooking}
 // Inisiasi pembayaran QRIS setelah KonfirmasiTiba
 func (c *PembayaranInformasiController) InitiatePembayaranHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.PembayaranControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "InitiatePembayaranHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return
