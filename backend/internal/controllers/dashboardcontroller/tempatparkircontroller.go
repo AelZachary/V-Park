@@ -19,7 +19,6 @@ type TempatParkirController struct {
 	DB *gorm.DB
 }
 
-
 type TempatParkir struct {
 	IDTempatParkir     uint   `json:"IDTempatParkir"`
 	IDLokasiMall       uint   `json:"IDLokasiMall"`
@@ -33,8 +32,9 @@ type TempatParkirPayload struct {
 }
 
 type TempatParkirPayloadWithTotal struct {
-	TempatParkir      []TempatParkir `json:"tempat_parkir"`
-	TotalSlotTersedia int            `json:"TotalSlotTersedia"`
+	TempatParkir      []TempatParkir           `json:"tempat_parkir"`
+	FotoLokasiMall    []FotoLokasiMallResponse `json:"FotoLokasiMall"`
+	TotalSlotTersedia int                      `json:"TotalSlotTersedia"`
 }
 
 func (c *TempatParkirController) GetByLokasiSSE(w http.ResponseWriter, r *http.Request) {
@@ -94,11 +94,23 @@ func (c *TempatParkirController) GetByLokasiSSE(w http.ResponseWriter, r *http.R
 			})
 		}
 
+		var fotos []models.FotoLokasiMall
+		if err := c.DB.Where("id_lokasi_mall = ?", id).Find(&fotos).Error; err != nil {
+			return err
+		}
+
+		fotoResponses := make([]FotoLokasiMallResponse, 0, len(fotos))
+		for _, foto := range fotos {
+			fotoResponses = append(fotoResponses, FotoLokasiMallResponse{
+				FotoLokasi: foto.FotoLokasi,
+			})
+		}
+
 		totalInt64, err := logic.CountAvailableSlots(c.DB, id)
 		if err != nil {
 			return err
 		}
-		payload := TempatParkirPayloadWithTotal{TempatParkir: dto, TotalSlotTersedia: int(totalInt64)}
+		payload := TempatParkirPayloadWithTotal{TempatParkir: dto, FotoLokasiMall: fotoResponses, TotalSlotTersedia: int(totalInt64)}
 		b, err := json.Marshal(payload)
 		if err != nil {
 			return err
