@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"path/filepath"
 
 	database "v-park/internal/database"
 
@@ -33,6 +34,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir(filepath.Join("..", "..", "..", "internal", "uploads")))))
 
 	loginController := &authenticationcontroller.LoginPengunjung{DB: db}
 	authenticationroutes.RegisterLoginRoutes(mux, loginController)

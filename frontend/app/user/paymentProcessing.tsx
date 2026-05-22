@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { COLORS } from '@/constants/theme';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Animated,
-  Easing,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Animated,
+    Easing,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
@@ -185,7 +185,7 @@ export default function MemprosesPembayaran() {
   const isAllDone = stepTwoStatus === 'success';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -279,14 +279,15 @@ export default function MemprosesPembayaran() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#F0F7FF',
+    backgroundColor: COLORS.background,
+    paddingTop: 50,
   },
   scrollView: {
     flex: 1,
@@ -440,11 +441,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(30, 136, 229, 0.50)',
     backgroundColor: 'rgba(30, 136, 229, 0.20)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 2,
-    elevation: 3,
     paddingHorizontal: 12,
     paddingVertical: 15,
     gap: 10,

@@ -20,9 +20,10 @@ type ProfileInformasiPengunjungUserResponse struct {
 }
 
 type ProfileInformasiPengunjungDataResponse struct {
-	NoPengguna        string `json:"NoPengguna"`
-	KendaraanPengguna string `json:"KendaraanPengguna"`
-	PlatPengguna      string `json:"PlatPengguna"`
+	NoPengguna        string  `json:"NoPengguna"`
+	KendaraanPengguna string  `json:"KendaraanPengguna"`
+	PlatPengguna      string  `json:"PlatPengguna"`
+	FotoPengunjung    *string `json:"FotoPengunjung"`
 }
 
 type ProfileInformasiPengunjungStatistikResponse struct {
@@ -76,6 +77,11 @@ func (c *ProfileInformasiPengunjungController) GetProfileInformasiPengunjungHand
 
 	totalBooking := logic.CalculateTotalBooking(pengunjung.Booking)
 	totalJumlahPembayaran := logic.CalculateTotalJumlahPembayaran(pengunjung.Booking)
+	var fotoPengunjung *string
+	if pengunjung.FotoPengunjung != "" {
+		foto := pengunjung.FotoPengunjung
+		fotoPengunjung = &foto
+	}
 
 	responseData := ProfileInformasiPengunjungResponse{
 		User: ProfileInformasiPengunjungUserResponse{
@@ -85,6 +91,7 @@ func (c *ProfileInformasiPengunjungController) GetProfileInformasiPengunjungHand
 			NoPengguna:        pengunjung.NoHandphone,
 			KendaraanPengguna: pengunjung.JenisKendaraan,
 			PlatPengguna:      pengunjung.PlatKendaraan,
+			FotoPengunjung:    fotoPengunjung,
 		},
 		Statistik: ProfileInformasiPengunjungStatistikResponse{
 			TotalBooking:          totalBooking,

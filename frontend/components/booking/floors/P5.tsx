@@ -26,7 +26,7 @@ const resolveSlotStatus = (
   return baseStatus;
 };
 
-export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }: FloorProps) {
+export default function P5({ selectedSlot, onSelectSlot, slotStatuses }: FloorProps) {
   return (
     <View style={styles.parkingLayout}>
       <View style={styles.rowGroup}>
@@ -43,43 +43,133 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
 
             
             <View style={styles.block3Rows}>
-                <ParkingSlot slot="P5-A1" status={resolveSlotStatus("P5-A1", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A1", "available")} />
-                <ParkingSlot slot="P5-A2" status={resolveSlotStatus("P5-A2", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A2", "available")} />
-                <ParkingSlot slot="P5-A3" status={resolveSlotStatus("P5-A3", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A3", "available")} />
+              <ParkingSlot disabled={false}
+                slot="R1" 
+                status={resolveSlotStatus("R1", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R1", resolveSlotStatus("R1", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R2" 
+                status={resolveSlotStatus("R2", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R2", resolveSlotStatus("R2", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R3" 
+                status={resolveSlotStatus("R3", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R3", resolveSlotStatus("R3", "available", slotStatuses, selectedSlot))} 
+              />
             </View>
 
             <View style={styles.block3Rows}>
-                <ParkingSlot slot="P5-A4" status={resolveSlotStatus("P5-A4", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A4", "available")} />
-                <ParkingSlot slot="P5-A5" status={resolveSlotStatus("P5-A5", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A5", "available")} />
-                <ParkingSlot slot="P5-A6" status={resolveSlotStatus("P5-A6", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A6", "available")} />
+              <ParkingSlot disabled={false}
+                slot="R4" 
+                status={resolveSlotStatus("R4", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R4", resolveSlotStatus("R4", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R5" 
+                status={resolveSlotStatus("R5", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R5", resolveSlotStatus("R5", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R6" 
+                status={resolveSlotStatus("R6", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R6", resolveSlotStatus("R6", "available", slotStatuses, selectedSlot))} 
+              />
             </View>
 
             <View style={styles.block3Rows}>
-                <ParkingSlot slot="P5-A7" status={resolveSlotStatus("P5-A7", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A7", "available")} />
-                <ParkingSlot slot="P5-A8" status={resolveSlotStatus("P5-A8", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A8", "available")} />
-                <ParkingSlot slot="P5-A9" status={resolveSlotStatus("P5-A9", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A9", "available")} />
+              <ParkingSlot disabled={false}
+                slot="R7" 
+                status={resolveSlotStatus("R7", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R7", resolveSlotStatus("R7", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R8" 
+                status={resolveSlotStatus("R8", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R8", resolveSlotStatus("R8", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R9" 
+                status={resolveSlotStatus("R9", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R9", resolveSlotStatus("R9", "available", slotStatuses, selectedSlot))} 
+              />
             </View>
 
             <View style={styles.block3Rows}>
-                <ParkingSlot slot="P5-A10" status={resolveSlotStatus("P5-A10", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A10", "available")} />
-                <ParkingSlot slot="P5-A11" status={resolveSlotStatus("P5-A11", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A11", "available")} />
-                <ParkingSlot slot="P5-A12" status={resolveSlotStatus("P5-A12", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A12", "available")} />
+              <ParkingSlot disabled={false}
+                slot="R10" 
+                status={resolveSlotStatus("R10", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R10", resolveSlotStatus("R10", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R11" 
+                status={resolveSlotStatus("R11", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R11", resolveSlotStatus("R11", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R12" 
+                status={resolveSlotStatus("R12", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R12", resolveSlotStatus("R12", "available", slotStatuses, selectedSlot))} 
+              />
             </View>           
 
             <View style={styles.block3Rows}>
-                <ParkingSlot slot="P5-A13" status={resolveSlotStatus("P5-A13", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A13", "available")} />
-                <ParkingSlot slot="P5-A14" status={resolveSlotStatus("P5-A14", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A14", "available")} />
-                <ParkingSlot slot="P5-A15" status={resolveSlotStatus("P5-A15", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A15", "available")} />
+              <ParkingSlot disabled={false}
+                slot="R13" 
+                status={resolveSlotStatus("R13", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R13", resolveSlotStatus("R13", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R14" 
+                status={resolveSlotStatus("R14", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R14", resolveSlotStatus("R14", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R15" 
+                status={resolveSlotStatus("R15", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R15", resolveSlotStatus("R15", "available", slotStatuses, selectedSlot))} 
+              />
             </View>
 
             <View style={styles.block3Rows}>
-                <ParkingSlot slot="P5-A16" status={resolveSlotStatus("P5-A16", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A16", "available")} />
-                <ParkingSlot slot="P5-A17" status={resolveSlotStatus("P5-A17", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A17", "available")} />
-                <ParkingSlot slot="P5-A18" status={resolveSlotStatus("P5-A18", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A18", "available")} />
+              <ParkingSlot disabled={false}
+                slot="R16" 
+                status={resolveSlotStatus("R16", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R16", resolveSlotStatus("R16", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R17" 
+                status={resolveSlotStatus("R17", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R17", resolveSlotStatus("R17", "available", slotStatuses, selectedSlot))} 
+              />
+              <ParkingSlot disabled={false}
+                slot="R18" 
+                status={resolveSlotStatus("R18", "available", slotStatuses, selectedSlot)} 
+                side="left" 
+                onPress={() => onSelectSlot("R18", resolveSlotStatus("R18", "available", slotStatuses, selectedSlot))} 
+              />
             </View>
 
             <View style={styles.block3Rows}>
-                <ParkingSlot slot="P5-A19" status={resolveSlotStatus("P5-A19", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A19", "available")} />
+                <ParkingSlot slot="R19" status={resolveSlotStatus("R19", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R19", "available")} />
             </View>
             <View style={styles.groupDividerRightLong} />
 
@@ -94,9 +184,9 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
             <View style={styles.groupDividerRightLong} />
 
             <View style={styles.block3Rows}>
-                <ParkingSlot slot="P5-A20" status={resolveSlotStatus("P5-A20", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A20", "available")} />
-                <ParkingSlot slot="P5-A21" status={resolveSlotStatus("P5-A21", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A21", "available")} />
-                <ParkingSlot slot="P5-A22" status={resolveSlotStatus("P5-A22", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("P5-A22", "available")} />
+                <ParkingSlot slot="R20" status={resolveSlotStatus("R20", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R20", "available")} />
+                <ParkingSlot slot="R21" status={resolveSlotStatus("R21", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R21", "available")} />
+                <ParkingSlot slot="R22" status={resolveSlotStatus("R22", "available", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R22", "available")} />
             </View>
         </View>
 
@@ -151,53 +241,159 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
         <View style={styles.sideColumn}>
 
         <View style={styles.block3Rows}>
-            <ParkingSlot slot="B1" status={resolveSlotStatus("P5-B1", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B1", "available")}/>
-            <ParkingSlot slot="B2" status={resolveSlotStatus("P5-B2", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B2", "available")} />
+            <ParkingSlot disabled={false}
+              slot="L1" 
+              status={resolveSlotStatus("L1", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L1", resolveSlotStatus("L1", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L2" 
+              status={resolveSlotStatus("L2", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L2", resolveSlotStatus("L2", "available", slotStatuses, selectedSlot))} 
+            />
           </View>
         
-        <view style={styles.groupDividerRightLongBig} />
+        <View style={styles.groupDividerRightLongBig} />
         <View style={styles.block3Rows}>
                     <Text style={styles.mallText}>Pintu</Text>
                     <Text style={styles.mallText}>Masuk</Text>
                     <Text style={styles.mallText}>Lift</Text>
                   </View>
         <View style={styles.groupDividerRightLongBig} />
-        <view style={styles.spacerSlot} />
+        <View style={styles.spacerSlot} />
 
-        <View style={styles.block3Rows}>
-            <ParkingSlot slot="B3" status={resolveSlotStatus("P5-B3", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B3", "available")}/>
-            <ParkingSlot slot="B4" status={resolveSlotStatus("P5-B4", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B4", "available")} />
-            <ParkingSlot slot="B5" status={resolveSlotStatus("P5-B5", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B5", "available")} />
-          </View>
-
-        <View style={styles.block3Rows}>
-            <ParkingSlot slot="B7" status={resolveSlotStatus("P5-B7", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B7", "available")} />
-            <ParkingSlot slot="B8" status={resolveSlotStatus("P5-B8", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B8", "available")} />
-            <ParkingSlot slot="B9" status={resolveSlotStatus("P5-B9", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B9", "available")} />
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="L3" 
+              status={resolveSlotStatus("L3", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L3", resolveSlotStatus("L3", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L4" 
+              status={resolveSlotStatus("L4", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L4", resolveSlotStatus("L4", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L5" 
+              status={resolveSlotStatus("L5", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L5", resolveSlotStatus("L5", "available", slotStatuses, selectedSlot))} 
+            />
           </View>
 
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="B10" status={resolveSlotStatus("P5-B10", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B10", "available")} />
-            <ParkingSlot slot="B11" status={resolveSlotStatus("P5-B11", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B11", "available")} />
-            <ParkingSlot slot="B12" status={resolveSlotStatus("P5-B12", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B12", "available")} />
+            <ParkingSlot disabled={false}
+              slot="L6" 
+              status={resolveSlotStatus("L6", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L6", resolveSlotStatus("L6", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L7" 
+              status={resolveSlotStatus("L7", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L7", resolveSlotStatus("L7", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L8" 
+              status={resolveSlotStatus("L8", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L8", resolveSlotStatus("L8", "available", slotStatuses, selectedSlot))} 
+            />
           </View>
 
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="B13" status={resolveSlotStatus("P5-B13", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B13", "available")} />
-            <ParkingSlot slot="B14" status={resolveSlotStatus("P5-B14", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B14", "available")} />
-            <ParkingSlot slot="B15" status={resolveSlotStatus("P5-B15", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B15", "available")} />
+            <ParkingSlot disabled={false}
+              slot="L9" 
+              status={resolveSlotStatus("L9", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L9", resolveSlotStatus("L9", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L10" 
+              status={resolveSlotStatus("L10", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L10", resolveSlotStatus("L10", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L11" 
+              status={resolveSlotStatus("L11", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L11", resolveSlotStatus("L11", "available", slotStatuses, selectedSlot))} 
+            />
           </View>
 
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="B16" status={resolveSlotStatus("P5-B16", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B16", "available")} />
-            <ParkingSlot slot="B17" status={resolveSlotStatus("P5-B17", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B17", "available")} />
-            <ParkingSlot slot="B18" status={resolveSlotStatus("P5-B18", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B18", "available")} />
+            <ParkingSlot disabled={false}
+              slot="L12" 
+              status={resolveSlotStatus("L12", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L12", resolveSlotStatus("L12", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L13" 
+              status={resolveSlotStatus("L13", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L13", resolveSlotStatus("L13", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L14" 
+              status={resolveSlotStatus("L14", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L14", resolveSlotStatus("L14", "available", slotStatuses, selectedSlot))} 
+            />
           </View>
 
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="B19" status={resolveSlotStatus("P5-B19", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B19", "available")} />
-            <ParkingSlot slot="B20" status={resolveSlotStatus("P5-B20", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B20", "available")} />
-            <ParkingSlot slot="B21" status={resolveSlotStatus("P5-B21", "available", slotStatuses, selectedSlot)} side="right" onPress={() => onSelectSlot("P5-B21", "available")} />
+            <ParkingSlot disabled={false}
+              slot="L15" 
+              status={resolveSlotStatus("L15", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L15", resolveSlotStatus("L15", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L16" 
+              status={resolveSlotStatus("L16", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L16", resolveSlotStatus("L16", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L17" 
+              status={resolveSlotStatus("L17", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L17", resolveSlotStatus("L17", "available", slotStatuses, selectedSlot))} 
+            />
+          </View>
+
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="L18" 
+              status={resolveSlotStatus("L18", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L18", resolveSlotStatus("L18", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L19" 
+              status={resolveSlotStatus("L19", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L19", resolveSlotStatus("L19", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L20" 
+              status={resolveSlotStatus("L20", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L20", resolveSlotStatus("L20", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L21" 
+              status={resolveSlotStatus("L21", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L21", resolveSlotStatus("L21", "available", slotStatuses, selectedSlot))} 
+            />
           </View>
             <View style={styles.spacerSlot} />
             <View style={styles.spacerSlot} />

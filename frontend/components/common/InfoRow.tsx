@@ -1,6 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { PencilEditIcon } from '../icons/ParkingDetailIcons';
+import {
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
 
 interface InfoRowProps {
   icon: React.ReactNode;
@@ -8,7 +11,6 @@ interface InfoRowProps {
   value: string;
   valueComponent?: React.ReactNode;
   showDivider?: boolean;
-  onEdit?: () => void;
 }
 
 export default function InfoRow({
@@ -17,20 +19,34 @@ export default function InfoRow({
   value,
   valueComponent,
   showDivider = true,
-  onEdit,
 }: InfoRowProps) {
+
   return (
     <>
-      {showDivider && <View style={styles.divider} />}
+      {showDivider && (
+        <View style={styles.divider} />
+      )}
+
       <View style={styles.infoRow}>
-        <View style={styles.iconBadge}>{icon}</View>
-        <View style={styles.infoTextContainer}>
-          <Text style={styles.infoLabel}>{label}</Text>
-          {valueComponent ?? <Text style={styles.infoValue}>{value}</Text>}
+
+        <View style={styles.iconBadge}>
+          {icon}
         </View>
-        <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-          <PencilEditIcon />
-        </TouchableOpacity>
+
+        <View style={styles.infoTextContainer}>
+
+          <Text style={styles.infoLabel}>
+            {label}
+          </Text>
+
+          {valueComponent ?? (
+            <Text style={styles.infoValue}>
+              {value}
+            </Text>
+          )}
+
+        </View>
+
       </View>
     </>
   );
@@ -62,6 +78,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     letterSpacing: 0.12,
   },
+
   infoValue: {
     fontFamily: 'Poppins',
     fontWeight: '400',
@@ -70,9 +87,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     letterSpacing: 0.12,
   },
-  editButton: {
-    padding: 4,
-  },
+
   divider: {
     height: 1,
     backgroundColor: '#D9D9D9',

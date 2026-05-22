@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  ViewStyle,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    ViewStyle,
 } from 'react-native';
 
 type Props = {

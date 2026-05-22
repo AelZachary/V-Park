@@ -10,23 +10,23 @@ export const useActivityCancelledVM = () => {
 
   const [cancelledData, setCancelledData] = useState<CancelledBooking[]>([
     {
-      mall: 'Trans Studio Mall Makassar',
-      area: 'Parkiran Luar',
+      mall: 'Mall Ratu Indah',
+      area: 'Lantai P2',
       date: '15 Apr 2024, 09:10',
     },
     {
-      mall: 'Mall Panakukang',
-      area: 'Lantai 3',
+      mall: 'Mall Ratu Indah',
+      area: 'Lantai P5',
       date: '15 Apr 2024, 09:10',
     },
     {
-      mall: 'Nipah Mall',
-      area: 'Lantai 2',
+      mall: 'Mall Ratu Indah',
+      area: 'Lantai P3 - Area A',
       date: '15 Apr 2024, 09:10',
     },
     {
-      mall: 'Phinisi Point',
-      area: 'Parkiran Luar',
+      mall: 'Mall Ratu Indah',
+      area: 'Lantai P1 - Area A',
       date: '15 Apr 2024, 09:10',
     },
   ]);

@@ -1,15 +1,15 @@
+import { COLORS } from '@/constants/theme';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 
 const PAYMENT_LOGOS = {
   ovo: require('../../assets/images/payment/ovo.jpeg'),
@@ -96,12 +96,7 @@ export default function PembayaranQris() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+    <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -116,18 +111,20 @@ export default function PembayaranQris() {
           Selesaikan pembayaran untuk mengamankan slot parkir Anda.
         </Text>
 
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+
         {/* Countdown Timer Card */}
         <View style={styles.timerCard}>
           <View style={styles.timerLeft}>
             <Ionicons name="time-outline" size={36} color="#FEAB42" />
             <View style={styles.timerTextBlock}>
-              <Text style={styles.timerLabel}>Selesaikan pembayaran dalam</Text>
+              <Text style={styles.timerLabel}>Masa berlaku QR Pembayaran</Text>
               <Text style={styles.timerValue}>{minutes}:{seconds}</Text>
             </View>
           </View>
-          <Text style={styles.timerWarning}>
-            Booking akan dibatalkan jika waktu habis
-          </Text>
         </View>
 
         {/* Total Payment Card */}
@@ -236,12 +233,12 @@ export default function PembayaranQris() {
             </View>
           )}
         </View>
-
-        {/* Security Badge */}
-        <View style={styles.securityBadge}>
-          <Ionicons name="shield-checkmark-outline" size={22} color="#81C784" />
-          <Text style={styles.securityText}>
-            Pembayaran aman, terenkripsi dan terverifikasi
+      </ScrollView>
+      <View style={styles.bottomSection}>
+        <View style={styles.alertBanner}>
+          <MaterialCommunityIcons name="shield-check-outline" size={24} color="#81C784" />
+          <Text style={styles.alertText}>
+            Pembayaran aman, terenkripsi dan terverifikasi.
           </Text>
         </View>
 
@@ -250,22 +247,24 @@ export default function PembayaranQris() {
           <Ionicons name="refresh-outline" size={20} color="#1565C0" />
           <Text style={styles.refreshButtonText}>Refresh QR</Text>
         </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#F0F7FF',
+    backgroundColor: COLORS.background,
+    paddingTop: 50,
   },
+
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 32,
     paddingHorizontal: 17,
+    paddingBottom: 8,
   },
 
   // Header
@@ -299,6 +298,7 @@ const styles = StyleSheet.create({
     color: '#1E88E5',
     lineHeight: 14,
     marginBottom: 10,
+    textAlign: 'center',
   },
 
   // Timer Card
@@ -318,6 +318,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     marginBottom: 10,
+    marginTop: 1, 
   },
   timerLeft: {
     flexDirection: 'row',
@@ -328,26 +329,19 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   timerLabel: {
+    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 10,
     color: '#9D6C23',
     lineHeight: 14,
   },
   timerValue: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 16,
     color: '#FEAB42',
     lineHeight: 22,
   },
-  timerWarning: {
-    fontWeight: '400',
-    fontSize: 10,
-    color: '#9D6C23',
-    lineHeight: 14,
-    textAlign: 'right',
-    maxWidth: 120,
-  },
-
   // Shared Card
   card: {
     borderRadius: 15,
@@ -363,6 +357,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardTitle: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 16,
     color: '#1565C0',
@@ -376,12 +371,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   paymentLabel: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 14,
     color: '#1565C0',
     lineHeight: 22,
   },
   paymentAmount: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 28,
     color: '#000',
@@ -394,6 +391,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   detailToggleText: {
+    fontFamily: 'Poppins',
     fontWeight: '600',
     fontSize: 12,
     color: '#1565C0',
@@ -412,6 +410,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   feeLabel: {
+    fontFamily: 'Poppins',
     fontWeight: '600',
     fontSize: 12,
     color: '#1565C0',
@@ -419,6 +418,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.12,
   },
   feeValue: {
+    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 12,
     color: '#000',
@@ -461,6 +461,7 @@ const styles = StyleSheet.create({
     height: 15,
   },
   qrisLabelText: {
+    fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 10,
     color: '#000',
@@ -478,6 +479,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   paymentMethodsTitle: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 12,
     color: '#1565C0',
@@ -511,6 +513,7 @@ const styles = StyleSheet.create({
     height: 22,
   },
   paymentMethodLabel: {
+    fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 7,
     color: '#000',
@@ -518,6 +521,7 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   andMoreText: {
+    fontFamily: 'Poppins',
     fontWeight: '500',
     fontSize: 9,
     color: '#000',
@@ -553,12 +557,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepNumber: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 8,
     color: '#000',
     marginTop: 2,
   },
   stepLabel: {
+    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 9,
     color: '#000',
@@ -567,49 +573,53 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Security Badge
-  securityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: 'rgba(129,199,132,0.5)',
-    backgroundColor: 'rgba(129,199,132,0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 2,
-    elevation: 3,
-    paddingVertical: 4,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-    gap: 8,
-  },
-  securityText: {
-    fontWeight: '700',
-    fontSize: 12,
-    color: '#81C784',
-    lineHeight: 14,
-  },
-
   // Refresh Button
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 15,
-    borderWidth: 1,
     borderColor: '#1565C0',
     backgroundColor: '#FFF',
+    borderRadius: 15,
+    borderWidth: 1,
     paddingVertical: 5,
     marginHorizontal: 32,
-    gap: 6,
+    gap: 8,
+    marginBottom: 20,
   },
   refreshButtonText: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
-    fontSize: 12,
+    fontSize: 14,
     color: '#1565C0',
     lineHeight: 22,
+  },
+
+  bottomSection: {
+    paddingHorizontal: 17,
+    paddingBottom: 16,
+    gap: 10,
+  },
+
+  alertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 15,
+    borderWidth: 1,
+    backgroundColor: 'rgba(129,199,132,0.2)',
+    borderColor: 'rgba(129,199,132,0.5)',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    gap: 8,
+    marginTop: 10,
+  },
+
+  alertText: {
+    fontFamily: 'Poppins',
+    fontWeight: '700',
+    fontSize: 12,
+    color: '#81C784',
+    lineHeight: 14,
   },
 });

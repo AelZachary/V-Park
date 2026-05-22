@@ -49,11 +49,6 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* SECTION */}
-      <Text style={styles.sectionTitle}>
-        Rekomendasi Terdekat
-      </Text>
-
       {/* LIST */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {filteredParking.map((item, index) => (
@@ -61,7 +56,7 @@ export default function HomeScreen() {
             key={index}
             style={styles.card}
             onPress={() => {
-              if (item.name === 'Ground Floor' || item.name === 'Ground Floor - Area A' || item.name === 'Lantai P1' || item.name === 'Lantai P1 - Area A' || item.name === 'Lantai P2' || item.name === 'Lantai P2 - Area A' || item.name === 'Lantai P3' || item.name === 'Lantai P3 - Area A' || item.name === 'Lantai P4' || item.name === 'Lantai P4 - Area A' || item.name === 'Lantai P4A' || item.name === 'Lantai P5') {
+              if (item.name === 'Ground Floor' || item.name === 'Ground Floor - Area A' || item.name === 'Lantai P1' || item.name === 'Lantai P1 - Area A' || item.name === 'Lantai P2' || item.name === 'Lantai P2 - Area A' || item.name === 'Lantai P3' || item.name === 'Lantai P3 - Area A' || item.name === 'Lantai P4' || item.name === 'Lantai P4 - Area A' || item.name === 'Lantai P5') {
                 router.push({
                   pathname: '/user/selectParkingSpot',
                   params: { initialFloor: item.name }
@@ -144,15 +139,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     marginLeft: 6,
-  },
-
-  /* SECTION */
-  sectionTitle: {
-    fontSize: FONT_SIZE.md,
-    marginTop: SPACING.md,
-    marginLeft: SPACING.lg,
-    fontWeight: '700',
-    color: COLORS.primary,
   },
 
   /* CARD */

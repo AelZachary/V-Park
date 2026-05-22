@@ -1,14 +1,15 @@
 import { useStaffProfileVM } from '@/viewmodels/useStaffProfileVM';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function StaffProfileScreen() {
@@ -21,7 +22,10 @@ export default function StaffProfileScreen() {
     updateProfile,
   } = useStaffProfileVM();
 
-  
+  // EDIT STATE
+  const [showEdit, setShowEdit] = useState(false);
+  const [editField, setEditField] = useState('');
+  const [editValue, setEditValue] = useState('');
 
   return (
     <View style={styles.container}>
@@ -97,9 +101,6 @@ export default function StaffProfileScreen() {
             </View>
 
           </View>
-
-          
-
         </View>
 
         {/* AREA */}
@@ -126,7 +127,6 @@ export default function StaffProfileScreen() {
             </View>
 
           </View>
-
         </View>
 
         {/* SHIFT */}
@@ -153,7 +153,6 @@ export default function StaffProfileScreen() {
             </View>
 
           </View>
-
         </View>
 
       </View>
@@ -208,6 +207,58 @@ export default function StaffProfileScreen() {
               >
                 <Text style={styles.modalBtnText}>
                   No
+                </Text>
+              </TouchableOpacity>
+
+            </View>
+
+          </View>
+
+        </View>
+      </Modal>
+
+      {/* EDIT MODAL */}
+      <Modal
+        visible={showEdit}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+
+          <View style={styles.editBox}>
+
+            <Text style={styles.editTitle}>
+              Edit Data
+            </Text>
+
+            <TextInput
+              value={editValue}
+              onChangeText={setEditValue}
+              style={styles.editInput}
+            />
+
+            <View style={styles.modalButtonRow}>
+
+              {/* SAVE */}
+              <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={() => {
+                  updateProfile(editField, editValue);
+                  setShowEdit(false);
+                }}
+              >
+                <Text style={styles.modalBtnText}>
+                  Save
+                </Text>
+              </TouchableOpacity>
+
+              {/* CANCEL */}
+              <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={() => setShowEdit(false)}
+              >
+                <Text style={styles.modalBtnText}>
+                  Cancel
                 </Text>
               </TouchableOpacity>
 

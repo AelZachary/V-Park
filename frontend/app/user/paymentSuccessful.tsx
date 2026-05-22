@@ -1,3 +1,5 @@
+import { COLORS } from '@/constants/theme';
+import { router } from 'expo-router';
 import React from 'react';
 import {
   SafeAreaView,
@@ -17,16 +19,16 @@ import Svg, {
   G,
   Path,
 } from 'react-native-svg';
-import { router } from 'expo-router';
 
 const TRANSACTION = {
   noOrder: '1876543234567876',
-  lokasi: 'Trans Studio Mall Makassar',
-  area: 'Ground Floor',
+  lokasi: 'Mall Ratu Indah',
+  area: 'Lantai P1 - Area A',
+  slot: 'C4',
   platKendaraan: 'DD 2605 TA',
   waktuTiba: '20 Mar 2024, 19:28',
   durasi: '4 Jam',
-  totalBiaya: 'Rp 100.000',
+  totalBiaya: 'Rp 20.000',
   waktuTransaksi: '20 Mar 2024, 19:29',
   totalPembayaran: 'Rp20.000',
 };
@@ -35,6 +37,7 @@ const DETAIL_ROWS = [
   { label: 'No. Order', value: TRANSACTION.noOrder },
   { label: 'Lokasi', value: TRANSACTION.lokasi },
   { label: 'Area', value: TRANSACTION.area },
+  { label: 'Slot', value: TRANSACTION.slot },
   { label: 'Plat Kendaraan', value: TRANSACTION.platKendaraan },
   { label: 'Waktu Tiba', value: TRANSACTION.waktuTiba },
   { label: 'Durasi', value: TRANSACTION.durasi },
@@ -122,29 +125,6 @@ export default function PaymentSuccessful() {
       >
         {/* Success Hero Section */}
         <View style={styles.heroSection}>
-          {/* Decorative stars */}
-          <View style={[styles.starDecor, { top: 0, left: '35%' }]}>
-            <StarIcon size={35} />
-          </View>
-          <View style={[styles.starDecor, { top: 29, left: '55%' }]}>
-            <StarIcon size={25} />
-          </View>
-          <View style={[styles.starDecor, { top: 35, left: '65%' }]}>
-            <StarIcon size={39} />
-          </View>
-          <View style={[styles.starDecor, { top: 44, left: '20%' }]}>
-            <StarIcon size={20} />
-          </View>
-          <View style={[styles.starDecor, { top: 63, left: 6 }]}>
-            <StarIcon size={37} />
-          </View>
-          <View style={[styles.starDecor, { top: '40%', left: 24 }]}>
-            <StarIcon size={20} />
-          </View>
-          <View style={[styles.starDecor, { top: '38%', left: '70%' }]}>
-            <StarIcon size={40} />
-          </View>
-
           {/* Success circle icon */}
           <View style={styles.successIconWrapper}>
             <SuccessIcon />
@@ -193,7 +173,8 @@ export default function PaymentSuccessful() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F0F7FF',
+    backgroundColor: COLORS.background,
+    paddingTop: 50,
   },
   scrollView: {
     flex: 1,
@@ -211,15 +192,13 @@ const styles = StyleSheet.create({
     position: 'relative',
     minHeight: 280,
   },
-  starDecor: {
-    position: 'absolute',
-  },
   successIconWrapper: {
     marginTop: 64,
     marginBottom: 16,
     zIndex: 1,
   },
   successTitle: {
+    fontFamily: 'Poppins',
     fontWeight: '600',
     fontSize: 18,
     color: '#2E7D32',
@@ -227,6 +206,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   successSubtitle: {
+    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 14,
     color: '#000',
@@ -251,6 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   detailSectionTitle: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 16,
     color: '#1565C0',
@@ -269,12 +250,14 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   detailLabel: {
+    fontFamily: 'Poppins',
     fontWeight: '600',
     fontSize: 13,
     color: '#1565C0',
     lineHeight: 22,
   },
   detailValue: {
+    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 13,
     color: '#000',
@@ -290,12 +273,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   totalPaymentLabel: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 16,
     color: '#1565C0',
     lineHeight: 22,
   },
   totalPaymentAmount: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 20,
     color: '#FF383C',
@@ -303,6 +288,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   taxNote: {
+    fontFamily: 'Poppins',
     fontWeight: '400',
     fontSize: 12,
     color: '#000',
@@ -324,6 +310,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   downloadButtonText: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 14,
     color: '#1565C0',
@@ -339,6 +326,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   homeButtonText: {
+    fontFamily: 'Poppins',
     fontWeight: '700',
     fontSize: 14,
     color: '#FFF',

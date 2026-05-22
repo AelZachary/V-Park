@@ -20,6 +20,9 @@ const resolveSlotStatus = (
   if (selectedSlot === slot) {
     return 'selected';
   }
+  if (selectedSlot === slot) {
+    return 'selected';
+  }
   if (slotStatuses && slot in slotStatuses) {
     return slotStatuses[slot];
   }
@@ -33,7 +36,6 @@ export default function P1({ selectedSlot, onSelectSlot, slotStatuses }: FloorPr
         
         {/* ========== LEFT SIDE COLUMN (SISI KIRI) ========== */}
         <View style={styles.sideColumn}>
-          {/* 1. Kotak Biru Panjang Atas Kiri */}
           <View style={styles.blueLongBlock} />
           
           <Text style={styles.routeTextSmall}>GA =› P1</Text>
@@ -43,65 +45,140 @@ export default function P1({ selectedSlot, onSelectSlot, slotStatuses }: FloorPr
           {/* Slot Abu-Abu Horizontal Kecil */}
           <View style={styles.horizontalSmallDivider} />
 
-          {/* BLOK 1: 3 Mobil Merah (A1, A2, A3) */}
+          {/* BLOK 1: 3 Mobil Merah (R1, R2, R3) */}
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-A1" status={resolveSlotStatus("P1-A1", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A2" status={resolveSlotStatus("P1-A2", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A3" status={resolveSlotStatus("P1-A3", "manual", slotStatuses, selectedSlot)} side="left" />
-          </View>
-          <View style={styles.groupDividerLeft} />
-
-          {/* BLOK 2: 3 Mobil Merah (A4, A5, A6) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-A4" status={resolveSlotStatus("P1-A4", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A5" status={resolveSlotStatus("P1-A5", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A6" status={resolveSlotStatus("P1-A6", "manual", slotStatuses, selectedSlot)} side="left" />
-          </View>
-          <View style={styles.groupDividerLeft} />
-
-          {/* BLOK 3: 3 Mobil Merah (A7, A8, A9) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-A7" status={resolveSlotStatus("P1-A7", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A8" status={resolveSlotStatus("P1-A8", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A9" status={resolveSlotStatus("P1-A9", "manual", slotStatuses, selectedSlot)} side="left" />
-          </View>
-          <View style={styles.groupDividerLeft} />
-
-          {/* BLOK 4: 3 Mobil Merah (A10, A11, A12) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-A10" status={resolveSlotStatus("P1-A10", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A11" status={resolveSlotStatus("P1-A11", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A12" status={resolveSlotStatus("P1-A12", "manual", slotStatuses, selectedSlot)} side="left" />
-          </View>
-          <View style={styles.groupDividerLeft} />
-
-          {/* BLOK 5: 3 Mobil Merah (A13, A14, A15) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-A13" status={resolveSlotStatus("P1-A13", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A14" status={resolveSlotStatus("P1-A14", "manual", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="P1-A15" status={resolveSlotStatus("P1-A15", "manual", slotStatuses, selectedSlot)} side="left" />
-          </View>
-          <View style={styles.groupDividerLeft} />
-
-          {/* BLOK 6: 3 Slot Hijau Dinamis / Available (A16, A17, A18) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot 
-              slot="P1-A16" 
-              status={resolveSlotStatus("P1-A16", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="R1" 
+              status={resolveSlotStatus("R1", "manual", slotStatuses, selectedSlot)} 
               side="left" 
-              onPress={() => onSelectSlot("P1-A16", "available")} 
+              onPress={() => onSelectSlot("R1", resolveSlotStatus("R1", "manual", slotStatuses, selectedSlot))} 
             />
-            <ParkingSlot 
-              slot="P1-A17" 
-              status={resolveSlotStatus("P1-A17", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="R2" 
+              status={resolveSlotStatus("R2", "manual", slotStatuses, selectedSlot)} 
               side="left" 
-              onPress={() => onSelectSlot("P1-A17", "available")} 
+              onPress={() => onSelectSlot("R2", resolveSlotStatus("R2", "manual", slotStatuses, selectedSlot))} 
             />
-            <ParkingSlot 
-              slot="P1-A18" 
-              status={resolveSlotStatus("P1-A18", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="R3" 
+              status={resolveSlotStatus("R3", "manual", slotStatuses, selectedSlot)} 
               side="left" 
-              onPress={() => onSelectSlot("P1-A18", "available")} 
+              onPress={() => onSelectSlot("R3", resolveSlotStatus("R3", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerLeft} />
+
+          {/* BLOK 2: 3 Mobil Merah (R4, R5, R6) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="R4" 
+              status={resolveSlotStatus("R4", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R4", resolveSlotStatus("R4", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R5" 
+              status={resolveSlotStatus("R5", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R5", resolveSlotStatus("R5", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R6" 
+              status={resolveSlotStatus("R6", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R6", resolveSlotStatus("R6", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerLeft} />
+
+          {/* BLOK 3: 3 Mobil Merah (R7, R8, R9) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="R7" 
+              status={resolveSlotStatus("R7", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R7", resolveSlotStatus("R7", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R8" 
+              status={resolveSlotStatus("R8", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R8", resolveSlotStatus("R8", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R9" 
+              status={resolveSlotStatus("R9", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R9", resolveSlotStatus("R9", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerLeft} />
+
+          {/* BLOK 4: 3 Mobil Merah (R10, R11, R12) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="R10" 
+              status={resolveSlotStatus("R10", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R10", resolveSlotStatus("R10", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R11" 
+              status={resolveSlotStatus("R11", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R11", resolveSlotStatus("R11", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R12" 
+              status={resolveSlotStatus("R12", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R12", resolveSlotStatus("R12", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerLeft} />
+
+          {/* BLOK 5: 3 Mobil Merah (R13, R14, R15) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="R13" 
+              status={resolveSlotStatus("R13", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R13", resolveSlotStatus("R13", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R14" 
+              status={resolveSlotStatus("R14", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R14", resolveSlotStatus("R14", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R15" 
+              status={resolveSlotStatus("R15", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R15", resolveSlotStatus("R15", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerLeft} />
+
+          {/* BLOK 6: 3 Slot Dinamis / Available (R16, R17, R18) -> (Fiks: Terkoneksi Penuh) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="R16" 
+              status={resolveSlotStatus("R16", "available", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R16", resolveSlotStatus("R16", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R17" 
+              status={resolveSlotStatus("R17", "available", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R17", resolveSlotStatus("R17", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="R18" 
+              status={resolveSlotStatus("R18", "available", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R18", resolveSlotStatus("R18", "available", slotStatuses, selectedSlot))} 
             />
           </View>
           <View style={styles.groupDividerLeft} />
@@ -112,25 +189,25 @@ export default function P1({ selectedSlot, onSelectSlot, slotStatuses }: FloorPr
           <Text style={styles.routeTextSmall}>P1A ‹= P1</Text>
           <View style={styles.groupDividerLeft} />
 
-          {/* BLOK 7: 3 Slot Hijau Dinamis Paling Bawah Kiri (A19, A20, A21) */}
+          {/* BLOK 7: 3 Slot Dinamis Paling Bawah Kiri (R19, R20, R21) -> (Fiks: Terkoneksi Penuh) */}
           <View style={styles.block3Rows}>
-            <ParkingSlot 
-              slot="P1-A19" 
-              status={resolveSlotStatus("P1-A19", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="R19" 
+              status={resolveSlotStatus("R19", "available", slotStatuses, selectedSlot)} 
               side="left" 
-              onPress={() => onSelectSlot("P1-A19", "available")} 
+              onPress={() => onSelectSlot("R19", resolveSlotStatus("R19", "available", slotStatuses, selectedSlot))} 
             />
-            <ParkingSlot 
-              slot="P1-A20" 
-              status={resolveSlotStatus("P1-A20", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="R20" 
+              status={resolveSlotStatus("R20", "available", slotStatuses, selectedSlot)} 
               side="left" 
-              onPress={() => onSelectSlot("P1-A20", "available")} 
+              onPress={() => onSelectSlot("R20", resolveSlotStatus("R20", "available", slotStatuses, selectedSlot))} 
             />
-            <ParkingSlot 
-              slot="P1-A21" 
-              status={resolveSlotStatus("P1-A21", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="R21" 
+              status={resolveSlotStatus("R21", "available", slotStatuses, selectedSlot)} 
               side="left" 
-              onPress={() => onSelectSlot("P1-A21", "available")} 
+              onPress={() => onSelectSlot("R21", resolveSlotStatus("R21", "available", slotStatuses, selectedSlot))} 
             />
           </View>
         </View>
@@ -203,65 +280,140 @@ export default function P1({ selectedSlot, onSelectSlot, slotStatuses }: FloorPr
           {/* Dinding Abu-Abu Tebal Tengah Kanan */}
           <View style={styles.grayLongWall} />
 
-          {/* BLOK 1 KANAN: 3 Mobil Merah (B1, B2, B3) */}
+          {/* BLOK 1 KANAN: 3 Mobil Merah (L1, L2, L3) */}
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-B1" status={resolveSlotStatus("P1-B1", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B2" status={resolveSlotStatus("P1-B2", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B3" status={resolveSlotStatus("P1-B3", "manual", slotStatuses, selectedSlot)} side="right" />
-          </View>
-          <View style={styles.groupDividerRight} />
-
-          {/* BLOK 2 KANAN: 3 Mobil Merah (B4, B5, B6) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-B4" status={resolveSlotStatus("P1-B4", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B5" status={resolveSlotStatus("P1-B5", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B6" status={resolveSlotStatus("P1-B6", "manual", slotStatuses, selectedSlot)} side="right" />
-          </View>
-          <View style={styles.groupDividerRight} />
-
-          {/* BLOK 3 KANAN: 3 Mobil Merah (B7, B8, B9) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-B7" status={resolveSlotStatus("P1-B7", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B8" status={resolveSlotStatus("P1-B8", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B9" status={resolveSlotStatus("P1-B9", "manual", slotStatuses, selectedSlot)} side="right" />
-          </View>
-          <View style={styles.groupDividerRight} />
-
-          {/* BLOK 4 KANAN: 3 Mobil Merah (B10, B11, B12) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-B10" status={resolveSlotStatus("P1-B10", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B11" status={resolveSlotStatus("P1-B11", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B12" status={resolveSlotStatus("P1-B12", "manual", slotStatuses, selectedSlot)} side="right" />
-          </View>
-          <View style={styles.groupDividerRight} />
-
-          {/* BLOK 5 KANAN: 3 Mobil Merah (B13, B14, B15) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot slot="P1-B13" status={resolveSlotStatus("P1-B13", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B14" status={resolveSlotStatus("P1-B14", "manual", slotStatuses, selectedSlot)} side="right" />
-            <ParkingSlot slot="P1-B15" status={resolveSlotStatus("P1-B15", "manual", slotStatuses, selectedSlot)} side="right" />
-          </View>
-          <View style={styles.groupDividerRight} />
-
-          {/* BLOK 6 KANAN: 3 Slot Hijau Dinamis Paling Bawah Kanan (B16, B17, B18) */}
-          <View style={styles.block3Rows}>
-            <ParkingSlot 
-              slot="P1-B16" 
-              status={resolveSlotStatus("P1-B16", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="L1" 
+              status={resolveSlotStatus("L1", "manual", slotStatuses, selectedSlot)} 
               side="right" 
-              onPress={() => onSelectSlot("P1-B16", "available")} 
+              onPress={() => onSelectSlot("L1", resolveSlotStatus("L1", "manual", slotStatuses, selectedSlot))} 
             />
-            <ParkingSlot 
-              slot="P1-B17" 
-              status={resolveSlotStatus("P1-P17", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="L2" 
+              status={resolveSlotStatus("L2", "manual", slotStatuses, selectedSlot)} 
               side="right" 
-              onPress={() => onSelectSlot("P1-P17", "available")} 
+              onPress={() => onSelectSlot("L2", resolveSlotStatus("L2", "manual", slotStatuses, selectedSlot))} 
             />
-            <ParkingSlot 
-              slot="P1-B18" 
-              status={resolveSlotStatus("P1-B18", "available", slotStatuses, selectedSlot)} 
+            <ParkingSlot disabled={false}
+              slot="L3" 
+              status={resolveSlotStatus("L3", "manual", slotStatuses, selectedSlot)} 
               side="right" 
-              onPress={() => onSelectSlot("P1-B18", "available")} 
+              onPress={() => onSelectSlot("L3", resolveSlotStatus("L3", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerRight} />
+
+          {/* BLOK 2 KANAN: 3 Mobil Merah (L4, L5, L6) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="L4" 
+              status={resolveSlotStatus("L4", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L4", resolveSlotStatus("L4", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L5" 
+              status={resolveSlotStatus("L5", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L5", resolveSlotStatus("L5", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L6" 
+              status={resolveSlotStatus("L6", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L6", resolveSlotStatus("L6", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerRight} />
+
+          {/* BLOK 3 KANAN: 3 Mobil Merah (L7, L8, L9) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="L7" 
+              status={resolveSlotStatus("L7", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L7", resolveSlotStatus("L7", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L8" 
+              status={resolveSlotStatus("L8", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L8", resolveSlotStatus("L8", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L9" 
+              status={resolveSlotStatus("L9", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L9", resolveSlotStatus("L9", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerRight} />
+
+          {/* BLOK 4 KANAN: 3 Mobil Merah (L10, L11, L12) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="L10" 
+              status={resolveSlotStatus("L10", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L10", resolveSlotStatus("L10", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L11" 
+              status={resolveSlotStatus("L11", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L11", resolveSlotStatus("L11", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L12" 
+              status={resolveSlotStatus("L12", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L12", resolveSlotStatus("L12", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerRight} />
+
+          {/* BLOK 5 KANAN: 3 Mobil Merah (L13, L14, L15) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="L13" 
+              status={resolveSlotStatus("L13", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L13", resolveSlotStatus("L13", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L14" 
+              status={resolveSlotStatus("L14", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L14", resolveSlotStatus("L14", "manual", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L15" 
+              status={resolveSlotStatus("L15", "manual", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L15", resolveSlotStatus("L15", "manual", slotStatuses, selectedSlot))} 
+            />
+          </View>
+          <View style={styles.groupDividerRight} />
+
+          {/* BLOK 6 KANAN: 3 Slot Dinamis Paling Bawah Kanan (L16, L17, L18) -> (Fiks: ID P1-P17 dirapikan jadi L17) */}
+          <View style={styles.block3Rows}>
+            <ParkingSlot disabled={false}
+              slot="L16" 
+              status={resolveSlotStatus("L16", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L16", resolveSlotStatus("L16", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L17" 
+              status={resolveSlotStatus("L17", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L17", resolveSlotStatus("L17", "available", slotStatuses, selectedSlot))} 
+            />
+            <ParkingSlot disabled={false}
+              slot="L18" 
+              status={resolveSlotStatus("L18", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot("L18", resolveSlotStatus("L18", "available", slotStatuses, selectedSlot))} 
             />
           </View>
         </View>
@@ -313,7 +465,6 @@ const styles = StyleSheet.create({
     borderColor: '#4A74C4',
     marginBottom: 10,
   },
-
   blueLongBlock2: {
     width: 52,
     height: 248,
@@ -492,14 +643,12 @@ const styles = StyleSheet.create({
     bottom: -12,
     left: 46,
   },
-
   spacerSlot: {
     width: 52,
     height: 27,
     marginVertical: 3,
     opacity: 0,
   },
-
   spacerSlot2: {
     width: 1,
     height: 27,

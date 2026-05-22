@@ -1,16 +1,14 @@
+import { COLORS } from '@/constants/theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import ButtonPrimary from '@/components/common/ButtonPrimary';
-import ButtonSecondary from '@/components/common/ButtonSecondary';
 
 const INITIAL_SECONDS = 0 * 3600 + 0 * 60 + 0;
 
@@ -45,13 +43,12 @@ export default function KonfirmasiSelesaiParkir() {
   const { hours, minutes, seconds } = formatTime(elapsed);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={28} color="#1565C0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Konfirmasi Selesai Parkir</Text>
-        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView
@@ -148,52 +145,62 @@ export default function KonfirmasiSelesaiParkir() {
           </Text>
         </View>
 
-        <ButtonPrimary
-          title="Konfirmasi Selesai Parkir"
-          icon={<Ionicons name="checkmark-circle-outline" size={22} color="#fff" />}
-          onPress={() => router.push('/user/payment')}
-        />
+        <TouchableOpacity style={styles.confirmButton} activeOpacity={0.85}
+        onPress={() => router.push('/user/payment')}>
+          <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
+          <Text style={styles.confirmText}>Konfirmasi Selesai Parkir</Text>
+        </TouchableOpacity>
 
-        <ButtonSecondary
-          title="Belum, Nanti Saja"
-          onPress={() => router.push('/user/home')}
-        />
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          activeOpacity={0.85}
+          onPress={() => router.push({
+            pathname: '/user/activity',
+            params: {
+                arrived:'true',
+            }
+          })
+          }
+        >
+          <Text style={styles.secondaryText}>Belum, Nanti Saja</Text>
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#F0F7FF',
+    backgroundColor: COLORS.background,
+    paddingTop: 50,
   },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  backBtn: {
-    width: 35,
-    height: 35,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 10,
+    position: 'relative',
+    marginBottom: 5,
   },
+
+  backBtn: {
+    position: 'absolute',
+    left: 12,
+    top: 10,
+    padding: 4,
+  },
+
   headerTitle: {
-    flex: 1,
-    textAlign: 'center',
     fontSize: 20,
     fontWeight: '700',
     color: '#1565C0',
   },
-  headerSpacer: {
-    width: 35,
-  },
+
   scrollContent: {
     paddingHorizontal: 17,
-    paddingBottom: 12,
-    gap: 12,
+    paddingBottom: 8,
+    gap: 8,
   },
   card: {
     backgroundColor: '#fff',
@@ -257,7 +264,6 @@ const styles = StyleSheet.create({
   locationHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
   },
   parkingIconBox: {
     width: 28,
@@ -396,17 +402,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000',
   },
+
   qrisSub: {
     fontSize: 12,
     color: '#000',
     lineHeight: 18,
     marginTop: 2,
   },
+
   bottomSection: {
     paddingHorizontal: 17,
     paddingBottom: 16,
     gap: 10,
   },
+
   alertBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -417,12 +426,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 2,
-    elevation: 2,
+    marginTop: 10,
   },
+
   alertText: {
     flex: 1,
     fontSize: 12,
@@ -430,6 +436,7 @@ const styles = StyleSheet.create({
     color: '#81C784',
     lineHeight: 18,
   },
+
   confirmButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -452,6 +459,7 @@ const styles = StyleSheet.create({
     borderColor: '#1565C0',
     borderRadius: 20,
     height: 48,
+    marginBottom: 20,
   },
   secondaryText: {
     fontSize: 14,

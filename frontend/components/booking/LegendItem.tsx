@@ -2,10 +2,10 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 type LegendItemProps = {
-  color?: string;       
+  color?: string;       // Dibuat opsional dengan tanda ?
   label: string;
-  isTextMode?: boolean; 
-  textColor?: string;   
+  isTextMode?: boolean; // Tambahan properti baru untuk mendeteksi mode tulisan
+  textColor?: string;   // Tambahan properti warna teks kustom
 };
 
 export default function LegendItem({ 
@@ -16,7 +16,7 @@ export default function LegendItem({
 }: LegendItemProps) {
   return (
     <View style={styles.container}>
-      
+      {/* Jika BUKAN mode tulisan, tampilkan dot bulat seperti biasa */}
       {!isTextMode && (
         <View style={[styles.dot, { backgroundColor: color }]} />
       )}
