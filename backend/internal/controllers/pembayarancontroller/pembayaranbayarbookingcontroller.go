@@ -235,13 +235,19 @@ func (c *PembayaranInformasiController) InitiatePembayaranHandler(w http.Respons
 		return nil
 	}); err != nil {
 		statusCode := http.StatusInternalServerError
+		message := "Failed to initiate payment"
 		if err.Error() == "riwayat booking not found" {
 			statusCode = http.StatusNotFound
+			message = "Riwayat booking not found"
 		} else if err.Error() == "only KonfirmasiTiba bookings can initiate payment" {
 			statusCode = http.StatusBadRequest
+			message = "only KonfirmasiTiba bookings can initiate payment"
 		}
 
-		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: err.Error()})
+		if logger != nil {
+			logger.Error("failed to initiate payment", "error", err)
+		}
+		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: message})
 		return
 	}
 

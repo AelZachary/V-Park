@@ -70,7 +70,9 @@ func (c *PembayaranInformasiController) PaymentWebhookHandler(w http.ResponseWri
 				return
 			}
 			// Method not found, but don't fail - just log and continue
-			fmt.Printf("Warning: Payment method %s not found in database\n", payload.MetodePembayaran)
+			if logger != nil {
+				logger.Warn("payment method not found in database", "payment_method", payload.MetodePembayaran)
+			}
 		}
 	}
 
@@ -134,14 +136,18 @@ func (c *PembayaranInformasiController) PaymentWebhookHandler(w http.ResponseWri
 				Where("id_riwayat_booking = ?", pembayaran.IDRiwayatBooking).
 				Where("status_booking = ?", "KonfirmasiSelesai").
 				Update("status_booking", "Selesai").Error; err != nil {
-				// Log error but don't fail
-				fmt.Printf("Failed to update riwayat status: %v\n", err)
+				if logger != nil {
+					logger.Error("failed to update riwayat status", "error", err)
+				}
 			}
 		}
 
 		return nil
 	}); err != nil {
-		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: fmt.Sprintf("Failed to update payment: %v", err)})
+		if logger != nil {
+			logger.Error("failed to update payment", "error", err)
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to update payment"})
 		return
 	}
 

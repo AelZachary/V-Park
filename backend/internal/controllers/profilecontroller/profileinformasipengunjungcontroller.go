@@ -67,6 +67,9 @@ func (c *ProfileInformasiPengunjungController) GetProfileInformasiPengunjungHand
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Pengunjung not found"})
 			return
 		}
+		if logger != nil {
+			logger.Error("failed to load pengunjung profile", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
@@ -76,6 +79,9 @@ func (c *ProfileInformasiPengunjungController) GetProfileInformasiPengunjungHand
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Profile not found"})
 			return
+		}
+		if logger != nil {
+			logger.Error("failed to load user profile", "error", err)
 		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return

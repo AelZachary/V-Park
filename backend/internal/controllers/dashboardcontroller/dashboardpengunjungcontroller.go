@@ -41,6 +41,9 @@ func (c *DashboardPengunjungController) GetAllPengunjungHandler(w http.ResponseW
 
 	var lokasiMalls []models.LokasiMall
 	if err := c.DB.Preload("FotoLokasiMall").Order("id_lokasi_mall asc").Find(&lokasiMalls).Error; err != nil {
+		if logger != nil {
+			logger.Error("failed to load lokasi mall data", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to load lokasi mall data"})
 		return
 	}

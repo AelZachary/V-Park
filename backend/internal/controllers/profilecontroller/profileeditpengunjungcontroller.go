@@ -101,6 +101,9 @@ func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.Re
 
 			fotoPath, err = savePengunjungPhoto(file, header)
 			if err != nil {
+				if logger != nil {
+					logger.Error("failed to save photo", "error", err)
+				}
 				response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to save photo"})
 				return
 			}
@@ -134,6 +137,9 @@ func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.Re
 			if err == gorm.ErrRecordNotFound {
 				return gorm.ErrRecordNotFound
 			}
+			if logger != nil {
+				logger.Error("failed to load pengunjung", "error", err)
+			}
 			return err
 		}
 
@@ -144,10 +150,16 @@ func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.Re
 				"plat_kendaraan":  req.PlatKendaraan,
 				"foto_pengunjung": fotoPath,
 			}).Error; err != nil {
+			if logger != nil {
+				logger.Error("failed to update pengunjung", "error", err)
+			}
 			return err
 		}
 
 		if err := tx.First(&pengunjung, uint(idPengunjung)).Error; err != nil {
+			if logger != nil {
+				logger.Error("failed to reload pengunjung", "error", err)
+			}
 			return err
 		}
 
@@ -163,6 +175,9 @@ func (c *ProfileEditPengunjungController) EditProfilePengunjungHandler(w http.Re
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Pengunjung not found"})
 			return
+		}
+		if logger != nil {
+			logger.Error("database error while editing profile", "error", err)
 		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return

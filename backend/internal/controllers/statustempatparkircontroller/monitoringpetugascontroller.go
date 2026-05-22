@@ -146,14 +146,20 @@ func (c *MonitoringPetugasController) ToggleMonitoringHandler(w http.ResponseWri
 		return nil
 	}); err != nil {
 		statusCode := http.StatusInternalServerError
+		message := "Failed to toggle monitoring"
 		switch err.Error() {
 		case "petugas not found", "tempat parkir not found", "lokasi mall not found":
 			statusCode = http.StatusNotFound
+			message = err.Error()
 		case "status tempat parkir masih BookingOnline", "status tempat parkir tidak dapat diproses":
 			statusCode = http.StatusBadRequest
+			message = err.Error()
 		}
 
-		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: err.Error()})
+		if logger != nil {
+			logger.Error("failed to toggle monitoring", "error", err)
+		}
+		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: message})
 		return
 	}
 

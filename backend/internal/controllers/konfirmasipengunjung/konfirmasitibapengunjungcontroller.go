@@ -189,14 +189,20 @@ func (c *KonfirmasiTibaPengunjungController) CreateKonfirmasiTibaHandler(w http.
 		return nil
 	}); err != nil {
 		statusCode := http.StatusInternalServerError
+		message := "Failed to confirm arrival"
 		switch err.Error() {
 		case "booking not found", "riwayat booking not found", "tempat parkir not found", "lokasi mall not found":
 			statusCode = http.StatusNotFound
+			message = err.Error()
 		case "status booking tidak dapat dikonfirmasi":
 			statusCode = http.StatusBadRequest
+			message = err.Error()
 		}
 
-		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: err.Error()})
+		if logger != nil {
+			logger.Error("failed to confirm arrival", "error", err)
+		}
+		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: message})
 		return
 	}
 

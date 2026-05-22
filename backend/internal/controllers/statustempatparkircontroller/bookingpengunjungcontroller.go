@@ -185,10 +185,15 @@ func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.Resp
 		return nil
 	}); err != nil {
 		statusCode := http.StatusInternalServerError
+		message := "Failed to create booking"
 		if err.Error() == "tempat parkir not found" || err.Error() == "lokasi mall not found" {
 			statusCode = http.StatusNotFound
+			message = err.Error()
 		}
-		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: err.Error()})
+		if logger != nil {
+			logger.Error("failed to create booking", "error", err)
+		}
+		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: message})
 		return
 	}
 

@@ -87,6 +87,9 @@ func (c *RiwayatSelesaiController) GetRiwayatSelesaiByPengunjungHandler(w http.R
 
 	var bookings []models.Booking
 	if err := c.DB.Preload("RiwayatBooking.Pembayaran.MetodePembayaran").Where("id_pengunjung = ?", uint(idPengunjung)).Order("id_booking DESC").Find(&bookings).Error; err != nil {
+		if logger != nil {
+			logger.Error("failed to load riwayat selesai", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
@@ -105,6 +108,9 @@ func (c *RiwayatSelesaiController) GetRiwayatSelesaiByPengunjungHandler(w http.R
 			if err == gorm.ErrRecordNotFound {
 				continue
 			}
+			if logger != nil {
+				logger.Error("failed to load tempat parkir for riwayat selesai", "error", err)
+			}
 			response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 			return
 		}
@@ -113,6 +119,9 @@ func (c *RiwayatSelesaiController) GetRiwayatSelesaiByPengunjungHandler(w http.R
 		if err := c.DB.First(&lokasi, tempat.IDLokasiMall).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				continue
+			}
+			if logger != nil {
+				logger.Error("failed to load lokasi mall for riwayat selesai", "error", err)
 			}
 			response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 			return
