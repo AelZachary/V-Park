@@ -16,19 +16,21 @@ func SeedAllSeeders(db *gorm.DB) error {
 
 	if err := db.Transaction(func(tx *gorm.DB) error {
 
-		// pengunjungUsers, petugasUsers := seeders.UsersBulkSeeders(tx)
+		pengunjungUsers, petugasUsers := seeders.UsersBulkSeeders(tx)
 
-		// pengunjungIDs := make([]uint, 0, len(pengunjungUsers))
-		// for _, user := range pengunjungUsers {
-		// 	pengunjungIDs = append(pengunjungIDs, user.IDUser)
-		// }
-		// seeders.PengunjungBulkSeeders(tx, pengunjungIDs)
+		pengunjungIDs := make([]uint, 0, len(pengunjungUsers))
+		for _, user := range pengunjungUsers {
+			pengunjungIDs = append(pengunjungIDs, user.IDUser)
+		}
+		seeders.PengunjungBulkSeeders(tx, pengunjungIDs)
+		seeders.TokenBulkSeeders(tx, pengunjungIDs)
 
-		// petugasUserIDs := make([]uint, 0, len(petugasUsers))
-		// for _, user := range petugasUsers {
-		// 	petugasUserIDs = append(petugasUserIDs, user.IDUser)
-		// }
+		petugasUserIDs := make([]uint, 0, len(petugasUsers))
+		for _, user := range petugasUsers {
+			petugasUserIDs = append(petugasUserIDs, user.IDUser)
+		}
 		// petugas := seeders.PetugasBulkSeeders(tx, petugasUserIDs)
+		seeders.TokenBulkSeeders(tx, petugasUserIDs)
 
 		lokasiMall := seeders.LokasiMallBulkSeeders(tx)
 		seeders.FotoLokasiMallBulkSeeders(tx, lokasiMall)
