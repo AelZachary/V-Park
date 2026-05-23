@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"strconv"
 	"time"
 
 	"v-park/internal/loggers"
+	"v-park/internal/middleware"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -65,17 +65,13 @@ func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.Resp
 		return
 	}
 
-	pathID := r.PathValue("IDPengunjung")
-	if pathID == "" {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDPengunjung is required"})
+	authInfo, ok := middleware.GetAnyAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
 		return
 	}
 
-	idPengunjung, err := strconv.ParseUint(pathID, 10, 64)
-	if err != nil || idPengunjung == 0 {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDPengunjung is invalid"})
-		return
-	}
+	idPengunjung := authInfo.User.Pengunjung.IDPengunjung
 
 	var req BookingPengunjungRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

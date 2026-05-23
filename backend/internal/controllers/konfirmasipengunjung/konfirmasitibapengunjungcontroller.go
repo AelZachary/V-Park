@@ -3,11 +3,11 @@ package konfirmasipengunjung
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"v-park/internal/loggers"
 	"v-park/internal/logic"
+	"v-park/internal/middleware"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -66,29 +66,34 @@ func (c *KonfirmasiTibaPengunjungController) CreateKonfirmasiTibaHandler(w http.
 		return
 	}
 
-	pathID := r.PathValue("IDBooking")
-	if pathID == "" {
+	authInfo, ok := middleware.GetPengunjungAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
+		return
+	}
+
+	bookingID, err := middleware.ParseBookingIDFromPath(r)
+	if err != nil {
 		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDBooking is required"})
 		return
 	}
 
-	idBooking, err := strconv.ParseUint(pathID, 10, 64)
-	if err != nil || idBooking == 0 {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDBooking is invalid"})
+	booking, err := middleware.LoadPengunjungBookingByID(c.DB, authInfo.User.Pengunjung.IDPengunjung, bookingID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Booking not found"})
+			return
+		}
+		if logger != nil {
+			logger.Error("failed to load booking from token", "error", err)
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
 
 	var responseData KonfirmasiTibaResponse
 
 	if err := c.DB.Transaction(func(tx *gorm.DB) error {
-		var booking models.Booking
-		if err := tx.Preload("RiwayatBooking").First(&booking, uint(idBooking)).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return fmt.Errorf("booking not found")
-			}
-			return err
-		}
-
 		if booking.RiwayatBooking == nil {
 			return fmt.Errorf("riwayat booking not found")
 		}
@@ -100,7 +105,7 @@ func (c *KonfirmasiTibaPengunjungController) CreateKonfirmasiTibaHandler(w http.
 		now := time.Now().UTC()
 
 		if err := tx.Model(&models.RiwayatBooking{}).
-			Where("id_booking = ?", uint(idBooking)).
+			Where("id_booking = ?", booking.IDBooking).
 			Updates(map[string]any{
 				"waktu_masuk":    now,
 				"status_booking": "KonfirmasiTiba",
@@ -109,7 +114,7 @@ func (c *KonfirmasiTibaPengunjungController) CreateKonfirmasiTibaHandler(w http.
 		}
 
 		var updatedRiwayat models.RiwayatBooking
-		if err := tx.Where("id_booking = ?", uint(idBooking)).First(&updatedRiwayat).Error; err != nil {
+		if err := tx.Where("id_booking = ?", booking.IDBooking).First(&updatedRiwayat).Error; err != nil {
 			return err
 		}
 

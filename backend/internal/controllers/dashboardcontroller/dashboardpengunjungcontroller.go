@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"v-park/internal/loggers"
+	"v-park/internal/middleware"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -36,6 +37,12 @@ func (c *DashboardPengunjungController) GetAllPengunjungHandler(w http.ResponseW
 
 	if r.Method != http.MethodGet {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
+		return
+	}
+
+	authInfo, ok := middleware.GetPengunjungAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
 		return
 	}
 

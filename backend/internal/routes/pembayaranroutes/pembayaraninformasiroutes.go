@@ -5,6 +5,7 @@ import (
 
 	"v-park/internal/controllers/pembayarancontroller"
 	"v-park/internal/loggers"
+	"v-park/internal/middleware"
 
 	"gorm.io/gorm"
 )
@@ -16,7 +17,6 @@ func PembayaranInformasiRoutes(mux *http.ServeMux, db *gorm.DB) {
 	}
 	ctrl := &pembayarancontroller.PembayaranInformasiController{DB: db}
 
-	// Get pembayaran detail by booking - GET /api/pembayaran/informasi/booking/{IDBooking}
-	// Returns response based on IDBooking from the path
-	mux.HandleFunc("GET /api/pembayaran/informasi/booking/{IDBooking}", ctrl.GetPembayaranByRiwayatHandler)
+	// Get pembayaran detail for the authenticated pengunjung's booking
+	mux.HandleFunc("GET /api/pembayaran/informasi/booking/{IDBooking}", middleware.RequirePengunjungToken(db, ctrl.GetPembayaranByRiwayatHandler))
 }
