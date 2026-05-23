@@ -37,6 +37,7 @@ func MigrateAllModels(db *gorm.DB) error {
 		model any
 		name  string
 	}{
+		{model: &models.Token{}, name: "User"},
 		{model: &models.Pengunjung{}, name: "User"},
 		{model: &models.Token{}, name: "User"},
 		{model: &models.Petugas{}, name: "User"},
