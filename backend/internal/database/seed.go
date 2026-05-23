@@ -23,12 +23,20 @@ func SeedAllSeeders(db *gorm.DB) error {
 		// 	pengunjungIDs = append(pengunjungIDs, user.IDUser)
 		// }
 		// seeders.PengunjungBulkSeeders(tx, pengunjungIDs)
+<<<<<<< Updated upstream
+=======
+		// seeders.TokenBulkSeeders(tx, pengunjungIDs)
+>>>>>>> Stashed changes
 
 		// petugasUserIDs := make([]uint, 0, len(petugasUsers))
 		// for _, user := range petugasUsers {
 		// 	petugasUserIDs = append(petugasUserIDs, user.IDUser)
 		// }
 		// petugas := seeders.PetugasBulkSeeders(tx, petugasUserIDs)
+<<<<<<< Updated upstream
+=======
+		// seeders.TokenBulkSeeders(tx, petugasUserIDs)
+>>>>>>> Stashed changes
 
 		lokasiMall := seeders.LokasiMallBulkSeeders(tx)
 		seeders.FotoLokasiMallBulkSeeders(tx, lokasiMall)

@@ -5,11 +5,12 @@ import (
 
 	riwayatcontroller "v-park/internal/controllers/riwayatcontroller"
 	"v-park/internal/loggers"
+	"v-park/internal/middleware"
 )
 
 func RegisterRiwayatBatalRoutes(mux *http.ServeMux, controller *riwayatcontroller.RiwayatBatalController) {
 	if logger := loggers.RiwayatRoutesLogger; logger != nil {
 		logger.Info("register routes")
 	}
-	mux.HandleFunc("GET /api/riwayatbatal/pengunjung/{IDPengunjung}", controller.GetRiwayatBatalByPengunjungHandler)
+	mux.HandleFunc("GET /api/riwayatbatal/pengunjung", middleware.RequirePengunjungToken(controller.DB, controller.GetRiwayatBatalByPengunjungHandler))
 }

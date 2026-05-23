@@ -2,10 +2,10 @@ package profilecontroller
 
 import (
 	"net/http"
-	"strconv"
 
 	"v-park/internal/loggers"
 	"v-park/internal/logic"
+	"v-park/internal/middleware"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -49,39 +49,26 @@ func (c *ProfileInformasiPengunjungController) GetProfileInformasiPengunjungHand
 		return
 	}
 
-	pathID := r.PathValue("IDPengunjung")
-	if pathID == "" {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDPengunjung is required"})
+	authInfo, ok := middleware.GetPengunjungAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
 		return
 	}
 
-	idPengunjung, err := strconv.ParseUint(pathID, 10, 64)
-	if err != nil || idPengunjung == 0 {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDPengunjung is invalid"})
+	pengunjungAuth := authInfo.User.Pengunjung
+	if pengunjungAuth == nil {
+		response.JSON(w, http.StatusForbidden, response.ControllerResponse{ResponseMessage: "Forbidden"})
 		return
 	}
 
 	var pengunjung models.Pengunjung
-	if err := c.DB.Preload("Booking.RiwayatBooking.Pembayaran.MetodePembayaran").First(&pengunjung, uint(idPengunjung)).Error; err != nil {
+	if err := c.DB.Preload("Booking.RiwayatBooking.Pembayaran.MetodePembayaran").First(&pengunjung, pengunjungAuth.IDPengunjung).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Pengunjung not found"})
 			return
 		}
 		if logger != nil {
 			logger.Error("failed to load pengunjung profile", "error", err)
-		}
-		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
-		return
-	}
-
-	var user models.User
-	if err := c.DB.First(&user, pengunjung.IDUser).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Profile not found"})
-			return
-		}
-		if logger != nil {
-			logger.Error("failed to load user profile", "error", err)
 		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
@@ -97,7 +84,7 @@ func (c *ProfileInformasiPengunjungController) GetProfileInformasiPengunjungHand
 
 	responseData := ProfileInformasiPengunjungResponse{
 		User: ProfileInformasiPengunjungUserResponse{
-			Username: user.Username,
+			Username: authInfo.User.Username,
 		},
 		Pengunjung: ProfileInformasiPengunjungDataResponse{
 			NoPengguna:        pengunjung.NoHandphone,

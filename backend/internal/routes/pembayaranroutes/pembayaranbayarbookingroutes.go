@@ -5,6 +5,7 @@ import (
 
 	"v-park/internal/controllers/pembayarancontroller"
 	"v-park/internal/loggers"
+	"v-park/internal/middleware"
 
 	"gorm.io/gorm"
 )
@@ -16,7 +17,6 @@ func PembayaranBayarBookingRoutes(mux *http.ServeMux, db *gorm.DB) {
 	}
 	ctrl := &pembayarancontroller.PembayaranInformasiController{DB: db}
 
-	// Inisiasi pembayaran - POST /api/pembayaran/bayar/booking/{IDBooking}
-	// Body optional: { "PaymentMethod": "QRIS" }
-	mux.HandleFunc("POST /api/pembayaran/bayar/booking/{IDBooking}", ctrl.InitiatePembayaranHandler)
+	// Inisiasi pembayaran untuk booking milik pengunjung terautentikasi
+	mux.HandleFunc("POST /api/pembayaran/bayar/booking/{IDBooking}", middleware.RequirePengunjungToken(db, ctrl.InitiatePembayaranHandler))
 }

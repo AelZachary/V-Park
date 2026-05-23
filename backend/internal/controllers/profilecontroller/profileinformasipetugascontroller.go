@@ -2,10 +2,10 @@ package profilecontroller
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"v-park/internal/loggers"
+	"v-park/internal/middleware"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -43,39 +43,21 @@ func (c *ProfileInformasiPetugasController) GetProfileInformasiPetugasHandler(w 
 		return
 	}
 
-	pathID := r.PathValue("IDPetugas")
-	if pathID == "" {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDPetugas is required"})
+	authInfo, ok := middleware.GetPetugasAuthInfo(r.Context())
+	if !ok || authInfo.Petugas.IDPetugas == 0 {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
 		return
 	}
 
-	idPetugas, err := strconv.ParseUint(pathID, 10, 64)
-	if err != nil || idPetugas == 0 {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDPetugas is invalid"})
-		return
-	}
-
+	petugasAuth := authInfo.Petugas
 	var petugas models.Petugas
-	if err := c.DB.First(&petugas, uint(idPetugas)).Error; err != nil {
+	if err := c.DB.First(&petugas, petugasAuth.IDPetugas).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Petugas not found"})
 			return
 		}
 		if logger != nil {
 			logger.Error("failed to load petugas profile", "error", err)
-		}
-		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
-		return
-	}
-
-	var user models.User
-	if err := c.DB.First(&user, petugas.IDUser).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Profile not found"})
-			return
-		}
-		if logger != nil {
-			logger.Error("failed to load user profile", "error", err)
 		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
@@ -88,7 +70,7 @@ func (c *ProfileInformasiPetugasController) GetProfileInformasiPetugasHandler(w 
 	}
 
 	responseData := ProfileInformasiPetugasResponse{
-		User: ProfileInformasiPetugasUserResponse{Username: user.Username},
+		User: ProfileInformasiPetugasUserResponse{Username: authInfo.User.Username},
 		Petugas: ProfileInformasiPetugasDataResponse{
 			MallBertugas:         petugas.MallBertugas,
 			ShiftMulaiBertugas:   petugas.ShiftMulaiBertugas,

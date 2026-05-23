@@ -33,6 +33,7 @@ func main() {
 	loggers.Init(env)
 	loggers.InitController()
 	loggers.InitRoutes()
+	loggers.InitMiddleware()
 
 	db, err := database.DatabaseConnect()
 	if err != nil {

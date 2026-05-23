@@ -3,10 +3,10 @@ package konfirmasipengunjung
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"v-park/internal/loggers"
+	"v-park/internal/middleware"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -49,29 +49,34 @@ func (c *KonfirmasiBatalPengunjungController) CreateKonfirmasiBatalHandler(w htt
 		return
 	}
 
-	pathID := r.PathValue("IDBooking")
-	if pathID == "" {
+	authInfo, ok := middleware.GetPengunjungAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
+		return
+	}
+
+	bookingID, err := middleware.ParseBookingIDFromPath(r)
+	if err != nil {
 		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDBooking is required"})
 		return
 	}
 
-	idBooking, err := strconv.ParseUint(pathID, 10, 64)
-	if err != nil || idBooking == 0 {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDBooking is invalid"})
+	booking, err := middleware.LoadPengunjungBookingByID(c.DB, authInfo.User.Pengunjung.IDPengunjung, bookingID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Booking not found"})
+			return
+		}
+		if logger != nil {
+			logger.Error("failed to load booking from token", "error", err)
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
 
 	var responseData KonfirmasiBatalResponse
 
 	if err := c.DB.Transaction(func(tx *gorm.DB) error {
-		var booking models.Booking
-		if err := tx.Preload("RiwayatBooking").First(&booking, uint(idBooking)).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return fmt.Errorf("booking not found")
-			}
-			return err
-		}
-
 		if booking.RiwayatBooking == nil {
 			return fmt.Errorf("riwayat booking not found")
 		}
@@ -81,13 +86,13 @@ func (c *KonfirmasiBatalPengunjungController) CreateKonfirmasiBatalHandler(w htt
 		}
 
 		if err := tx.Model(&models.RiwayatBooking{}).
-			Where("id_booking = ?", uint(idBooking)).
+			Where("id_booking = ?", booking.IDBooking).
 			Update("status_booking", "Dibatalkan").Error; err != nil {
 			return err
 		}
 
 		var updatedRiwayat models.RiwayatBooking
-		if err := tx.Where("id_booking = ?", uint(idBooking)).First(&updatedRiwayat).Error; err != nil {
+		if err := tx.Where("id_booking = ?", booking.IDBooking).First(&updatedRiwayat).Error; err != nil {
 			return err
 		}
 

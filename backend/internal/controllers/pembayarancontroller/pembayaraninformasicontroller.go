@@ -2,10 +2,10 @@ package pembayarancontroller
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"v-park/internal/loggers"
+	"v-park/internal/middleware"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -14,6 +14,15 @@ import (
 
 type PembayaranInformasiController struct {
 	DB *gorm.DB
+}
+
+func loadPengunjungBookingByID(db *gorm.DB, pengunjungID, bookingID uint) (models.Booking, error) {
+	var booking models.Booking
+	if err := db.Preload("RiwayatBooking").Where("id_booking = ? AND id_pengunjung = ?", bookingID, pengunjungID).First(&booking).Error; err != nil {
+		return models.Booking{}, err
+	}
+
+	return booking, nil
 }
 
 // New nested response types for booking-based informasi
@@ -121,15 +130,38 @@ func (c *PembayaranInformasiController) GetPembayaranDetailHandler(w http.Respon
 		return
 	}
 
-	idStr := r.PathValue("IDPembayaran")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	authInfo, ok := middleware.GetPengunjungAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
+		return
+	}
+
+	bookingID, err := middleware.ParseBookingIDFromPath(r)
 	if err != nil {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "Invalid IDPembayaran"})
+		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDBooking is required"})
+		return
+	}
+
+	booking, err := loadPengunjungBookingByID(c.DB, authInfo.User.Pengunjung.IDPengunjung, bookingID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Booking not found"})
+			return
+		}
+		if logger != nil {
+			logger.Error("failed to load booking for pembayaran detail", "error", err)
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
+		return
+	}
+
+	if booking.RiwayatBooking == nil {
+		response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Riwayat booking not found"})
 		return
 	}
 
 	var pembayaran models.Pembayaran
-	if err := c.DB.Preload("MetodePembayaran").First(&pembayaran, uint(id)).Error; err != nil {
+	if err := c.DB.Preload("MetodePembayaran").Where("id_riwayat_booking = ?", booking.RiwayatBooking.IDRiwayatBooking).First(&pembayaran).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Pembayaran not found"})
 			return
@@ -171,16 +203,20 @@ func (c *PembayaranInformasiController) GetPembayaranByRiwayatHandler(w http.Res
 		return
 	}
 
-	idStr := r.PathValue("IDBooking")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "Invalid IDBooking"})
+	authInfo, ok := middleware.GetPengunjungAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
 		return
 	}
 
-	// Load booking with riwayat
-	var booking models.Booking
-	if err := c.DB.Preload("RiwayatBooking").First(&booking, uint(id)).Error; err != nil {
+	bookingID, err := middleware.ParseBookingIDFromPath(r)
+	if err != nil {
+		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDBooking is required"})
+		return
+	}
+
+	booking, err := loadPengunjungBookingByID(c.DB, authInfo.User.Pengunjung.IDPengunjung, bookingID)
+	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Booking not found"})
 			return

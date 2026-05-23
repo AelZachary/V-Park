@@ -1,9 +1,12 @@
 package authenticationcontroller
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"v-park/internal/loggers"
 	"v-park/internal/models"
@@ -49,11 +52,48 @@ type PetugasUserResponse struct {
 }
 
 type PengunjungEnvelope struct {
-	User PengunjungUserResponse `json:"User"`
+	User  PengunjungUserResponse `json:"User"`
+	Token LoginTokenResponse     `json:"Token"`
 }
 
 type PetugasEnvelope struct {
-	User PetugasUserResponse `json:"User"`
+	User  PetugasUserResponse `json:"User"`
+	Token LoginTokenResponse  `json:"Token"`
+}
+
+type LoginTokenResponse struct {
+	Token string `json:"Token"`
+}
+
+func generateTokenValue(size int) (string, error) {
+	raw := make([]byte, size)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(raw), nil
+}
+
+func issueLoginToken(db *gorm.DB, userID uint) (models.Token, error) {
+	tokenValue, err := generateTokenValue(32)
+	if err != nil {
+		return models.Token{}, err
+	}
+
+	expiredAt := time.Now().Add(24 * time.Hour).Unix()
+	token := models.Token{
+		IDUser:    userID,
+		Token:     tokenValue,
+		ExpiredAt: expiredAt,
+	}
+
+	if err := db.Where("id_user = ?", userID).
+		Assign(models.Token{Token: tokenValue, ExpiredAt: expiredAt}).
+		FirstOrCreate(&token).Error; err != nil {
+		return models.Token{}, err
+	}
+
+	return token, nil
 }
 
 func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +153,15 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 			return
 		}
 
+		token, err := issueLoginToken(call.DB, loadedUser.IDUser)
+		if err != nil {
+			if logger != nil {
+				logger.Error("failed to Login", "error", err)
+			}
+			response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to issue login token"})
+			return
+		}
+
 		resp := PengunjungEnvelope{
 			User: PengunjungUserResponse{
 				IDUser:   loadedUser.IDUser,
@@ -123,6 +172,9 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 					JenisKendaraan: loadedUser.Pengunjung.JenisKendaraan,
 					PlatKendaraan:  loadedUser.Pengunjung.PlatKendaraan,
 				},
+			},
+			Token: LoginTokenResponse{
+				Token: token.Token,
 			},
 		}
 
@@ -145,6 +197,15 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	token, err := issueLoginToken(call.DB, loadedUser.IDUser)
+	if err != nil {
+		if logger != nil {
+			logger.Error("failed to issue login token", "error", err)
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to issue login token"})
+		return
+	}
+
 	resp := PetugasEnvelope{
 		User: PetugasUserResponse{
 			IDUser:   loadedUser.IDUser,
@@ -155,6 +216,9 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 				ShiftMulaiBertugas:   loadedUser.Petugas.ShiftMulaiBertugas.Format("2006-01-02T15:04:05Z07:00"),
 				ShiftSelesaiBertugas: loadedUser.Petugas.ShiftSelesaiBertugas.Format("2006-01-02T15:04:05Z07:00"),
 			},
+		},
+		Token: LoginTokenResponse{
+			Token: token.Token,
 		},
 	}
 

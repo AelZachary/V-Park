@@ -9,6 +9,7 @@ import (
 
 	"v-park/internal/loggers"
 	"v-park/internal/logic"
+	"v-park/internal/middleware"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -84,12 +85,18 @@ func (c *PembayaranInformasiController) InitiatePembayaranHandler(w http.Respons
 	}
 
 	var req PembayaranBayarBookingRequest
-	if idStr := r.PathValue("IDBooking"); idStr != "" {
-		var pathBookingID uint
-		if _, err := fmt.Sscanf(idStr, "%d", &pathBookingID); err == nil && pathBookingID > 0 {
-			req.IDBooking = pathBookingID
-		}
+	authInfo, ok := middleware.GetPengunjungAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
+		return
 	}
+
+	bookingID, err := middleware.ParseBookingIDFromPath(r)
+	if err != nil {
+		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDBooking is required"})
+		return
+	}
+
 	// Safely parse request body. Some middleware may provide a `bodyParser` in context.
 	if bp := r.Context().Value("bodyParser"); bp != nil {
 		if parser, ok := bp.(func(interface{}) error); ok {
@@ -111,10 +118,19 @@ func (c *PembayaranInformasiController) InitiatePembayaranHandler(w http.Respons
 		}
 	}
 
-	if req.IDBooking == 0 {
-		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDBooking is required"})
+	booking, err := middleware.LoadPengunjungBookingByID(c.DB, authInfo.User.Pengunjung.IDPengunjung, bookingID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Booking not found"})
+			return
+		}
+		if logger != nil {
+			logger.Error("failed to load booking for pembayaran", "error", err)
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Database error"})
 		return
 	}
+	req.IDBooking = booking.IDBooking
 
 	callbackURL := getPaymentCallbackURL(r)
 	if callbackURL == "" {
