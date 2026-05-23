@@ -51,9 +51,25 @@ func GetPetugasAuthInfo(ctx context.Context) (PetugasAuthInfo, bool) {
 }
 
 func GetAnyAuthInfo(ctx context.Context) (AnyAuthInfo, bool) {
-	value := ctx.Value(anyAuthContextKey{})
-	info, ok := value.(AnyAuthInfo)
-	return info, ok
+	if value := ctx.Value(anyAuthContextKey{}); value != nil {
+		if info, ok := value.(AnyAuthInfo); ok {
+			return info, true
+		}
+	}
+
+	if value := ctx.Value(pengunjungAuthContextKey{}); value != nil {
+		if info, ok := value.(PengunjungAuthInfo); ok {
+			return AnyAuthInfo{User: info.User, Token: info.Token}, true
+		}
+	}
+
+	if value := ctx.Value(petugasAuthContextKey{}); value != nil {
+		if info, ok := value.(PetugasAuthInfo); ok {
+			return AnyAuthInfo{User: info.User, Token: info.Token}, true
+		}
+	}
+
+	return AnyAuthInfo{}, false
 }
 
 func ParseBookingIDFromPath(r *http.Request) (uint, error) {
@@ -164,7 +180,7 @@ func authenticatePengunjung(db *gorm.DB, r *http.Request) (PengunjungAuthInfo, i
 		return PengunjungAuthInfo{}, http.StatusInternalServerError, "Database error"
 	}
 
-	if token.ExpiredAt > 0 && time.Now().Unix() > token.ExpiredAt {
+	if token.ExpiredAt != nil && time.Now().After(*token.ExpiredAt) {
 		return PengunjungAuthInfo{}, http.StatusUnauthorized, "Token expired"
 	}
 
@@ -211,7 +227,7 @@ func authenticatePetugas(db *gorm.DB, r *http.Request) (PetugasAuthInfo, int, st
 		return PetugasAuthInfo{}, http.StatusInternalServerError, "Database error"
 	}
 
-	if token.ExpiredAt > 0 && time.Now().Unix() > token.ExpiredAt {
+	if token.ExpiredAt != nil && time.Now().After(*token.ExpiredAt) {
 		return PetugasAuthInfo{}, http.StatusUnauthorized, "Token expired"
 	}
 
@@ -258,7 +274,7 @@ func authenticateAnyUser(db *gorm.DB, r *http.Request) (AnyAuthInfo, int, string
 		return AnyAuthInfo{}, http.StatusInternalServerError, "Database error"
 	}
 
-	if token.ExpiredAt > 0 && time.Now().Unix() > token.ExpiredAt {
+	if token.ExpiredAt != nil && time.Now().After(*token.ExpiredAt) {
 		return AnyAuthInfo{}, http.StatusUnauthorized, "Token expired"
 	}
 

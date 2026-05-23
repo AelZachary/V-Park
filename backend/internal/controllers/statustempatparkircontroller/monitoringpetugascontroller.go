@@ -47,7 +47,7 @@ func (c *MonitoringPetugasController) ToggleMonitoringHandler(w http.ResponseWri
 	}
 
 	authInfo, ok := middleware.GetPetugasAuthInfo(r.Context())
-	if !ok || authInfo.Petugas.IDPetugas == 0 {
+	if !ok {
 		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
 		return
 	}

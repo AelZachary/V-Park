@@ -80,15 +80,15 @@ func issueLoginToken(db *gorm.DB, userID uint) (models.Token, error) {
 		return models.Token{}, err
 	}
 
-	expiredAt := time.Now().Add(24 * time.Hour).Unix()
+	expiredAt := time.Now().Add(24 * time.Hour)
 	token := models.Token{
 		IDUser:    userID,
 		Token:     tokenValue,
-		ExpiredAt: expiredAt,
+		ExpiredAt: &expiredAt,
 	}
 
 	if err := db.Where("id_user = ?", userID).
-		Assign(models.Token{Token: tokenValue, ExpiredAt: expiredAt}).
+		Assign(models.Token{Token: tokenValue, ExpiredAt: &expiredAt}).
 		FirstOrCreate(&token).Error; err != nil {
 		return models.Token{}, err
 	}

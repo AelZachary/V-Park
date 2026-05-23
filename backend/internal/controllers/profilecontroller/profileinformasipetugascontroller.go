@@ -44,7 +44,7 @@ func (c *ProfileInformasiPetugasController) GetProfileInformasiPetugasHandler(w 
 	}
 
 	authInfo, ok := middleware.GetPetugasAuthInfo(r.Context())
-	if !ok || authInfo.Petugas.IDPetugas == 0 {
+	if !ok {
 		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
 		return
 	}

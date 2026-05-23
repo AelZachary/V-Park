@@ -15,6 +15,7 @@ func MigrateAllModels(db *gorm.DB) error {
 
 	if err := db.AutoMigrate(
 		&models.User{},
+		&models.Token{},
 		&models.Pengunjung{},
 		&models.Petugas{},
 		&models.LokasiMall{},
@@ -37,6 +38,7 @@ func MigrateAllModels(db *gorm.DB) error {
 		name  string
 	}{
 		{model: &models.Pengunjung{}, name: "User"},
+		{model: &models.Token{}, name: "User"},
 		{model: &models.Petugas{}, name: "User"},
 		{model: &models.TempatParkir{}, name: "LokasiMall"},
 		{model: &models.FotoLokasiMall{}, name: "LokasiMall"},

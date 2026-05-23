@@ -65,7 +65,7 @@ func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.Resp
 		return
 	}
 
-	authInfo, ok := middleware.GetPengunjungAuthInfo(r.Context())
+	authInfo, ok := middleware.GetAnyAuthInfo(r.Context())
 	if !ok || authInfo.User.Pengunjung == nil {
 		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
 		return
