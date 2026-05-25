@@ -15,27 +15,31 @@ export async function registerUser(
 	password: string,
 	noHandphone: string
 ): Promise<PengunjungLoginResult> {
-	const response = await fetch(
-		`${API_BASE_URL}/api/authentication/registrasi`,
-		{
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), 10000);
+
+	let response: Response;
+	try {
+		response = await fetch(`${API_BASE_URL}/api/authentication/registrasi`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({
-				Username: username,
-				Password: password,
-				NoHandphone: noHandphone,
-				IsPengunjung: true,
-			} satisfies RegistrasiRequest),
-		}
-	);
+			body: JSON.stringify({ Username: username, Password: password, NoHandphone: noHandphone, IsPengunjung: true } satisfies RegistrasiRequest),
+			signal: controller.signal,
+		});
+	} catch (err: any) {
+		if (err && err.name === 'AbortError') throw new Error('Request timed out');
+		throw new Error(`Cannot reach server: ${err?.message ?? String(err)}`);
+	} finally {
+		clearTimeout(timeout);
+	}
 
 	const rawBody = await response.text();
 	const payload = rawBody
 		? (JSON.parse(rawBody) as
-				| PengunjungLoginResult
-				| ControllerResponse)
+			| PengunjungLoginResult
+			| ControllerResponse)
 		: null;
 
 	if (!response.ok) {

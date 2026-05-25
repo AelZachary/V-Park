@@ -14,18 +14,42 @@ import {
   View,
 } from 'react-native';
 
-export default function HomeScreen() {
+const DEFAULT_MALL_TITLES: Record<number, string> = {
+  1: 'Ground Floor',
+  2: 'Ground Floor - Area A',
+  3: 'Lantai P1',
+  4: 'Lantai P1 - Area A',
+  5: 'Lantai P2',
+  6: 'Lantai P2 - Area A',
+  7: 'Lantai P3',
+  8: 'Lantai P3 - Area A',
+  9: 'Lantai P4',
+  10: 'Lantai P4 - Area A',
+  11: 'Lantai P5',
+};
 
+export default function HomeScreen() {
   const {
     search,
     setSearch,
-
+    loading,
+    error,
     filteredParking,
   } = useHomeVM();
 
+  const getMallTitle = (item: { id: number; name: string }) => {
+    return DEFAULT_MALL_TITLES[item.id] ?? item.name;
+  };
+
+  const getMallDescription = (item: { id: number; description: string }) => {
+    if (item.id === 1) {
+      return 'Ground floor, ground floor A';
+    }
+    return item.description;
+  };
+
   return (
     <View style={styles.container}>
-
       {/* HEADER */}
       <View style={styles.header}>
         <Image
@@ -37,7 +61,6 @@ export default function HomeScreen() {
 
       {/* SEARCH + FILTER */}
       <View style={styles.searchRow}>
-
         <View style={styles.searchBox}>
           <Ionicons name="search" size={18} color="#666" />
           <TextInput
@@ -51,31 +74,42 @@ export default function HomeScreen() {
 
       {/* LIST */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+        {loading && (
+          <View style={styles.messageContainer}>
+            <Text style={styles.messageText}>Memuat data lokasi mall...</Text>
+          </View>
+        )}
+        {error && !loading && (
+          <View style={styles.messageContainer}>
+            <Text style={styles.messageText}>Terjadi kesalahan: {error}</Text>
+          </View>
+        )}
+        {!loading && filteredParking.length === 0 && !error && (
+          <View style={styles.messageContainer}>
+            <Text style={styles.messageText}>Tidak ada lokasi mall yang tersedia.</Text>
+          </View>
+        )}
         {filteredParking.map((item, index) => (
           <TouchableOpacity
-            key={index}
+            key={item.id ?? index}
             style={styles.card}
+            activeOpacity={0.85}
             onPress={() => {
-              if (item.name === 'Ground Floor' || item.name === 'Ground Floor - Area A' || item.name === 'Lantai P1' || item.name === 'Lantai P1 - Area A' || item.name === 'Lantai P2' || item.name === 'Lantai P2 - Area A' || item.name === 'Lantai P3' || item.name === 'Lantai P3 - Area A' || item.name === 'Lantai P4' || item.name === 'Lantai P4 - Area A' || item.name === 'Lantai P5') {
-                router.push({
-                  pathname: '/user/selectParkingSpot',
-                  params: { initialFloor: item.name }
-                });
-              }
+              router.push({
+                pathname: '/user/selectParkingSpot',
+                params: { initialFloor: getMallTitle(item) },
+              });
             }}
           >
-
             <Image source={item.image} style={styles.cardImage} />
-
             <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.mallName}>{item.name}</Text>
-              <Text style={styles.address}>{item.description}</Text>
+              <Text style={styles.mallName}>{getMallTitle(item)}</Text>
+              <Text style={styles.address}>{getMallDescription(item)}</Text>
             </View>
-
           </TouchableOpacity>
         ))}
       </ScrollView>
-      
+
       {/* BOTTOM NAV */}
       <BottomNavbar active="home" />
     </View>
@@ -175,6 +209,24 @@ const styles = StyleSheet.create({
     marginTop: 3,
     flexWrap: 'wrap',
     maxWidth: '100%',
+  },
+
+  messageContainer: {
+    marginTop: 24,
+    marginHorizontal: 20,
+    padding: 16,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.white,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+
+  messageText: {
+    color: COLORS.subtext,
+    fontSize: FONT_SIZE.sm,
+    textAlign: 'center',
   },
 
   distance: {

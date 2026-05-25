@@ -7,6 +7,7 @@ import {
   isPetugasLoginResult,
   loginUser,
 } from '@/fetching/services/loginservices';
+import { setToken } from '@/fetching/auth/auth';
 import { registerUser } from '@/fetching/services/registrasiservice';
 
 export const useAuthVM = () => {
@@ -26,6 +27,12 @@ export const useAuthVM = () => {
 
     try {
       const result = await loginUser(name, password);
+
+      // persist token if present
+      const token = (result as any)?.Token?.Token;
+      if (typeof token === 'string') {
+        await setToken(token);
+      }
 
       if (isPengunjungLoginResult(result)) {
         router.replace('/user/home');

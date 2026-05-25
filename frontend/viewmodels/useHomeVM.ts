@@ -1,100 +1,67 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getDashboardPengunjung } from '@/fetching/services/dashboardService';
+
+type ParkingPlace = {
+  id: number;
+  name: string;
+  description: string;
+  image: unknown;
+};
+
+const DEFAULT_IMAGE = require('../assets/images/V-Park.png');
 
 export const useHomeVM = () => {
-
   const [search, setSearch] = useState('');
+  const [parkingPlaces, setParkingPlaces] = useState<ParkingPlace[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const parkingPlaces = [
+  async function loadParkingPlaces() {
+    setLoading(true);
+    setError(null);
 
-    {
-      name: 'Ground Floor',
-      image: require('../assets/images/G.jpg'),
-      description:
-        'Area parkir dasar yang berada dekat akses masuk utama mall. Memiliki akses langsung ke lobby mall serta lift utama pengunjung.',
-    },
+    try {
+      const payload = await getDashboardPengunjung();
+      const list = Array.isArray((payload as any)?.data)
+        ? (payload as any).data
+        : [];
 
-    {
-      name: 'Ground Floor - Area A',
-      image: require('../assets/images/GA.jpg'),
-      description:
-        'Zona parkir transisi setelah Ground Floor dengan posisi setengah lantai di atas area G.',
-    },
+      const mapped = list.map((item: any, index: number) => {
+        const alamat = item?.LokasiMall?.AlamatLokasi ?? '';
+        const id = Number(item?.LokasiMall?.IDLokasiMall ?? index + 1);
+        const title = `Lokasi Mall ${id}`;
 
-    {
-      name: 'Lantai P1',
-      image: require('../assets/images/P1.jpg'),
-      description:
-        'Area parkir utama yang memiliki akses langsung ke dalam mall serta terhubung dengan lift utama pengunjung.',
-    },
+        return {
+          id,
+          name: title,
+          description: alamat,
+          image: DEFAULT_IMAGE,
+        };
+      });
 
-    {
-      name: 'Lantai P1 - Area A',
-      image: require('../assets/images/P1A.jpg'),
-      description:
-        'Zona parkir tambahan setelah area P1 dengan posisi setengah lantai lebih tinggi.',
-    },
+      setParkingPlaces(mapped);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load dashboard data');
+      setParkingPlaces([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    {
-      name: 'Lantai P2',
-      image: require('../assets/images/P2.jpg'),
-      description:
-        'Area parkir lantai 2 yang terhubung dengan lift utama.',
-    },
+  useEffect(() => {
+    loadParkingPlaces();
+  }, []);
 
-    {
-      name: 'Lantai P2 - Area A',
-      image: require('../assets/images/P2A.jpg'),
-      description:
-        'Zona parkir tambahan setelah area P2 dengan kondisi parkiran lebih longgar.',
-    },
-
-    {
-      name: 'Lantai P3',
-      image: require('../assets/images/P3.jpg'),
-      description:
-        'Area parkir utama lantai 3 dengan akses lift menuju lantai mall.',
-    },
-
-    {
-      name: 'Lantai P3 - Area A',
-      image: require('../assets/images/P3A.jpg'),
-      description:
-        'Zona parkir split-level setelah P3 dengan kondisi parkiran lebih tenang.',
-    },
-
-    {
-      name: 'Lantai P4',
-      image: require('../assets/images/P4.jpg'),
-      description:
-        'Area parkir utama dekat lift dengan suasana lebih tenang.',
-    },
-
-    {
-      name: 'Lantai P4 - Area A',
-      image: require('../assets/images/P4A.jpg'),
-      description:
-        'Zona tambahan setelah P4 dengan akses kendaraan lebih lancar.',
-    },
-
-    {
-      name: 'Lantai P5',
-      image: require('../assets/images/P5.jpg'),
-      description:
-        'Area parkir paling atas dengan akses lift menuju lantai utama mall.',
-    },
-  ];
-
-  // SEARCH
   const filteredParking = parkingPlaces.filter((place) =>
-    place.name
-      .toLowerCase()
-      .includes(search.toLowerCase())
+    place.name.toLowerCase().includes(search.toLowerCase()) ||
+    place.description.toLowerCase().includes(search.toLowerCase())
   );
 
   return {
     search,
     setSearch,
-
+    loading,
+    error,
     filteredParking,
   };
 };

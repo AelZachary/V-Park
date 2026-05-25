@@ -2,6 +2,14 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
+import {
+  isPengunjungLoginResult,
+  isPetugasLoginResult,
+  loginUser,
+} from '@/fetching/services/loginservices';
+import { setToken } from '@/fetching/auth/auth';
+import { registerUser } from '@/fetching/services/registrasiservice';
+
 export const useAuthVM = () => {
   // Login
   const [name, setName] = useState('');
@@ -10,59 +18,61 @@ export const useAuthVM = () => {
   // Register
   const [registerName, setRegisterName] = useState('');
   const [phone, setPhone] = useState('');
-  const [registerPassword, setRegisterPassword] =
-    useState('');
-  const [
-    confirmPassword,
-    setConfirmPassword,
-  ] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // LOGIN FUNCTION
-  const login = () => {
+  const login = async () => {
     if (!name || !password) {
-      Alert.alert(
-        'Login Failed',
-        'Please fill all fields.'
-      );
+      Alert.alert('Login Failed', 'Please fill all fields.');
       return;
     }
 
-    console.log('Login Success');
+    try {
+      const result = await loginUser(name, password);
 
-    // pindah ke home user
-    router.replace('../user/home');
+      const token = (result as any)?.Token?.Token;
+      if (typeof token === 'string') {
+        await setToken(token);
+      }
+
+      if (isPengunjungLoginResult(result)) {
+        router.replace('/user/home');
+        return;
+      }
+
+      if (isPetugasLoginResult(result)) {
+        router.replace('/staff/StaffProfile');
+        return;
+      }
+
+      Alert.alert('Login Failed', 'Unexpected login response.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Login failed';
+      Alert.alert('Login Failed', message);
+    }
   };
 
   // REGISTER FUNCTION
-  const register = () => {
-    if (
-      !registerName ||
-      !phone ||
-      !registerPassword ||
-      !confirmPassword
-    ) {
-      Alert.alert(
-        'Register Failed',
-        'Please complete all fields.'
-      );
+  const register = async () => {
+    if (!registerName || !phone || !registerPassword || !confirmPassword) {
+      Alert.alert('Register Failed', 'Please complete all fields.');
       return;
     }
 
-    if (
-      registerPassword !==
-      confirmPassword
-    ) {
-      Alert.alert(
-        'Register Failed',
-        'Password confirmation does not match.'
-      );
+    if (registerPassword !== confirmPassword) {
+      Alert.alert('Register Failed', 'Password confirmation does not match.');
       return;
     }
 
-    console.log('Register Success');
-
-    // setelah register balik ke login
-    router.replace('/auth/login');
+    try {
+      await registerUser(registerName, registerPassword, phone);
+      Alert.alert('Register Success', 'Your account has been created.');
+      router.replace('/auth/login');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Register failed';
+      Alert.alert('Register Failed', message);
+    }
   };
 
   return {

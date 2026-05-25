@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { clearToken } from '@/fetching/auth/auth';
 
 export const useProfileVM = () => {
 
@@ -16,6 +17,7 @@ export const useProfileVM = () => {
 
   const logout = () => {
     setShowLogout(false);
+    clearToken();
     router.replace('/auth/login');
   };
 

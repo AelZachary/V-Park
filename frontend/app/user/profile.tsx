@@ -1,6 +1,6 @@
 import { useProfileVM } from '@/viewmodels/useProfileVM';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   Modal,
@@ -12,19 +12,23 @@ import {
 } from 'react-native';
 
 export default function ProfileScreen() {
-  
+  const {
+    showLogout,
+    setShowLogout,
+    profile,
+    loading,
+    error,
+    logout,
+  } = useProfileVM();
 
-    const {
-        showLogout,
-        setShowLogout,
-        profile,
-        logout,
-    } = useProfileVM();
-    
-    const [showEditVehicle, setShowEditVehicle] = useState(false);
+  const [showEditVehicle, setShowEditVehicle] = useState(false);
+  const [vehicle, setVehicle] = useState(profile.Pengunjung.KendaraanPengguna);
+  const [plate, setPlate] = useState(profile.Pengunjung.PlatPengguna);
 
-    const [vehicle, setVehicle] = useState(profile.vehicle);
-    const [plate, setPlate] = useState(profile.plate);
+  useEffect(() => {
+    setVehicle(profile.Pengunjung.KendaraanPengguna);
+    setPlate(profile.Pengunjung.PlatPengguna);
+  }, [profile]);
 
   return (
     <View style={styles.container}>
@@ -48,11 +52,11 @@ export default function ProfileScreen() {
         />
 
         <Text style={styles.name}>
-          {profile.name}
+          {profile.User.Username || 'Guest'}
         </Text>
 
         <Text style={styles.phone}>
-          {profile.phone}
+          {profile.Pengunjung.NoPengguna || '-'}
         </Text>
 
       </View>
@@ -73,7 +77,7 @@ export default function ProfileScreen() {
           </Text>
 
           <Text style={styles.statValue}>
-            {profile.totalBooking} <Text style={styles.small}>Kali</Text>
+            {profile.Statistik.TotalBooking} <Text style={styles.small}>Kali</Text>
           </Text>
         </View>
 
@@ -90,7 +94,7 @@ export default function ProfileScreen() {
           </Text>
 
           <Text style={styles.expenseText}>
-            {profile.totalExpenses}
+            Rp {profile.Statistik.TotalJumlahPembayaran}
           </Text>
         </View>
 
