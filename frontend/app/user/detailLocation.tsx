@@ -1,5 +1,5 @@
 import { COLORS } from '@/constants/theme';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useSearchParams } from 'expo-router';
+import { useProfileVM } from '@/viewmodels/useProfileVM';
 
 import ButtonPrimary from '@/components/common/ButtonPrimary';
 import InfoRow from '@/components/common/InfoRow';
@@ -26,14 +27,33 @@ const PARKING_IMAGES = [
 export default function DetailLocation() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const { profile } = useProfileVM();
+  const params = useSearchParams();
 
-  const [username, setUsername] = useState('Pinky Pie');
-  const [phone, setPhone] = useState('+628213456789');
-  const [vehicleType, setVehicleType] = useState('Mobil Creta');
-  const [platNumber, setPlatNumber] = useState('DD 1234 TNF');
+  const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
+  const [vehicleType, setVehicleType] = useState('');
+  const [platNumber, setPlatNumber] = useState('');
+  const selectedSlot = String(params.slot || 'L4');
+  const selectedFloor = String(params.floor || 'Basement');
+
+  useEffect(() => {
+    setUsername(profile.User.Username || '');
+    setPhone(profile.Pengunjung.NoPengguna || '');
+    setVehicleType(profile.Pengunjung.KendaraanPengguna || '');
+    setPlatNumber(profile.Pengunjung.PlatPengguna || '');
+  }, [profile]);
 
   const handlePressNext = () => {
-    router.push('/user/konfirmasiKedatangan');
+    router.push({
+      pathname: '/user/konfirmasiKedatangan',
+      params: {
+        customerName: username,
+        customerPhone: phone,
+        vehicleType,
+        plateNumber: platNumber,
+      },
+    });
   };
 
   const handlePressBack = () => {
@@ -91,13 +111,13 @@ export default function DetailLocation() {
 
           <View style={styles.parkingInfoRow}>
             <View style={styles.slotBadge}>
-              <Text style={styles.slotText}>L4</Text>
+              <Text style={styles.slotText}>{selectedSlot}</Text>
             </View>
 
             <View style={styles.descriptionContainer}>
               <Text style={styles.descriptionTitle}>Deskripsi</Text>
               <Text style={styles.descriptionText}>
-                Kendaraan Anda telah berhasil diparkir di area Basement Lantai 2, pada slot B1. 
+                Kendaraan Anda telah berhasil diparkir di area {selectedFloor}, pada slot {selectedSlot}. 
                 Gunakan informasi ini sebagai panduan untuk menuju lokasi kendaraan Anda dengan lebih cepat dan efisien.
               </Text>
             </View>

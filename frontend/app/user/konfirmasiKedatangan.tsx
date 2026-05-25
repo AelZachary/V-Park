@@ -1,6 +1,6 @@
 import { COLORS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
@@ -137,37 +137,45 @@ function PlatCarIcon() {
   );
 }
 
-const bookingDetails = [
-  {
-    icon: <CarIcon />,
-    label: 'Area Parkir',
-    value: 'Ground Floor - Area A',
-  },
-  {
-    icon: <ParkingAreaIcon />,
-    label: 'Slot Parkir',
-    value: 'L4',
-  },
-  {
-    icon: <CarIcon />,
-    label: 'Jenis Kendaraan',
-    value: 'Mobil Creta',
-  },
-  {
-    icon: <PlatCarIcon />,
-    label: 'Plat Kendaraan',
-    value: 'DD 1234 TNF',
-  },
-];
 
 export default function KonfirmasiKedatangan() {
   const router = useRouter();
+  const params = useSearchParams();
   const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const customerName = params.customerName || 'Guest';
+  const customerPhone = params.customerPhone || '-';
+  const vehicleType = params.vehicleType || 'Mobil Creta';
+  const plateNumber = params.plateNumber || 'DD 1234 TNF';
+  const targetSlotId = 'L4';
 
   // 🌟 STATES KONTROL UNTUK KEDUA POP-UP MODAL DIALOG
   const [popupVisible, setPopupVisible] = useState(false);       // Pop-up Tiba di Mall
   const [cancelPopupVisible, setCancelPopupVisible] = useState(false); // Pop-up Batal Booking
+
+  const bookingDetails = [
+    {
+      icon: <Ionicons name="person-outline" size={20} color="#141B34" />,
+      label: 'Nama',
+      value: customerName,
+    },
+    {
+      icon: <Ionicons name="call-outline" size={20} color="#141B34" />,
+      label: 'No.HP',
+      value: customerPhone,
+    },
+    {
+      icon: <CarIcon />,
+      label: 'Jenis Kendaraan',
+      value: vehicleType,
+    },
+    {
+      icon: <PlatCarIcon />,
+      label: 'Plat Kendaraan',
+      value: plateNumber,
+    },
+  ];
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -178,14 +186,18 @@ export default function KonfirmasiKedatangan() {
     };
   }, []);
 
-  const rawSlotValue = bookingDetails[1].value; 
-  const slotNumber = rawSlotValue.replace(/[^0-9]/g, ''); 
-  const targetSlotId = `L${slotNumber}`; 
-
   // Handler jika klik 'Ya, Saya Tiba' di Pop-up Kedatangan
   const handleConfirmArrival = () => {
     setPopupVisible(false);
-    router.push('/user/KonfirmasiSelesaiParkir');
+    router.push({
+      pathname: '/user/KonfirmasiSelesaiParkir',
+      params: {
+        customerName,
+        customerPhone,
+        vehicleType,
+        plateNumber,
+      },
+    });
   };
 
   // Handler jika klik 'Yes' di Pop-up Pembatalan

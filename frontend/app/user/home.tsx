@@ -97,7 +97,10 @@ export default function HomeScreen() {
             onPress={() => {
               router.push({
                 pathname: '/user/selectParkingSpot',
-                params: { initialFloor: getMallTitle(item) },
+                params: {
+                  initialFloor: getMallTitle(item),
+                  mallId: String(item.id),
+                },
               });
             }}
           >

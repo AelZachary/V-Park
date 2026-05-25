@@ -14,6 +14,7 @@ import P1 from '@/components/booking/floors/P1';
 import P1A from '@/components/booking/floors/P1A';
 import P2A from '@/components/booking/floors/P2A';
 import P3A from '@/components/booking/floors/P3A';
+import { getTempatParkir } from '@/fetching/services/tempatparkirService';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -37,6 +38,11 @@ export default function SelectParkingSpot() {
   const [selectedFloor, setSelectedFloor] = useState<string>(
     (params.initialFloor as string) || 'Ground Floor'
   );
+  const [slotStatuses, setSlotStatuses] = useState<Record<string, 'available' | 'occupied' | 'online' | 'manual' | 'selected'>>({});
+
+  const mallId = Number(
+    params.mallId || params.idlokasimall || params.id_lokasi_mall || params.id_lokasi || 0
+  );
 
   // dropdown dan layout di dalam sini ikut ter-update secara otomatis.
   useEffect(() => {
@@ -45,6 +51,52 @@ export default function SelectParkingSpot() {
       setSelectedSlot(null); // Reset slot terpilih jika lantai berubah dari luar
     }
   }, [params.initialFloor]);
+
+  useEffect(() => {
+    async function loadSlotStatuses() {
+      if (!mallId) return;
+
+      try {
+        const payload = await getTempatParkir(mallId);
+        const slots = Array.isArray((payload as any)?.tempat_parkir)
+          ? (payload as any).tempat_parkir
+          : [];
+
+        const mappedStatuses: Record<string, 'available' | 'occupied' | 'online' | 'manual'> = {};
+
+        slots.forEach((slot: any) => {
+          const code = String(slot.KodeTempat || '').trim();
+          if (!code) return;
+
+          switch (String(slot.StatusTempatParkir).toLowerCase()) {
+            case 'tersedia':
+              mappedStatuses[code] = 'available';
+              break;
+            case 'terisi':
+              mappedStatuses[code] = 'occupied';
+              break;
+            case 'dipesan':
+            case 'bookingonline':
+            case 'booking online':
+              mappedStatuses[code] = 'online';
+              break;
+            case 'perawatan':
+              mappedStatuses[code] = 'manual';
+              break;
+            default:
+              mappedStatuses[code] = 'occupied';
+              break;
+          }
+        });
+
+        setSlotStatuses(mappedStatuses);
+      } catch (error) {
+        setSlotStatuses({});
+      }
+    }
+
+    loadSlotStatuses();
+  }, [mallId]);
 
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (currentStatus === 'available') {
@@ -78,6 +130,7 @@ export default function SelectParkingSpot() {
           <GroundFloor 
             selectedSlot={selectedSlot} 
             onSelectSlot={handleSelectSlot} 
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -86,6 +139,7 @@ export default function SelectParkingSpot() {
           <GroundFloorA 
             selectedSlot={selectedSlot} 
             onSelectSlot={handleSelectSlot} 
+            slotStatuses={slotStatuses}
           />
         );
       
@@ -94,6 +148,7 @@ export default function SelectParkingSpot() {
           <P1
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
       
@@ -102,6 +157,7 @@ export default function SelectParkingSpot() {
           <P1A
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -110,6 +166,7 @@ export default function SelectParkingSpot() {
           <P2
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -118,6 +175,7 @@ export default function SelectParkingSpot() {
           <P2A
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -126,6 +184,7 @@ export default function SelectParkingSpot() {
           <P3
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
     
@@ -134,6 +193,7 @@ export default function SelectParkingSpot() {
           <P3A
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -142,6 +202,7 @@ export default function SelectParkingSpot() {
           <P4
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
       case 'Lantai P4 - Area A':
@@ -149,6 +210,7 @@ export default function SelectParkingSpot() {
           <P4A
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
       case 'Lantai P5':
@@ -156,6 +218,7 @@ export default function SelectParkingSpot() {
           <P5
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
       default:
