@@ -34,7 +34,7 @@ func TempatParkirSeeders(db *gorm.DB, lokasiMall models.LokasiMall) []models.Tem
 	}
 
 	samples := make([]models.TempatParkir, 0, spec.LeftCount+spec.RightCount)
-	statuses := []string{"Tersedia", "Terisi", "Dipesan", "Perawatan"}
+	statuses := []string{"Tersedia", "Terisi", "Booking Online"}
 
 	for n := 1; n <= spec.LeftCount; n++ {
 		samples = append(samples, models.TempatParkir{
