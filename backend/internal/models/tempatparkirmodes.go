@@ -8,4 +8,5 @@ type TempatParkir struct {
 	StatusTempatParkir string `gorm:"type:varchar(20); not null"`
 
 	Monitoring []Monitoring `gorm:"foreignKey:IDTempatParkir;references:IDTempatParkir"`
+	Booking    []Booking    `gorm:"foreignKey:IDTempatParkir;references:IDTempatParkir"`
 }

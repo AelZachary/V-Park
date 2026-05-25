@@ -2,8 +2,9 @@ package authenticationcontroller
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -23,6 +24,11 @@ type RegistrasiRequest struct {
 }
 
 func (reg *RegistrasiController) RegistrasiHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.AuthenticationControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "RegistrasiHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return
@@ -103,7 +109,10 @@ func (reg *RegistrasiController) RegistrasiHandler(w http.ResponseWriter, r *htt
 		return nil
 
 	}); err != nil {
-		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: fmt.Sprintf("Failed to register: %v", err)})
+		if logger != nil {
+			logger.Error("failed to register user", "error", err)
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to register"})
 		return
 	}
 }

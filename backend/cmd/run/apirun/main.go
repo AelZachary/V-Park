@@ -3,17 +3,38 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	database "v-park/internal/database"
+	"v-park/internal/loggers"
 
 	authenticationcontroller "v-park/internal/controllers/authenticationcontroller"
 	dashboardcontroller "v-park/internal/controllers/dashboardcontroller"
+	konfirmasiController "v-park/internal/controllers/konfirmasipengunjung"
+	profilecontroller "v-park/internal/controllers/profilecontroller"
+	riwayatcontroller "v-park/internal/controllers/riwayatcontroller"
+	statuscontroller "v-park/internal/controllers/statustempatparkircontroller"
 
 	authenticationroutes "v-park/internal/routes/authenticationroutes"
-	dashboardroutes "v-park/internal/routes/dashboardcontroller"
+	dashboardroutes "v-park/internal/routes/dashboardroutes"
+	konfirmasiRoutes "v-park/internal/routes/konfirmasipengunjung"
+	pembayaranroutes "v-park/internal/routes/pembayaranroutes"
+	profileroutes "v-park/internal/routes/profileroutes"
+	riwayatroutes "v-park/internal/routes/riwayatroutes"
+	statusroutes "v-park/internal/routes/statustempatparkirroutes"
 )
 
 func main() {
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "dev"
+	}
+	loggers.Init(env)
+	loggers.InitController()
+	loggers.InitRoutes()
+	loggers.InitMiddleware()
+
 	db, err := database.DatabaseConnect()
 	if err != nil {
 		log.Fatal("Failed to connect database:", err)
@@ -24,6 +45,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir(filepath.Join("..", "..", "..", "internal", "uploads")))))
 
 	loginController := &authenticationcontroller.LoginPengunjung{DB: db}
 	authenticationroutes.RegisterLoginRoutes(mux, loginController)
@@ -36,6 +58,43 @@ func main() {
 
 	tempatParkirController := &dashboardcontroller.TempatParkirController{DB: db}
 	dashboardroutes.TempatParkirRoutes(mux, tempatParkirController)
+
+	bookingPengunjungController := &statuscontroller.BookingPengunjungController{DB: db}
+	statusroutes.RegisterBookingPengunjungRoutes(mux, bookingPengunjungController)
+
+	profileInformasiController := &profilecontroller.ProfileInformasiPengunjungController{DB: db}
+	profileroutes.RegisterProfileInformasiPengunjungRoutes(mux, profileInformasiController)
+
+	profileEditPengunjungController := &profilecontroller.ProfileEditPengunjungController{DB: db}
+	profileroutes.RegisterProfileEditPengunjungRoutes(mux, profileEditPengunjungController)
+
+	profileInformasiPetugasController := &profilecontroller.ProfileInformasiPetugasController{DB: db}
+	profileroutes.RegisterProfileInformasiPetugasRoutes(mux, profileInformasiPetugasController)
+
+	monitoringPetugasController := &statuscontroller.MonitoringPetugasController{DB: db}
+	statusroutes.RegisterMonitoringPetugasRoutes(mux, monitoringPetugasController)
+
+	konfirmasiTibaController := &konfirmasiController.KonfirmasiTibaPengunjungController{DB: db}
+	konfirmasiRoutes.RegisterKonfirmasiTibaRoutes(mux, konfirmasiTibaController)
+
+	konfirmasiBatalController := &konfirmasiController.KonfirmasiBatalPengunjungController{DB: db}
+	konfirmasiRoutes.RegisterKonfirmasiBatalRoutes(mux, konfirmasiBatalController)
+
+	konfirmasiSelesaiController := &konfirmasiController.KonfirmasiSelesaiPengunjungController{DB: db}
+	konfirmasiRoutes.RegisterKonfirmasiSelesaiRoutes(mux, konfirmasiSelesaiController)
+
+	riwayatAktifController := &riwayatcontroller.RiwayatAktifController{DB: db}
+	riwayatroutes.RegisterRiwayatAktifRoutes(mux, riwayatAktifController)
+
+	riwayatSelesaiController := &riwayatcontroller.RiwayatSelesaiController{DB: db}
+	riwayatroutes.RegisterRiwayatSelesaiRoutes(mux, riwayatSelesaiController)
+
+	riwayatBatalController := &riwayatcontroller.RiwayatBatalController{DB: db}
+	riwayatroutes.RegisterRiwayatBatalRoutes(mux, riwayatBatalController)
+
+	pembayaranroutes.PembayaranInformasiRoutes(mux, db)
+	pembayaranroutes.PembayaranBayarBookingRoutes(mux, db)
+	pembayaranroutes.PembayaranWebhookRoutes(mux, db)
 
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal("Server error:", err)

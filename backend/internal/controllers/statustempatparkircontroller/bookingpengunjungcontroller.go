@@ -1,0 +1,197 @@
+package statustempatparkircontroller
+
+import (
+	"encoding/json"
+	"fmt"
+	"math/rand"
+	"net/http"
+	"time"
+
+	"v-park/internal/loggers"
+	"v-park/internal/middleware"
+	"v-park/internal/models"
+	"v-park/internal/response"
+
+	"gorm.io/gorm"
+)
+
+type BookingPengunjungController struct {
+	DB *gorm.DB
+}
+
+type BookingPengunjungRequest struct {
+	IDTempatParkir    uint   `json:"IDTempatParkir"`
+	NamaPengguna      string `json:"NamaPengguna"`
+	NoPengguna        string `json:"NoPengguna"`
+	KendaraanPengguna string `json:"KendaraanPengguna"`
+	PlatPengguna      string `json:"PlatPengguna"`
+}
+
+type BookingPengunjungResponse struct {
+	Booking      BookingResponse      `json:"Booking"`
+	TempatParkir TempatParkirResponse `json:"TempatParkir"`
+	LokasiMall   LokasiMallResponse   `json:"LokasiMall"`
+}
+
+type BookingResponse struct {
+	IDBooking         uint      `json:"IDBooking"`
+	IDPengunjung      uint      `json:"IDPengunjung"`
+	NamaPengunjung    string    `json:"NamaPengunjung"`
+	NoPengguna        string    `json:"NoPengguna"`
+	KendaraanPengguna string    `json:"KendaraanPengguna"`
+	PlatPengguna      string    `json:"PlatPengguna"`
+	WaktuBooking      time.Time `json:"WaktuBooking"`
+}
+
+type TempatParkirResponse struct {
+	IDTempatParkir     uint   `json:"IDTempatParkir"`
+	KodeTempat         string `json:"KodeTempat"`
+	StatusTempatParkir string `json:"StatusTempatParkir"`
+}
+
+type LokasiMallResponse struct {
+	IDLokasiMall uint   `json:"IDLokasiMall"`
+	AlamatLokasi string `json:"AlamatLokasi"`
+}
+
+func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.StatusTempatParkirControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "CreateBookingPengunjungHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
+	if r.Method != http.MethodPost {
+		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
+		return
+	}
+
+	authInfo, ok := middleware.GetAnyAuthInfo(r.Context())
+	if !ok || authInfo.User.Pengunjung == nil {
+		response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Unauthorized"})
+		return
+	}
+
+	idPengunjung := authInfo.User.Pengunjung.IDPengunjung
+
+	var req BookingPengunjungRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "Invalid JSON format"})
+		return
+	}
+
+	if req.IDTempatParkir == 0 || req.NamaPengguna == "" || req.NoPengguna == "" || req.KendaraanPengguna == "" || req.PlatPengguna == "" {
+		response.JSON(w, http.StatusBadRequest, response.ControllerResponse{ResponseMessage: "IDTempatParkir, NamaPengguna, NoPengguna, KendaraanPengguna, and PlatPengguna are required"})
+		return
+	}
+
+	var responseData BookingPengunjungResponse
+
+	if err := c.DB.Transaction(func(tx *gorm.DB) error {
+		var tempatParkir models.TempatParkir
+		if err := tx.First(&tempatParkir, req.IDTempatParkir).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return fmt.Errorf("tempat parkir not found")
+			}
+			return err
+		}
+
+		var lokasiMall models.LokasiMall
+		if err := tx.First(&lokasiMall, tempatParkir.IDLokasiMall).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return fmt.Errorf("lokasi mall not found")
+			}
+			return err
+		}
+
+		// generate unique NoOrderan
+		var noOrderan int
+		maxAttempts := 5
+		for i := 0; i < maxAttempts; i++ {
+			// combine timestamp and randomness to reduce collision probability
+			candidate := int(time.Now().UnixNano()/int64(time.Millisecond))%1000000000 + rand.Intn(9000)
+			var existing models.Booking
+			if err := tx.Where("no_orderan = ?", candidate).First(&existing).Error; err != nil {
+				if err == gorm.ErrRecordNotFound {
+					noOrderan = candidate
+					break
+				}
+				return err
+			}
+			// small backoff before retry
+			time.Sleep(5 * time.Millisecond)
+		}
+		if noOrderan == 0 {
+			return fmt.Errorf("failed to generate unique NoOrderan")
+		}
+
+		booking := models.Booking{
+			NoOrderan:         noOrderan,
+			IDPengunjung:      uint(idPengunjung),
+			IDTempatParkir:    req.IDTempatParkir,
+			NamaPengguna:      req.NamaPengguna,
+			NoPengguna:        req.NoPengguna,
+			KendaraanPengguna: req.KendaraanPengguna,
+			PlatPengguna:      req.PlatPengguna,
+			WaktuBooking:      time.Now().UTC(),
+		}
+
+		if err := tx.Create(&booking).Error; err != nil {
+			return err
+		}
+
+		riwayat := models.RiwayatBooking{
+			IDBooking:     booking.IDBooking,
+			StatusBooking: "MenungguKonfirmasi",
+		}
+
+		if err := tx.Create(&riwayat).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&models.TempatParkir{}).
+			Where("id_tempat_parkir = ?", req.IDTempatParkir).
+			Update("status_tempat_parkir", "BookingOnline").Error; err != nil {
+			return err
+		}
+
+		responseData = BookingPengunjungResponse{
+			Booking: BookingResponse{
+				IDBooking:         booking.IDBooking,
+				IDPengunjung:      booking.IDPengunjung,
+				NamaPengunjung:    booking.NamaPengguna,
+				NoPengguna:        booking.NoPengguna,
+				KendaraanPengguna: booking.KendaraanPengguna,
+				PlatPengguna:      booking.PlatPengguna,
+				WaktuBooking:      booking.WaktuBooking,
+			},
+			TempatParkir: TempatParkirResponse{
+				IDTempatParkir:     tempatParkir.IDTempatParkir,
+				KodeTempat:         tempatParkir.KodeTempat,
+				StatusTempatParkir: "BookingOnline",
+			},
+			LokasiMall: LokasiMallResponse{
+				IDLokasiMall: lokasiMall.IDLokasiMall,
+				AlamatLokasi: lokasiMall.AlamatLokasi,
+			},
+		}
+
+		txHeader := fmt.Sprintf("%d", riwayat.IDRiwayatBooking)
+		w.Header().Set("X-Riwayat-ID", txHeader)
+
+		return nil
+	}); err != nil {
+		statusCode := http.StatusInternalServerError
+		message := "Failed to create booking"
+		if err.Error() == "tempat parkir not found" || err.Error() == "lokasi mall not found" {
+			statusCode = http.StatusNotFound
+			message = err.Error()
+		}
+		if logger != nil {
+			logger.Error("failed to create booking", "error", err)
+		}
+		response.JSON(w, statusCode, response.ControllerResponse{ResponseMessage: message})
+		return
+	}
+
+	response.JSON(w, http.StatusCreated, responseData)
+}

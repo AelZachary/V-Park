@@ -1,133 +1,100 @@
 import { useState } from 'react';
 
 export const useHomeVM = () => {
-  const [showFilter, setShowFilter] = useState(false);
-  const [selectedCity, setSelectedCity] = useState('All City');
+
   const [search, setSearch] = useState('');
 
-  const malls = [
+  const parkingPlaces = [
+
     {
-      name: 'Trans Studio Mall',
-      city: 'Makassar',
-      image: require('../assets/images/TransStudioMall.jpg'),
-      address:'Jl. Metro Tj. Bunga, Maccini Sombala, Kota Makassar',
+      name: 'Ground Floor',
+      image: require('../assets/images/G.jpg'),
+      description:
+        'Area parkir dasar yang berada dekat akses masuk utama mall. Memiliki akses langsung ke lobby mall serta lift utama pengunjung.',
     },
 
     {
-      name: 'Phinisi Point Mall',
-      city: 'Makassar',
-      image: require('../assets/images/PhinisiPointMall.jpg'),
-      address:'Jl. Metro Tj. Bunga No.2, Kota Makassar',
+      name: 'Ground Floor - Area A',
+      image: require('../assets/images/GA.jpg'),
+      description:
+        'Zona parkir transisi setelah Ground Floor dengan posisi setengah lantai di atas area G.',
     },
 
     {
-      name: 'Manado Town Square',
-      city: 'Manado',
-      image: require('../assets/images/ManadoTownSquare.jpeg'),
-      address:'Jl. Piere Tendean, Kota Manado',
+      name: 'Lantai P1',
+      image: require('../assets/images/P1.jpg'),
+      description:
+        'Area parkir utama yang memiliki akses langsung ke dalam mall serta terhubung dengan lift utama pengunjung.',
     },
 
     {
-      name: 'Palu Grand Mall',
-      city: 'Palu',
-      image: require('../assets/images/PaluGrandMall.jpeg'),
-      address:'Jl. Diponegoro, Kota Palu',
+      name: 'Lantai P1 - Area A',
+      image: require('../assets/images/P1A.jpg'),
+      description:
+        'Zona parkir tambahan setelah area P1 dengan posisi setengah lantai lebih tinggi.',
     },
 
     {
-      name: 'The Park Kendari',
-      city: 'Kendari',
-      image: require('../assets/images/TheParkKendari.jpg'),
-      address:'Jalan Brigjen M. Yoenoes, Bende, Kadia, Kendari',
+      name: 'Lantai P2',
+      image: require('../assets/images/P2.jpg'),
+      description:
+        'Area parkir lantai 2 yang terhubung dengan lift utama.',
     },
 
     {
-      name: 'Citimall Gorontalo',
-      city: 'Gorontalo',
-      image: require('../assets/images/CitimallGorontalo.jpg'),
-      address:'Jl. Sultan Botutihe No.68, Heledula Sel., Kec. Kota Tim., Kota Gorontalo',
+      name: 'Lantai P2 - Area A',
+      image: require('../assets/images/P2A.jpg'),
+      description:
+        'Zona parkir tambahan setelah area P2 dengan kondisi parkiran lebih longgar.',
     },
 
     {
-      name: 'Megah Plaza Palopo',
-      city: 'Palopo',
-      image: require('../assets/images/MegahPlazaPalopo.jpg'),
-      address:'Jl. KH. Ahmad Dahlan No.38 Lt.3, Amasangan, Kec. Wara, Kota Palopo, Sulawesi Selatan',
+      name: 'Lantai P3',
+      image: require('../assets/images/P3.jpg'),
+      description:
+        'Area parkir utama lantai 3 dengan akses lift menuju lantai mall.',
     },
-    { 
-      name: 'Mall Ratu Indah', 
-      city : 'Makassar', 
-      image: require('../assets/images/MallRatuIndah.webp'), 
-      address: 'Jl. DR. Ratulangi No.10, Mangkura, Kec. Mamajang, Kota Makassar, Sulawesi Selatan 90113', 
+
+    {
+      name: 'Lantai P3 - Area A',
+      image: require('../assets/images/P3A.jpg'),
+      description:
+        'Zona parkir split-level setelah P3 dengan kondisi parkiran lebih tenang.',
     },
-    { 
-      name: 'Mega Mall Manado', 
-      city : 'Manado', 
-      image: require('../assets/images/MegaMallManado.jpg'), 
-      address: 'Kawasan Mega mas, Jl. Piere Tendean, Wenang Sel., Kec. Wenang, Kota Manado, Sulawesi Utara', 
+
+    {
+      name: 'Lantai P4',
+      image: require('../assets/images/P4.jpg'),
+      description:
+        'Area parkir utama dekat lift dengan suasana lebih tenang.',
     },
-    { 
-      name: 'Mall Ramayana Palu', 
-      city : 'Palu', 
-      image: require('../assets/images/MallRamayanaPalu.jpg'), 
-      address: 'Jl. Sudirman, Besusu Bar., Kec. Palu Sel., Kota Palu, Sulawesi Tengah',
+
+    {
+      name: 'Lantai P4 - Area A',
+      image: require('../assets/images/P4A.jpg'),
+      description:
+        'Zona tambahan setelah P4 dengan akses kendaraan lebih lancar.',
     },
-    { 
-      name: 'Lipo Plaza Kendari', 
-      city : 'Kendari', 
-      image: require('../assets/images/LipoPlazaKendari.webp'), 
-      address: 'Jl. Jenderal M.t. Haryono No.61 - 63, Bende, Kec. Kadia, Kota Kendar, Sulawesi Tenggara',
-    },
-    { 
-      name: 'Lipo Plaza Manado', 
-      city : 'Manado', 
-      image: require('../assets/images/LippoPlazaManado.webp'), 
-      address: 'Jl. A.A. Maramis, Kairagi Dua, Kec. Mapanget, Kota Manado, Sulawesi Utara', 
-    },
-    { 
-      name: 'Mall Panakkukang', 
-      city : 'Makassar', 
-      image: require('../assets/images/MallPanakkukang.jpg'), 
-      address: 'Jl. Boulevard No.3, Masale, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231', 
-    },
-    { 
-      name: 'Nipah Mall', 
-      city : 'Makassar', 
-      image: require('../assets/images/NipahMall.jpeg'), 
-      address: 'Jl. Urip Sumoharjo No.23C, Panaikang, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231', 
-    },
-    { 
-      name: 'Makassar Town Square', 
-      city : 'Makassar', 
-      image: require('../assets/images/MakassarTownSquare.jpg'), 
-      address: 'Jl. Perintis Kemerdekaan No.26, Tamalanrea Jaya, Tamalanrea, Makassar City, South Sulawesi 90245', 
+
+    {
+      name: 'Lantai P5',
+      image: require('../assets/images/P5.jpg'),
+      description:
+        'Area parkir paling atas dengan akses lift menuju lantai utama mall.',
     },
   ];
 
-  // FILTER + SEARCH
-  const filteredMall = malls.filter((mall) => {
-    const matchCity =
-      selectedCity === 'All City' ||
-      mall.city === selectedCity;
-
-    const matchSearch =
-      mall.name
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-    return matchCity && matchSearch;
-  });
+  // SEARCH
+  const filteredParking = parkingPlaces.filter((place) =>
+    place.name
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
   return {
-    showFilter,
-    setShowFilter,
-
-    selectedCity,
-    setSelectedCity,
-
     search,
     setSearch,
 
-    filteredMall,
+    filteredParking,
   };
 };

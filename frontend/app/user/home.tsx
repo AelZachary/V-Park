@@ -17,16 +17,10 @@ import {
 export default function HomeScreen() {
 
   const {
-    showFilter,
-    setShowFilter,
-
-    selectedCity,
-    setSelectedCity,
-
     search,
     setSearch,
 
-    filteredMall,
+    filteredParking,
   } = useHomeVM();
 
   return (
@@ -38,7 +32,7 @@ export default function HomeScreen() {
           source={require('../../assets/images/V-Park.png')}
           style={styles.logo}
         />
-        <Text style={styles.title}>Mall Location</Text>
+        <Text style={styles.title}>Parking Location</Text>
       </View>
 
       {/* SEARCH + FILTER */}
@@ -53,31 +47,20 @@ export default function HomeScreen() {
             onChangeText={setSearch}
           />
         </View>
-
-        <TouchableOpacity
-          style={styles.filterBtn}
-          onPress={() => setShowFilter(true)}
-        >
-          <Ionicons name="options-outline" size={18} color="#fff" />
-          <Text style={styles.filterText}>{selectedCity}</Text>
-        </TouchableOpacity>
-
       </View>
-
-      {/* SECTION */}
-      <Text style={styles.sectionTitle}>
-        Rekomendasi Terdekat
-      </Text>
 
       {/* LIST */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-        {filteredMall.map((item, index) => (
+        {filteredParking.map((item, index) => (
           <TouchableOpacity
             key={index}
             style={styles.card}
             onPress={() => {
-              if (item.name === 'Trans Studio Mall') {
-                router.push('./detailLocation');
+              if (item.name === 'Ground Floor' || item.name === 'Ground Floor - Area A' || item.name === 'Lantai P1' || item.name === 'Lantai P1 - Area A' || item.name === 'Lantai P2' || item.name === 'Lantai P2 - Area A' || item.name === 'Lantai P3' || item.name === 'Lantai P3 - Area A' || item.name === 'Lantai P4' || item.name === 'Lantai P4 - Area A' || item.name === 'Lantai P5') {
+                router.push({
+                  pathname: '/user/selectParkingSpot',
+                  params: { initialFloor: item.name }
+                });
               }
             }}
           >
@@ -86,45 +69,13 @@ export default function HomeScreen() {
 
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={styles.mallName}>{item.name}</Text>
-              <Text style={styles.address}>{item.address}</Text>
-            </View>
-
-            <View style={styles.rightInfo}>
-              <Text style={styles.rating}>⭐ 4.6</Text>
+              <Text style={styles.address}>{item.description}</Text>
             </View>
 
           </TouchableOpacity>
         ))}
       </ScrollView>
       
-      {/* FILTER DROPDOWN */}
-      {showFilter && (
-        <View style={styles.dropdown}>
-          {['All City', 'Makassar', 'Manado', 'Palu', 'Kendari', 'Gorontalo', 'Palopo'].map(city => (
-            <TouchableOpacity
-              key={city}
-              style={[
-                styles.dropdownItem,
-                selectedCity === city && styles.activeDropdown
-              ]}
-              onPress={() => {
-                setSelectedCity(city);
-                setShowFilter(false);
-              }}
-            >
-              <Text
-                style={[
-                  styles.dropdownText,
-                  selectedCity === city && styles.activeDropdownText
-                ]}
-              >
-                {city}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
       {/* BOTTOM NAV */}
       <BottomNavbar active="home" />
     </View>
@@ -136,6 +87,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
     paddingTop: 50,
+    overflow: 'hidden',
   },
 
   /* HEADER */
@@ -189,65 +141,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
 
-  filterBtn: {
-    flex: 1, 
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.full,
-    height: 45,
-  },
-
-  filterText: {
-    color: COLORS.white,
-    fontWeight: '600',
-  },
-  
-  dropdown: {
-    position: 'absolute',
-    top: 175, 
-    right: 20,
-    backgroundColor: COLORS.white,
-    borderRadius: RADIUS.md,
-    paddingVertical: SPACING.sm,
-    width: 170,
-
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-
-  dropdownItem: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-  },
-
-  dropdownText: {
-    fontSize: FONT_SIZE.sm,
-    color: COLORS.text,
-  },
-
-  activeDropdown: {
-    backgroundColor: COLORS.info,
-  },
-
-  activeDropdownText: {
-    color: COLORS.primary,
-    fontWeight: '700',
-  },
-
-  /* SECTION */
-  sectionTitle: {
-    fontSize: FONT_SIZE.md,
-    marginTop: SPACING.md,
-    marginLeft: SPACING.lg,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-
   /* CARD */
   card: {
     flexDirection: 'row',
@@ -284,41 +177,8 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
 
-  /* RIGHT SIDE */
-  rightInfo: {
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 60,
-  },
-
-  rating: {
-    backgroundColor: COLORS.info,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: RADIUS.sm,
-    fontSize: FONT_SIZE.xs,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-
   distance: {
     fontSize: FONT_SIZE.xs,
     color: COLORS.subtext,
-  },
-
-  /* BOTTOM NAV */
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.info,
-    borderRadius: RADIUS.full,
-    marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.lg,
-    padding: 6,
-    alignItems: 'center',
-
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
   },
 });

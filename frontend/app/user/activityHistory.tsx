@@ -1,14 +1,12 @@
 import ActivityHistoryCard from '@/components/activity/ActivityHistory';
-import ActivityTabs from '@/components/navigation/ActivityTabs';
 import BottomNavbar from '@/components/navigation/BottomNavbar';
 import { useActivityHistoryVM } from '@/viewmodels/useActivityHistoryVM';
 import React from 'react';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 
 export default function ActivityHistoryScreen() {
@@ -17,24 +15,6 @@ export default function ActivityHistoryScreen() {
 
   return (
     <View style={styles.container}>
-
-      {/* HEADER */}
-      <View style={styles.header}>
-
-        <Image
-          source={require('../../assets/images/V-Park.png')}
-          style={styles.logo}
-        />
-
-        <Text style={styles.title}>
-          Activity
-        </Text>
-
-      </View>
-
-      {/* TAB */}
-      <ActivityTabs active="history" />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -78,7 +58,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#EEF4FA',
-    paddingTop: 50,
   },
 
   header: {

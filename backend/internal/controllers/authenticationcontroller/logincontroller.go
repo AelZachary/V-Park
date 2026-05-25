@@ -1,9 +1,14 @@
 package authenticationcontroller
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
+
+	"v-park/internal/loggers"
 	"v-park/internal/models"
 	"v-park/internal/response"
 
@@ -47,14 +52,56 @@ type PetugasUserResponse struct {
 }
 
 type PengunjungEnvelope struct {
-	User PengunjungUserResponse `json:"User"`
+	User  PengunjungUserResponse `json:"User"`
+	Token LoginTokenResponse     `json:"Token"`
 }
 
 type PetugasEnvelope struct {
-	User PetugasUserResponse `json:"User"`
+	User  PetugasUserResponse `json:"User"`
+	Token LoginTokenResponse  `json:"Token"`
+}
+
+type LoginTokenResponse struct {
+	Token string `json:"Token"`
+}
+
+func generateTokenValue(size int) (string, error) {
+	raw := make([]byte, size)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(raw), nil
+}
+
+func issueLoginToken(db *gorm.DB, userID uint) (models.Token, error) {
+	tokenValue, err := generateTokenValue(32)
+	if err != nil {
+		return models.Token{}, err
+	}
+
+	expiredAt := time.Now().Add(24 * time.Hour)
+	token := models.Token{
+		IDUser:    userID,
+		Token:     tokenValue,
+		ExpiredAt: &expiredAt,
+	}
+
+	if err := db.Where("id_user = ?", userID).
+		Assign(models.Token{Token: tokenValue, ExpiredAt: &expiredAt}).
+		FirstOrCreate(&token).Error; err != nil {
+		return models.Token{}, err
+	}
+
+	return token, nil
 }
 
 func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	logger := loggers.AuthenticationControllerLogger
+	if logger != nil {
+		logger.Info("request received", "handler", "LoginHandler", "method", r.Method, "path", r.URL.Path)
+	}
+
 	if r.Method != http.MethodPost {
 		response.JSON(w, http.StatusMethodNotAllowed, response.ControllerResponse{ResponseMessage: "Method not allowed"})
 		return
@@ -78,6 +125,9 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 			response.JSON(w, http.StatusUnauthorized, response.ControllerResponse{ResponseMessage: "Invalid username or password"})
 			return
 		}
+		if logger != nil {
+			logger.Error("failed to query user", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to query user"})
 		return
 	}
@@ -91,12 +141,24 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 		var loadedUser models.User
 		err = call.DB.Preload("Pengunjung").Where("id_user = ?", user.IDUser).First(&loadedUser).Error
 		if err != nil {
+			if logger != nil {
+				logger.Error("failed to load pengunjung data", "error", err)
+			}
 			response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to load pengunjung data"})
 			return
 		}
 
 		if loadedUser.Pengunjung == nil {
 			response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Pengunjung profile not found"})
+			return
+		}
+
+		token, err := issueLoginToken(call.DB, loadedUser.IDUser)
+		if err != nil {
+			if logger != nil {
+				logger.Error("failed to Login", "error", err)
+			}
+			response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to issue login token"})
 			return
 		}
 
@@ -111,6 +173,9 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 					PlatKendaraan:  loadedUser.Pengunjung.PlatKendaraan,
 				},
 			},
+			Token: LoginTokenResponse{
+				Token: token.Token,
+			},
 		}
 
 		response.JSON(w, http.StatusOK, resp)
@@ -120,12 +185,24 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 	var loadedUser models.User
 	err = call.DB.Preload("Petugas").Where("id_user = ?", user.IDUser).First(&loadedUser).Error
 	if err != nil {
+		if logger != nil {
+			logger.Error("failed to load petugas data", "error", err)
+		}
 		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to load petugas data"})
 		return
 	}
 
 	if loadedUser.Petugas == nil {
 		response.JSON(w, http.StatusNotFound, response.ControllerResponse{ResponseMessage: "Petugas profile not found"})
+		return
+	}
+
+	token, err := issueLoginToken(call.DB, loadedUser.IDUser)
+	if err != nil {
+		if logger != nil {
+			logger.Error("failed to issue login token", "error", err)
+		}
+		response.JSON(w, http.StatusInternalServerError, response.ControllerResponse{ResponseMessage: "Failed to issue login token"})
 		return
 	}
 
@@ -139,6 +216,9 @@ func (call *LoginPengunjung) LoginHandler(w http.ResponseWriter, r *http.Request
 				ShiftMulaiBertugas:   loadedUser.Petugas.ShiftMulaiBertugas.Format("2006-01-02T15:04:05Z07:00"),
 				ShiftSelesaiBertugas: loadedUser.Petugas.ShiftSelesaiBertugas.Format("2006-01-02T15:04:05Z07:00"),
 			},
+		},
+		Token: LoginTokenResponse{
+			Token: token.Token,
 		},
 	}
 

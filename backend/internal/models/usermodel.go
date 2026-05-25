@@ -8,4 +8,5 @@ type User struct {
 
 	Pengunjung *Pengunjung `gorm:"foreignKey:IDUser;references:IDUser"`
 	Petugas    *Petugas    `gorm:"foreignKey:IDUser;references:IDUser"`
+	Token      *Token      `gorm:"foreignKey:IDUser;references:IDUser"`
 }

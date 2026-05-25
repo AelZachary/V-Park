@@ -1,17 +1,18 @@
-import BottomNavbar from '@/components/navigation/BottomNavbar';
 import { useProfileVM } from '@/viewmodels/useProfileVM';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function ProfileScreen() {
+  
 
     const {
         showLogout,
@@ -19,7 +20,11 @@ export default function ProfileScreen() {
         profile,
         logout,
     } = useProfileVM();
-        
+    
+    const [showEditVehicle, setShowEditVehicle] = useState(false);
+
+    const [vehicle, setVehicle] = useState(profile.vehicle);
+    const [plate, setPlate] = useState(profile.plate);
 
   return (
     <View style={styles.container}>
@@ -103,15 +108,19 @@ export default function ProfileScreen() {
           style={styles.carImage}
         />
 
-        <View>
+        <View style={styles.vehicleInfo}>
           <Text style={styles.carName}>
-            {profile.vehicle}
+            {vehicle}
           </Text>
 
           <Text style={styles.plate}>
-            {profile.plate}
+            {plate}
           </Text>
         </View>
+
+        <TouchableOpacity style={styles.editButton} onPress={() => setShowEditVehicle(true)}>
+          <Ionicons name="create-outline" size={24} color="#1565C0" />
+        </TouchableOpacity>
 
       </View>
 
@@ -176,8 +185,71 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* BOTTOM NAV */}
-      <BottomNavbar active="profile" />
+      {/* EDIT VEHICLE MODAL */}
+      <Modal
+        visible={showEditVehicle}
+        transparent
+        animationType="fade"
+      >
+
+        <View style={styles.modalOverlay}>
+
+          <View style={styles.editModalBox}>
+
+            <Text style={styles.editTitle}>
+              Edit Kendaraan
+            </Text>
+
+            {/* INPUT VEHICLE */}
+            <View style={styles.inputBox}>
+
+              <Text style={styles.inputLabel}>
+                Nama Kendaraan
+              </Text>
+
+              <TextInput
+                value={vehicle}
+                onChangeText={setVehicle}
+                style={styles.input}
+                placeholder="Masukkan kendaraan"
+              />
+
+            </View>
+
+            {/* INPUT PLATE */}
+            <View style={styles.inputBox}>
+
+              <Text style={styles.inputLabel}>
+                Plat Kendaraan
+              </Text>
+
+              <TextInput
+                value={plate}
+                onChangeText={setPlate}
+                style={styles.input}
+                placeholder="Masukkan plat"
+              />
+
+            </View>
+
+            {/* BUTTON */}
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={() => setShowEditVehicle(false)}
+            >
+
+              <Text style={styles.saveButtonText}>
+                Simpan
+              </Text>
+
+            </TouchableOpacity>
+
+          </View>
+
+        </View>
+
+      </Modal>
+
     </View>
   );
 }
@@ -432,4 +504,60 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  vehicleInfo: {
+    flex: 1,
+  },
+
+  editButton: {
+    padding: 6,
+  },
+
+  editModalBox: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+  },
+
+  editTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1565C0',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+
+  inputBox: {
+    marginBottom: 15,
+  },
+
+  inputLabel: {
+    marginBottom: 8,
+    fontWeight: '600',
+    color: '#1565C0',
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#C5DFFF',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 50,
+    backgroundColor: '#F8FBFF',
+  },
+
+  saveButton: {
+    backgroundColor: '#1565C0',
+    height: 50,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+  },
 });

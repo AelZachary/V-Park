@@ -1,18 +1,21 @@
+import { COLORS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
-  SafeAreaView,
+  Modal, // 🌟 Menggunakan Modal bawaan untuk Pop-up
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  TouchableWithoutFeedback, // Supaya bisa klik di luar untuk menutup pop-up
+  View
 } from 'react-native';
-import ButtonPrimary from '@/components/common/ButtonPrimary';
-import ButtonSecondary from '@/components/common/ButtonSecondary';
 import Svg, { Circle, Path } from 'react-native-svg';
+
+// Impor komponen denah lokasi parkir Ground Floor Area A
+import GroundFloorA from '@/components/booking/floors/GroundFloorA';
 
 const INITIAL_SECONDS = 30 * 60 + 0;
 
@@ -57,38 +60,6 @@ function ClockIcon() {
         stroke="#1565C0"
         strokeWidth={2}
         strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function BuildingIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path
-        d="M10 1.6665H5C2.93167 1.6665 2.5 2.09817 2.5 4.1665V18.3332H12.5V4.1665C12.5 2.09817 12.0683 1.6665 10 1.6665Z"
-        stroke="#141B34"
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M15 6.6665H12.5V18.3332H17.5V9.1665C17.5 7.09817 17.0683 6.6665 15 6.6665Z"
-        stroke="#141B34"
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M6.66675 5L8.33341 5M6.66675 7.5L8.33341 7.5M6.66675 10L8.33341 10"
-        stroke="#141B34"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M9.58341 18.3335V15.0002C9.58341 14.2145 9.58341 13.8217 9.33934 13.5776C9.09526 13.3335 8.70242 13.3335 7.91675 13.3335H7.08341C6.29774 13.3335 5.9049 13.3335 5.66083 13.5776C5.41675 13.8217 5.41675 14.2145 5.41675 15.0002V18.3335"
-        stroke="#141B34"
-        strokeWidth={1.5}
         strokeLinejoin="round"
       />
     </Svg>
@@ -144,7 +115,7 @@ function PlatCarIcon() {
         strokeLinejoin="round"
       />
       <Path
-        d="M3.75 7.5L4.65692 4.77924C5.0236 3.67921 5.20694 3.12919 5.64341 2.8146C6.07989 2.5 6.65966 2.5 7.8192 2.5H12.1808C13.3403 2.5 13.9201 2.5 14.3566 2.8146C14.7931 3.12919 14.9764 3.67921 15.3431 4.77924L16.25 7.5"
+        d="M3.75 7.5H16.25"
         stroke="#141B34"
         strokeWidth={1.15}
         strokeLinejoin="round"
@@ -156,14 +127,7 @@ function PlatCarIcon() {
         strokeLinejoin="round"
       />
       <Path
-        d="M1.66675 14.167V16.5686C1.66675 16.8843 1.86738 17.1728 2.18499 17.314C2.39107 17.4056 2.5879 17.5003 2.82556 17.5003H4.25793C4.49559 17.5003 4.69243 17.4056 4.89851 17.314C5.21612 17.1728 5.41675 16.8843 5.41675 16.5686V15.0003"
-        stroke="#141B34"
-        strokeWidth={1.15}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M14.5833 15.0003V16.5686C14.5833 16.8843 14.7839 17.1728 15.1015 17.314C15.3076 17.4056 15.5044 17.5003 15.7421 17.5003H17.1744C17.4121 17.5003 17.6089 17.4056 17.815 17.314C18.1326 17.1728 18.3333 16.8843 18.3333 16.5686V14.167"
+        d="M1.66675 14.167V16.5686C1.66675 16.8843 1.86738 17.1728 2.18499 17.314C2.39107 17.4056 2.5879 17.5003 2.82556 17.5003H4.25793C4.49559 17.5003 4.69243 17.4056 4.89851 17.314C5.21612 17.1728 5.41675 16.8843 5.41675 16.5686V16.5686M14.5833 15.0003V16.5686C14.5833 16.8843 14.7839 17.1728 15.1015 17.314C15.3076 17.4056 15.5044 17.5003 15.7421 17.5003H17.1744C17.4121 17.5003 17.6089 17.4056 17.815 17.314C18.1326 17.1728 18.3333 16.8843 18.3333 16.5686V14.167"
         stroke="#141B34"
         strokeWidth={1.15}
         strokeLinecap="round"
@@ -175,19 +139,14 @@ function PlatCarIcon() {
 
 const bookingDetails = [
   {
-    icon: <BuildingIcon />,
-    label: 'Lokasi Mall',
-    value: 'Trans Studio Mall Makassar',
-  },
-  {
     icon: <CarIcon />,
     label: 'Area Parkir',
-    value: 'Basement',
+    value: 'Ground Floor - Area A',
   },
   {
     icon: <ParkingAreaIcon />,
     label: 'Slot Parkir',
-    value: 'C4',
+    value: 'L4',
   },
   {
     icon: <CarIcon />,
@@ -206,6 +165,10 @@ export default function KonfirmasiKedatangan() {
   const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // 🌟 STATES KONTROL UNTUK KEDUA POP-UP MODAL DIALOG
+  const [popupVisible, setPopupVisible] = useState(false);       // Pop-up Tiba di Mall
+  const [cancelPopupVisible, setCancelPopupVisible] = useState(false); // Pop-up Batal Booking
+
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
@@ -215,8 +178,24 @@ export default function KonfirmasiKedatangan() {
     };
   }, []);
 
+  const rawSlotValue = bookingDetails[1].value; 
+  const slotNumber = rawSlotValue.replace(/[^0-9]/g, ''); 
+  const targetSlotId = `L${slotNumber}`; 
+
+  // Handler jika klik 'Ya, Saya Tiba' di Pop-up Kedatangan
+  const handleConfirmArrival = () => {
+    setPopupVisible(false);
+    router.push('/user/KonfirmasiSelesaiParkir');
+  };
+
+  // Handler jika klik 'Yes' di Pop-up Pembatalan
+  const handleCancelBooking = () => {
+    setCancelPopupVisible(false);
+    router.push('/user/activityCancelled');
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -232,7 +211,9 @@ export default function KonfirmasiKedatangan() {
         {/* Hero Image */}
         <View style={styles.heroContainer}>
           <Image
-            source={require('../../assets/images/Rectangle-4010.png')}
+            source={{
+              uri: 'https://api.builder.io/api/v1/image/assets/TEMP/98f1b0cad281935f3def159832d8ca1473bb9b9f?width=738',
+            }}
             style={styles.heroImage}
             resizeMode="cover"
           />
@@ -248,8 +229,7 @@ export default function KonfirmasiKedatangan() {
         <View style={styles.greenBanner}>
           <ShieldCheckIcon />
           <Text style={styles.greenBannerText}>
-            Dengan mengonfirmasi kedatangan, sistem akan mencatat waktu masuk
-            kendaraan Anda.
+            With confirming attendance, the system will record the arrival time of your vehicle.
           </Text>
         </View>
 
@@ -269,6 +249,23 @@ export default function KonfirmasiKedatangan() {
                 {formatCountdown(secondsLeft)}
               </Text>
             </View>
+          </View>
+        </View>
+
+        {/* Detail Lokasi Tempat Parkir */}
+        <View style={styles.locationMapCard}>
+          <Text style={styles.locationMapHeading}>Detail Lokasi Tempat Parkir</Text>
+          
+          <View style={styles.miniMapFrame}>
+            <ScrollView 
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={true}
+              contentContainerStyle={styles.miniMapVerticalContent}
+            >
+              <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+                <GroundFloorA selectedSlot={targetSlotId} onSelectSlot={() => {}} />
+              </ScrollView>
+            </ScrollView>
           </View>
         </View>
 
@@ -304,7 +301,12 @@ export default function KonfirmasiKedatangan() {
         </View>
 
         {/* Batalkan Booking */}
-        <TouchableOpacity style={styles.batalkanBtn} activeOpacity={0.8}>
+        {/* 🌟 FIKS: Hubungkan tombol ini ke pemicu pop-up pembatalan */}
+        <TouchableOpacity 
+          style={styles.batalkanBtn} 
+          activeOpacity={0.8}
+          onPress={() => setCancelPopupVisible(true)}
+        >
           <Ionicons name="close-circle-outline" size={23} color="#FF6249" />
           <Text style={styles.batalkanText}>Batalkan Booking</Text>
         </TouchableOpacity>
@@ -315,8 +317,7 @@ export default function KonfirmasiKedatangan() {
         <TouchableOpacity 
           style={styles.confirmButton} 
           activeOpacity={0.85} 
-          onPress={() =>
-                router.push('/user/KonfirmasiSelesaiParkir')}
+          onPress={() => setPopupVisible(true)}
         >
           <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
           <Text style={styles.confirmText}>Ya, Saya sudah Tiba di Mall</Text>
@@ -327,47 +328,130 @@ export default function KonfirmasiKedatangan() {
           activeOpacity={0.85}
           onPress={() => router.push({
             pathname: '/user/activity',
-            params: {
-                arrived:'false',
-            }
-          })
-          }
+            params: { arrived: 'false' }
+          })}
         >
           <Text style={styles.secondaryText}>Belum, Nanti Saja</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+
+      {/* ============================================================== */}
+      {/* 🌟 MODAL 1: POP-UP KONFIRMASI KEDATANGAN TIBA DI MALL          */}
+      {/* ============================================================== */}
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={popupVisible}
+        onRequestClose={() => setPopupVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setPopupVisible(false)}>
+          <View style={styles.popupOverlay} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.popupWrapper}>
+          <View style={styles.popupBox}>
+            <div style={styles.popupIconCircle}>
+              <Ionicons name="location-outline" size={38} color="#1565C0" />
+            </div>
+
+            <Text style={styles.popupTitle}>Konfirmasi Kedatangan?</Text>
+            <Text style={styles.popupDesc}>
+              Apakah Anda yakin sudah berada di lokasi mall? Waktu perhitungan argo parkir Anda untuk slot <Text style={{ fontWeight: '700', color: '#1565C0' }}>{rawSlotValue}</Text> akan langsung berjalan otomatis.
+            </Text>
+
+            <View style={styles.popupActionRow}>
+              <TouchableOpacity style={styles.btnCancel} onPress={() => setPopupVisible(false)}>
+                <Text style={styles.btnCancelText}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.btnConfirm} onPress={handleConfirmArrival}>
+                <Text style={styles.btnConfirmText}>Ya, Saya Tiba</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ============================================================== */}
+      {/* 🌟 MODAL 2: POP-UP KONFIRMASI PEMBATALAN (SESUAI GAMBAR KAMU)   */}
+      {/* ============================================================== */}
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={cancelPopupVisible}
+        onRequestClose={() => setCancelPopupVisible(false)}
+      >
+        {/* Sisi Luar Gelap Semitransparan */}
+        <TouchableWithoutFeedback onPress={() => setCancelPopupVisible(false)}>
+          <View style={styles.popupOverlay} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.popupWrapper}>
+          {/* Kotak Box Putih Bersih */}
+          <View style={[styles.popupBox, { paddingVertical: 28, paddingHorizontal: 16, borderRadius: 24 }]}>
+            
+            {/* Teks Judul Kembar Sesuai Gambar Referensi */}
+            <Text style={styles.cancelBoxTitle}>
+              Are you sure you want to cancel?
+            </Text>
+
+            {/* Tombol Aksi Berdampingan Sesuai Bentuk Gambar */}
+            <View style={styles.cancelActionRow}>
+              {/* Tombol YES (Kiri) -> Pindah ke Halaman ActivityCancelled */}
+              <TouchableOpacity 
+                style={styles.cancelBtnBlue} 
+                onPress={handleCancelBooking}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.cancelBtnText}>Yes</Text>
+              </TouchableOpacity>
+
+              {/* Tombol NO (Kanan) -> Tutup Pop-up saja */}
+              <TouchableOpacity 
+                style={styles.cancelBtnBlue} 
+                onPress={() => setCancelPopupVisible(false)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.cancelBtnText}>No</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </View>
+      </Modal>
+
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: '#F0F7FF',
+    backgroundColor: COLORS.background,
+    paddingTop: 50,
   },
-
   header: {
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
     paddingVertical: 10,
+    position: 'relative',
+    marginBottom: 5,
   },
   backBtn: {
+    position: 'absolute',
+    left: 12,
+    top: 10,
     padding: 4,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#1565C0',
-    marginLeft: 4,
   },
-
   scrollContent: {
     paddingHorizontal: 17,
     paddingBottom: 16,
     gap: 12,
   },
-
   heroContainer: {
     borderRadius: 15,
     overflow: 'hidden',
@@ -378,22 +462,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 164,
   },
-
   pageTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#000',
     textAlign: 'center',
-    marginTop: -4,
+    marginTop: -5,
   },
   pageSubtitle: {
     fontSize: 12,
     fontWeight: '400',
     color: '#1E88E5',
     textAlign: 'center',
-    marginTop: -4,
+    marginTop: -8,
   },
-
   greenBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -404,11 +486,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 2,
-    elevation: 2,
+    marginTop: -4,
   },
   greenBannerText: {
     flex: 1,
@@ -417,7 +495,6 @@ const styles = StyleSheet.create({
     color: '#81C784',
     lineHeight: 18,
   },
-
   timerBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -433,6 +510,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 2,
     elevation: 2,
+    marginTop: -4,
   },
   timerBannerContent: {
     flex: 1,
@@ -470,7 +548,39 @@ const styles = StyleSheet.create({
     color: '#FEAB42',
     lineHeight: 22,
   },
-
+  locationMapCard: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(30,136,229,0.50)',
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 2,
+    elevation: 3,
+    marginTop: -4,
+  },
+  locationMapHeading: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1565C0',
+    marginBottom: 12,
+  },
+  miniMapFrame: {
+    height: 330,
+    backgroundColor: '#54595F', 
+    borderRadius: 16,
+    overflow: 'hidden',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  miniMapVerticalContent: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
   card: {
     backgroundColor: '#fff',
     borderRadius: 15,
@@ -484,6 +594,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 2,
     elevation: 3,
+    marginTop: -4,
   },
   cardHeading: {
     fontSize: 16,
@@ -526,7 +637,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#D9D9D9',
     marginLeft: 38,
   },
-
   perhatianBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -537,11 +647,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 2,
-    elevation: 2,
+    marginTop: -4,
   },
   perhatianContent: {
     flex: 1,
@@ -560,7 +666,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.12,
     lineHeight: 19,
   },
-
   batalkanBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -571,20 +676,19 @@ const styles = StyleSheet.create({
     height: 44,
     gap: 8,
     backgroundColor: '#fff',
+    marginTop: -4,
   },
   batalkanText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#FF6249',
   },
-
   bottomSection: {
     paddingHorizontal: 17,
     paddingBottom: 16,
     paddingTop: 8,
     gap: 10,
   },
-
   confirmButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -594,13 +698,11 @@ const styles = StyleSheet.create({
     height: 48,
     gap: 8,
   },
-
   confirmText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#fff',
   },
-
   secondaryButton: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -609,11 +711,127 @@ const styles = StyleSheet.create({
     borderColor: '#1565C0',
     borderRadius: 20,
     height: 48,
+    marginBottom: 20,
   },
-
   secondaryText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#1565C0',
+  },
+
+  // STYLING SHARED POP-UP LAYOUT
+  popupOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  popupWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 50,
+  },
+  popupBox: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    elevation: 20,
+  },
+  popupIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  popupTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#222',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  popupDesc: {
+    fontSize: 13,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 19,
+    marginBottom: 24,
+    paddingHorizontal: 6,
+  },
+  popupActionRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  btnCancel: {
+    flex: 1,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1.5,
+    borderColor: '#1565C0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+  },
+  btnCancelText: {
+    color: '#1565C0',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  btnConfirm: {
+    flex: 1,
+    height: 46,
+    backgroundColor: '#1565C0',
+    borderRadius: 23,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btnConfirmText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+
+  cancelBoxTitle: {
+    fontFamily: 'System', 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: '#000', 
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 25,
+  },
+  cancelActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    width: '100%',
+    marginBottom: 5,
+  },
+  cancelBtnBlue: {
+    width: 90,
+    height: 48,
+    backgroundColor: '#1565C0', 
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#1565C0',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cancelBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
