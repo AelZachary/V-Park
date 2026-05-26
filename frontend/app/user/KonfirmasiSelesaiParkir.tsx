@@ -1,6 +1,7 @@
 import { COLORS } from '@/constants/theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { savePendingBooking, loadPendingBooking } from '@/fetching/viewmodels/bookingStorage';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ScrollView,
@@ -11,6 +12,7 @@ import {
 } from 'react-native';
 
 const INITIAL_SECONDS = 0 * 3600 + 0 * 60 + 0;
+const PENDING_SECONDS = 30 * 60; // 30 minutes default pending hold
 
 function formatTime(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600);
@@ -26,15 +28,20 @@ function formatTime(totalSeconds: number) {
 export default function KonfirmasiSelesaiParkir() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [elapsed, setElapsed] = useState(INITIAL_SECONDS);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const customerName = String(params.customerName ?? '');
+  const customerPhone = String(params.customerPhone ?? '');
+  const vehicleType = String(params.vehicleType ?? '');
+  const plateNumber = String(params.plateNumber ?? 'DD 1234 TNF');
+  const selectedSlot = String(params.slot ?? 'C4');
+  const selectedFloor = String(params.floor ?? 'Basement');
+  const mallName = String(params.mall ?? 'Mall Ratu Indah');
+  const createdAt = Number(params.createdAt ?? NaN);
+  const expiresAtParam = Number(params.expiresAt ?? NaN);
 
-  const customerName = params.customerName || '';
-  const customerPhone = params.customerPhone || '';
-  const vehicleType = params.vehicleType || '';
-  const plateNumber = params.plateNumber || 'DD 1234 TNF';
-  const selectedSlot = String(params.slot || 'C4');
-  const selectedFloor = String(params.floor || 'Basement');
+  const [elapsed, setElapsed] = useState(() => {
+    return Number.isFinite(createdAt) ? Math.max(0, Math.floor((Date.now() - createdAt) / 1000)) : INITIAL_SECONDS;
+  });
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -88,8 +95,11 @@ export default function KonfirmasiSelesaiParkir() {
               <MaterialCommunityIcons name="parking" size={18} color="#141B34" />
             </View>
             <View style={styles.locationInfo}>
-              <Text style={styles.mallName}>Trans Studio Mall Makassar</Text>
+              <Text style={styles.mallName}>{mallName}</Text>
               <Text style={styles.locationSub}>{selectedFloor}</Text>
+              {Number.isFinite(createdAt) && (
+                <Text style={styles.locationSub}>Mulai: {new Date(createdAt).toLocaleString()}</Text>
+              )}
             </View>
           </View>
           <View style={styles.slotDivider} />
@@ -169,13 +179,30 @@ export default function KonfirmasiSelesaiParkir() {
         <TouchableOpacity
           style={styles.secondaryButton}
           activeOpacity={0.85}
-          onPress={() => router.push({
-            pathname: '/user/activity',
-            params: {
-                arrived:'true',
-            }
-          })
-          }
+          onPress={async () => {
+            // preserve existing createdAt/expiresAt if present (either via params or stored booking)
+            const existing = await loadPendingBooking();
+            const now = Date.now();
+            const createdToSave = Number.isFinite(createdAt) && createdAt > 0 ? createdAt : existing?.createdAt ?? now;
+            const expiresToSave = Number.isFinite(expiresAtParam)
+              ? expiresAtParam
+              : existing?.expiresAt ?? (createdToSave + PENDING_SECONDS * 1000);
+
+            await savePendingBooking({
+              id: existing?.id ?? now,
+              mall: mallName,
+              area: selectedFloor,
+              slot: selectedSlot,
+              customerName,
+              customerPhone,
+              vehicleType,
+              plateNumber,
+              createdAt: createdToSave,
+              expiresAt: expiresToSave,
+            });
+
+            router.replace('/user/activity');
+          }}
         >
           <Text style={styles.secondaryText}>Belum, Nanti Saja</Text>
         </TouchableOpacity>

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { loadPendingBooking, clearPendingBooking, PendingBooking } from '@/fetching/viewmodels/bookingStorage';
 import React, { useEffect, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import {
   ScrollView,
   StyleSheet,
@@ -13,6 +14,7 @@ import {
 export default function ActivityScreen(){
   const [pendingBooking, setPendingBooking] = useState<PendingBooking | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [pendingElapsed, setPendingElapsed] = useState(0);
 
   // STATE KETIKA SUDAH TIBA
   const params = useLocalSearchParams();
@@ -20,6 +22,8 @@ export default function ActivityScreen(){
     params.arrived == 'true'
   )
   const [parkingDuration, setParkingDuration] = useState(0);
+
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     let active = true;
@@ -30,44 +34,32 @@ export default function ActivityScreen(){
 
       if (!booking) {
         setPendingBooking(null);
-        return;
-      }
-
-      const secondsLeft = Math.max(0, Math.round((booking.expiresAt - Date.now()) / 1000));
-      if (secondsLeft <= 0) {
-        await clearPendingBooking();
-        setPendingBooking(null);
+        setPendingElapsed(0);
         return;
       }
 
       setPendingBooking(booking);
+      // start elapsed from createdAt
+      const initial = Math.max(0, Math.floor((Date.now() - booking.createdAt) / 1000));
+      setPendingElapsed(initial);
+      // also set timeLeft for backward compatibility if needed (not used for active)
+      const secondsLeft = Math.max(0, Math.round((booking.expiresAt - Date.now()) / 1000));
       setTimeLeft(secondsLeft);
     }
 
-    loadBooking();
+    if (isFocused) loadBooking();
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [isFocused]);
 
   useEffect(() => {
     if (!pendingBooking) return;
-    if (timeLeft <= 0) {
-      clearPendingBooking();
-      setPendingBooking(null);
-      return;
-    }
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearPendingBooking();
-          setPendingBooking(null);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setPendingElapsed((prev) => prev + 1);
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(timer);
@@ -85,10 +77,31 @@ export default function ActivityScreen(){
   }, [isArrived]);
 
   // FORMAT TIMER COUNTDOWN 
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
+  const formatElapsed = (totalSeconds: number) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
 
-  const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const formattedTime = formatElapsed(pendingElapsed);
+
+  const formatDateTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year} ${hour}:${minute}`;
+  };
+
+  const formatTimeOnly = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    return `${hour}:${minute}`;
+  };
 
   // FORMAT TIMER PARKIR BERJALAN
   const parkingHours = Math.floor(parkingDuration / 3600);
@@ -116,9 +129,9 @@ export default function ActivityScreen(){
               <>
                 {/* STATUS */}
                 <View style={styles.statusRow}>
-                  <View style={styles.yellowDot}/>
-                  <Text style={styles.statusText}>
-                    Menunggu Kedatangan Anda di Mall
+                  <View style={styles.greenDot}/>
+                  <Text style={styles.greenText}>
+                    Parkir sedang berlangsung
                   </Text>
                 </View>
 
@@ -126,7 +139,7 @@ export default function ActivityScreen(){
                   style={styles.card}
                   activeOpacity={0.85}
                   onPress={() => router.push({
-                    pathname: '/user/konfirmasiKedatangan',
+                    pathname: '/user/KonfirmasiSelesaiParkir',
                     params: {
                       customerName: pendingBooking.customerName,
                       customerPhone: pendingBooking.customerPhone,
@@ -134,7 +147,9 @@ export default function ActivityScreen(){
                       plateNumber: pendingBooking.plateNumber,
                       slot: pendingBooking.slot,
                       floor: pendingBooking.area,
-                      remainingSeconds: String(timeLeft),
+                      mall: pendingBooking.mall,
+                      createdAt: String(pendingBooking.createdAt),
+                      expiresAt: String(pendingBooking.expiresAt),
                     },
                   })}
                 >
@@ -183,13 +198,13 @@ export default function ActivityScreen(){
                     
                     <View style={styles.detailItem}>
                       <Text style={styles.detailTitle}>
-                        Dipesan
+                        Parkir Berjalan
                       </Text>
                       <Text style={styles.timeText}>
-                        ⏰ {formattedTime} tersisa
+                        ⏱ {formattedTime}
                       </Text>
                       <Text style={styles.smallText}>
-                        {pendingBooking.area}
+                        {formatTimeOnly(pendingBooking.createdAt)}
                       </Text>
                     </View>
 
@@ -205,23 +220,17 @@ export default function ActivityScreen(){
                     </View>
                   </View>
 
-                  <View style={styles.warningBox}>
-                    <View style={{ flex: 1}}>
-                      <Text style={styles.warningTitle}>
-                        Slot Anda sedang ditahan
-                      </Text>
-                      <Text style={styles.warningDesc}>
-                        Silahkan tiba di Mall sebelum waktu habis
-                      </Text>
+                  <View style={styles.activeBanner}>
+                    <View style={styles.activeBannerLeft}>
+                      <Text style={styles.activeBannerTitle}>Parkir sedang berlangsung</Text>
+                      <Text style={styles.activeBannerDesc}>Parkir aktif di slot Anda.</Text>
                     </View>
 
-                    <View style={styles.timerBox}>
-                      <Text style={styles.timerLabel}>
-                        Sisa Waktu
-                      </Text>
-                      <Text style={styles.timer}>
-                        {formattedTime}
-                      </Text>
+                    <View style={styles.activeBannerRight}>
+                      <View style={styles.activeDurationBox}>
+                        <Text style={styles.activeDurationLabel}>Durasi</Text>
+                        <Text style={styles.activeDurationText}>{formattedTime}</Text>
+                      </View>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -494,5 +503,48 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#111',
     fontSize: 15,
+  },
+  activeBanner: {
+    marginTop: 15,
+    backgroundColor: '#E8F6EE',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(76,175,80,0.12)',
+  },
+  activeBannerLeft: {
+    flex: 1,
+  },
+  activeBannerTitle: {
+    fontWeight: '700',
+    color: '#2E7D32',
+    marginBottom: 4,
+    fontSize: 14,
+  },
+  activeBannerDesc: {
+    color: '#2E7D32',
+    opacity: 0.9,
+    fontSize: 12,
+  },
+  activeBannerRight: {
+    marginLeft: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeDurationBox: {
+  },
+  activeDurationLabel: {
+    color: '#2E7D32',
+    fontSize: 11,
+    marginBottom: 4,
+    opacity: 0.9,
+  },
+  activeDurationText: {
+    color: '#2E7D32',
+    fontWeight: '800',
+    fontSize: 16,
   },
 });
