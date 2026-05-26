@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { ParkingHistory } from '@/models/ParkingHistory';
+import { loadBookingHistory } from '@/fetching/viewmodels/bookingStorage';
 
-const historyData: ParkingHistory[] = [
+const defaultHistoryData: ParkingHistory[] = [
   {
     id: 1,
     date: '10 Mei 2024',
@@ -48,6 +50,19 @@ const historyData: ParkingHistory[] = [
 ];
 
 export function useActivityHistoryVM() {
+  const [historyData, setHistoryData] = useState<ParkingHistory[]>(defaultHistoryData);
+
+  useEffect(() => {
+    async function loadHistory() {
+      const storedHistory = await loadBookingHistory();
+      if (storedHistory.length > 0) {
+        setHistoryData([...storedHistory, ...defaultHistoryData]);
+      }
+    }
+
+    loadHistory();
+  }, []);
+
   return {
     historyData,
   };

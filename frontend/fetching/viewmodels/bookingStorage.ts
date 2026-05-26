@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ParkingHistory } from '@/models/ParkingHistory';
 
 export const PENDING_BOOKING_KEY = '@pending_parking_booking';
+export const HISTORY_BOOKING_KEY = '@parking_booking_history';
 
 export type PendingBooking = {
   id: number;
@@ -11,6 +13,8 @@ export type PendingBooking = {
   customerPhone: string;
   vehicleType: string;
   plateNumber: string;
+  status: 'pending' | 'active';
+  startAt?: number;
   createdAt: number;
   expiresAt: number;
 };
@@ -39,5 +43,28 @@ export async function clearPendingBooking() {
     await AsyncStorage.removeItem(PENDING_BOOKING_KEY);
   } catch (error) {
     console.warn('Failed to clear pending booking', error);
+  }
+}
+
+export async function loadBookingHistory(): Promise<ParkingHistory[]> {
+  try {
+    const raw = await AsyncStorage.getItem(HISTORY_BOOKING_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as ParkingHistory[];
+  } catch (error) {
+    console.warn('Failed to load booking history', error);
+    return [];
+  }
+}
+
+export async function appendBookingHistory(historyItem: ParkingHistory) {
+  try {
+    const existing = await loadBookingHistory();
+    await AsyncStorage.setItem(
+      HISTORY_BOOKING_KEY,
+      JSON.stringify([historyItem, ...existing]),
+    );
+  } catch (error) {
+    console.warn('Failed to append booking history', error);
   }
 }

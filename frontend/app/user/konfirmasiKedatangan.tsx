@@ -160,10 +160,18 @@ export default function KonfirmasiKedatangan() {
   );
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const customerName = params.customerName || 'Guest';
-  const customerPhone = params.customerPhone || '-';
-  const vehicleType = params.vehicleType || 'Mobil Creta';
-  const plateNumber = params.plateNumber || 'DD 1234 TNF';
+  const customerName = Array.isArray(params.customerName)
+    ? params.customerName.join(' ')
+    : params.customerName ?? 'Guest';
+  const customerPhone = Array.isArray(params.customerPhone)
+    ? params.customerPhone.join(' ')
+    : params.customerPhone ?? '-';
+  const vehicleType = Array.isArray(params.vehicleType)
+    ? params.vehicleType.join(' ')
+    : params.vehicleType ?? 'Mobil Creta';
+  const plateNumber = Array.isArray(params.plateNumber)
+    ? params.plateNumber.join(' ')
+    : params.plateNumber ?? 'DD 1234 TNF';
   const targetSlotId = String(params.slot || 'L4');
   const selectedFloor = String(params.floor || 'Ground Floor');
   const selectedSlotStatuses = { [targetSlotId]: 'selected' as const };
@@ -315,6 +323,22 @@ export default function KonfirmasiKedatangan() {
   // Handler jika klik 'Ya, Saya Tiba' di Pop-up Kedatangan
   const handleConfirmArrival = () => {
     setPopupVisible(false);
+    const now = Date.now();
+    savePendingBooking({
+      id: now,
+      mall: 'Mall Ratu Indah',
+      area: selectedFloor,
+      slot: targetSlotId,
+      customerName,
+      customerPhone,
+      vehicleType,
+      plateNumber,
+      status: 'active',
+      startAt: now,
+      createdAt: now,
+      expiresAt: now + INITIAL_SECONDS * 1000,
+    });
+
     router.push({
       pathname: '/user/KonfirmasiSelesaiParkir',
       params: {
@@ -324,6 +348,7 @@ export default function KonfirmasiKedatangan() {
         plateNumber,
         slot: targetSlotId,
         floor: selectedFloor,
+        startAt: String(now),
       },
     });
   };
@@ -477,6 +502,7 @@ export default function KonfirmasiKedatangan() {
               customerPhone,
               vehicleType,
               plateNumber,
+              status: 'pending',
               createdAt: now,
               expiresAt: now + INITIAL_SECONDS * 1000,
             });

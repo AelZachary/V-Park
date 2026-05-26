@@ -1,6 +1,7 @@
 import { COLORS } from '@/constants/theme';
+import { appendBookingHistory, clearPendingBooking, loadPendingBooking } from '@/fetching/viewmodels/bookingStorage';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -20,7 +21,7 @@ import Svg, {
   Path,
 } from 'react-native-svg';
 
-const TRANSACTION = {
+const DEFAULT_TRANSACTION = {
   noOrder: '1876543234567876',
   lokasi: 'Mall Ratu Indah',
   area: 'Lantai P1 - Area A',
@@ -33,17 +34,31 @@ const TRANSACTION = {
   totalPembayaran: 'Rp20.000',
 };
 
-const DETAIL_ROWS = [
-  { label: 'No. Order', value: TRANSACTION.noOrder },
-  { label: 'Lokasi', value: TRANSACTION.lokasi },
-  { label: 'Area', value: TRANSACTION.area },
-  { label: 'Slot', value: TRANSACTION.slot },
-  { label: 'Plat Kendaraan', value: TRANSACTION.platKendaraan },
-  { label: 'Waktu Tiba', value: TRANSACTION.waktuTiba },
-  { label: 'Durasi', value: TRANSACTION.durasi },
-  { label: 'Total Biaya', value: TRANSACTION.totalBiaya },
-  { label: 'Waktu Transaksi', value: TRANSACTION.waktuTransaksi },
-];
+function formatDateTime(timestamp: number) {
+  const date = new Date(timestamp);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = date.toLocaleString('id-ID', { month: 'short' });
+  const year = date.getFullYear();
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  return `${day} ${month} ${year}, ${hour}:${minute}`;
+}
+
+function formatTimeOnly(timestamp: number) {
+  const date = new Date(timestamp);
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  return `${hour}:${minute}`;
+}
+
+function formatDuration(seconds: number) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours} Jam ${minutes} Menit`;
+  }
+  return `${minutes} Menit`;
+}
 
 function SuccessIcon() {
   return (
@@ -108,6 +123,63 @@ function HomeIcon() {
 }
 
 export default function PaymentSuccessful() {
+  const [transactionData, setTransactionData] = useState({
+    ...DEFAULT_TRANSACTION,
+    totalPembayaran: DEFAULT_TRANSACTION.totalPembayaran,
+  });
+
+  useEffect(() => {
+    async function finalizeBooking() {
+      const pendingBooking = await loadPendingBooking();
+      if (!pendingBooking) return;
+
+      const now = Date.now();
+      const durationSeconds = Math.max(0, Math.floor((now - pendingBooking.createdAt) / 1000));
+      const formattedDuration = formatDuration(durationSeconds);
+      const formattedCheckIn = formatTimeOnly(pendingBooking.createdAt);
+      const formattedCheckOut = formatTimeOnly(now);
+      const formattedWaktuTiba = formatDateTime(pendingBooking.createdAt);
+      const formattedWaktuTransaksi = formatDateTime(now);
+      const totalBiaya = 'Rp 20.000';
+      const totalPembayaran = 'Rp 20.000';
+      const noOrder = `VPK-${now}`;
+
+      setTransactionData({
+        noOrder,
+        lokasi: pendingBooking.mall,
+        area: pendingBooking.area,
+        slot: pendingBooking.slot,
+        platKendaraan: pendingBooking.plateNumber,
+        waktuTiba: formattedWaktuTiba,
+        durasi: formattedDuration,
+        totalBiaya,
+        waktuTransaksi: formattedWaktuTransaksi,
+        totalPembayaran,
+      });
+
+      await appendBookingHistory({
+        id: now,
+        date: new Intl.DateTimeFormat('id-ID', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        }).format(pendingBooking.createdAt),
+        mall: pendingBooking.mall,
+        area: pendingBooking.area,
+        checkIn: formattedCheckIn,
+        checkOut: formattedCheckOut,
+        duration: formattedDuration,
+        total: totalPembayaran,
+        plate: pendingBooking.plateNumber,
+        status: 'completed',
+      });
+
+      await clearPendingBooking();
+    }
+
+    finalizeBooking();
+  }, []);
+
   const handleDownloadReceipt = () => {
     // Download receipt logic
   };
@@ -115,6 +187,18 @@ export default function PaymentSuccessful() {
   const handleBackToHome = () => {
     router.replace('/user/home');
   };
+
+  const DETAIL_ROWS = [
+    { label: 'No. Order', value: transactionData.noOrder },
+    { label: 'Lokasi', value: transactionData.lokasi },
+    { label: 'Area', value: transactionData.area },
+    { label: 'Slot', value: transactionData.slot },
+    { label: 'Plat Kendaraan', value: transactionData.platKendaraan },
+    { label: 'Waktu Tiba', value: transactionData.waktuTiba },
+    { label: 'Durasi', value: transactionData.durasi },
+    { label: 'Total Biaya', value: transactionData.totalBiaya },
+    { label: 'Waktu Transaksi', value: transactionData.waktuTransaksi },
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -151,7 +235,7 @@ export default function PaymentSuccessful() {
           <View style={styles.totalDivider} />
 
           <Text style={styles.totalPaymentLabel}>Total Pembayaran</Text>
-          <Text style={styles.totalPaymentAmount}>{TRANSACTION.totalPembayaran}</Text>
+          <Text style={styles.totalPaymentAmount}>{transactionData.totalPembayaran}</Text>
           <Text style={styles.taxNote}>(Termasuk pajak &amp; biaya layanan)</Text>
         </View>
 

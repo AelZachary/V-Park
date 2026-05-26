@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { loadPendingBooking, clearPendingBooking, PendingBooking } from '@/fetching/viewmodels/bookingStorage';
 import React, { useEffect, useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
@@ -14,14 +14,7 @@ import {
 export default function ActivityScreen(){
   const [pendingBooking, setPendingBooking] = useState<PendingBooking | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [pendingElapsed, setPendingElapsed] = useState(0);
-
-  // STATE KETIKA SUDAH TIBA
-  const params = useLocalSearchParams();
-  const [isArrived, setIsArrived] = useState(
-    params.arrived == 'true'
-  )
-  const [parkingDuration, setParkingDuration] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
 
   const isFocused = useIsFocused();
 
@@ -34,20 +27,36 @@ export default function ActivityScreen(){
 
       if (!booking) {
         setPendingBooking(null);
-        setPendingElapsed(0);
+        setTimeLeft(0);
+        setElapsed(0);
         return;
       }
 
-      setPendingBooking(booking);
-      // start elapsed from createdAt
-      const initial = Math.max(0, Math.floor((Date.now() - booking.createdAt) / 1000));
-      setPendingElapsed(initial);
-      // also set timeLeft for backward compatibility if needed (not used for active)
-      const secondsLeft = Math.max(0, Math.round((booking.expiresAt - Date.now()) / 1000));
-      setTimeLeft(secondsLeft);
+      if (booking.status === 'pending') {
+        const secondsLeft = Math.max(0, Math.round((booking.expiresAt - Date.now()) / 1000));
+        if (secondsLeft <= 0) {
+          await clearPendingBooking();
+          if (!active) return;
+          setPendingBooking(null);
+          setTimeLeft(0);
+          setElapsed(0);
+          return;
+        }
+        setPendingBooking(booking);
+        setTimeLeft(secondsLeft);
+        setElapsed(0);
+      } else {
+        const startAt = booking.startAt ?? booking.createdAt;
+        const initial = Math.max(0, Math.floor((Date.now() - startAt) / 1000));
+        setPendingBooking(booking);
+        setElapsed(initial);
+        setTimeLeft(0);
+      }
     }
 
-    if (isFocused) loadBooking();
+    if (isFocused) {
+      loadBooking();
+    }
 
     return () => {
       active = false;
@@ -57,26 +66,29 @@ export default function ActivityScreen(){
   useEffect(() => {
     if (!pendingBooking) return;
 
+    if (pendingBooking.status === 'pending') {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            void clearPendingBooking();
+            setPendingBooking(null);
+            setElapsed(0);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+
     const timer = setInterval(() => {
-      setPendingElapsed((prev) => prev + 1);
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setElapsed((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [pendingBooking, timeLeft]);
+  }, [pendingBooking]);
 
-  // TIMER PARKIR BERJALAN 
-  useEffect(() => {
-    if (!isArrived) return;
-
-    const parkingTimer = setInterval(() => {
-      setParkingDuration(prev => prev + 1);
-    }, 1000);
-
-    return () => clearInterval(parkingTimer);
-  }, [isArrived]);
-
-  // FORMAT TIMER COUNTDOWN 
   const formatElapsed = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
@@ -84,16 +96,10 @@ export default function ActivityScreen(){
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  const formattedTime = formatElapsed(pendingElapsed);
-
-  const formatDateTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const hour = String(date.getHours()).padStart(2, '0');
-    const minute = String(date.getMinutes()).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year} ${hour}:${minute}`;
+  const formatCountdown = (totalSeconds: number) => {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
   const formatTimeOnly = (timestamp: number) => {
@@ -103,243 +109,132 @@ export default function ActivityScreen(){
     return `${hour}:${minute}`;
   };
 
-  // FORMAT TIMER PARKIR BERJALAN
-  const parkingHours = Math.floor(parkingDuration / 3600);
-  const parkingMinutes = Math.floor((parkingDuration % 3600) / 60);
-  const parkingSeconds = parkingDuration % 60;
-  const runningParkingTime =
-    `${String(parkingHours).padStart(2, '0')}:` +
-    `${String(parkingMinutes).padStart(2, '0')}:` +
-    `${String(parkingSeconds).padStart(2, '0')}`;
-  
+  const isPending = pendingBooking?.status === 'pending';
+  const displayTimer = isPending ? formatCountdown(timeLeft) : formatElapsed(elapsed);
+  const statusLabel = isPending ? 'Menunggu konfirmasi kedatangan' : 'Parkir sedang berlangsung';
+  const description = isPending
+    ? 'Konfirmasi kedatangan sebelum waktu habis.'
+    : 'Parkir aktif di slot Anda.';
+  const statusDotStyle = isPending ? styles.yellowDot : styles.greenDot;
+  const statusTextStyle = isPending ? styles.statusText : styles.greenText;
+  const timerLabel = isPending ? 'Sisa Waktu' : 'Durasi';
+
+  const handleCardPress = () => {
+    if (!pendingBooking) return;
+
+    if (isPending) {
+      router.push({
+        pathname: '/user/konfirmasiKedatangan',
+        params: {
+          customerName: pendingBooking.customerName,
+          customerPhone: pendingBooking.customerPhone,
+          vehicleType: pendingBooking.vehicleType,
+          plateNumber: pendingBooking.plateNumber,
+          slot: pendingBooking.slot,
+          floor: pendingBooking.area,
+          mall: pendingBooking.mall,
+          createdAt: String(pendingBooking.createdAt),
+          expiresAt: String(pendingBooking.expiresAt),
+          remainingSeconds: String(timeLeft),
+        },
+      });
+      return;
+    }
+
+    router.push({
+      pathname: '/user/KonfirmasiSelesaiParkir',
+      params: {
+        customerName: pendingBooking.customerName,
+        customerPhone: pendingBooking.customerPhone,
+        vehicleType: pendingBooking.vehicleType,
+        plateNumber: pendingBooking.plateNumber,
+        slot: pendingBooking.slot,
+        floor: pendingBooking.area,
+        mall: pendingBooking.mall,
+        startAt: String(pendingBooking.startAt ?? pendingBooking.createdAt),
+        createdAt: String(pendingBooking.createdAt),
+        expiresAt: String(pendingBooking.expiresAt),
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{paddingBottom: 120}}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* SEBELUM TIBA DI MALL */}
-        {!isArrived ? (
-          <>
-            <Text style={styles.sectionTitle}>
-              Booking Aktif
-            </Text>
+        <Text style={styles.sectionTitle}>Booking Aktif</Text>
 
-            {pendingBooking ? (
-              <>
-                {/* STATUS */}
-                <View style={styles.statusRow}>
-                  <View style={styles.greenDot}/>
-                  <Text style={styles.greenText}>
-                    Parkir sedang berlangsung
-                  </Text>
-                </View>
-
-                <TouchableOpacity 
-                  style={styles.card}
-                  activeOpacity={0.85}
-                  onPress={() => router.push({
-                    pathname: '/user/KonfirmasiSelesaiParkir',
-                    params: {
-                      customerName: pendingBooking.customerName,
-                      customerPhone: pendingBooking.customerPhone,
-                      vehicleType: pendingBooking.vehicleType,
-                      plateNumber: pendingBooking.plateNumber,
-                      slot: pendingBooking.slot,
-                      floor: pendingBooking.area,
-                      mall: pendingBooking.mall,
-                      createdAt: String(pendingBooking.createdAt),
-                      expiresAt: String(pendingBooking.expiresAt),
-                    },
-                  })}
-                >
-                  <View style={styles.mallRow}>
-                    <View style={styles.mallInfo}>
-                      <View style={styles.parkingIcon}>
-                        <Ionicons
-                          name="car-outline"
-                          size={26}
-                          color="#111"
-                        />
-                      </View>
-                      <View>
-                        <Text style={styles.mallName}>
-                          {pendingBooking.mall}
-                        </Text>
-                        <Text style={styles.location}>
-                          {pendingBooking.area}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.arrowButton}>
-                      <Ionicons
-                        name='chevron-forward-outline'
-                        size={24}
-                        color="#1565C0"
-                      />
-                    </View>
-                  </View>
-
-                  <View style={styles.detailRow}>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailTitle}>
-                        Slot Parkir
-                      </Text>
-                      <Text style={styles.bigText}>
-                        {pendingBooking.slot ?? '-'}
-                      </Text>
-                      <Text style={styles.smallText}>
-                        {pendingBooking.area}
-                      </Text>
-                    </View>
-
-                    <View style={styles.verticalLine}/>
-                    
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailTitle}>
-                        Parkir Berjalan
-                      </Text>
-                      <Text style={styles.timeText}>
-                        ⏱ {formattedTime}
-                      </Text>
-                      <Text style={styles.smallText}>
-                        {formatTimeOnly(pendingBooking.createdAt)}
-                      </Text>
-                    </View>
-
-                    <View style={styles.verticalLine}/>
-                    
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailTitle}>
-                        Plat Kendaraan                  
-                      </Text>
-                      <Text style={styles.plate}>
-                        {pendingBooking.plateNumber ?? '—'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.activeBanner}>
-                    <View style={styles.activeBannerLeft}>
-                      <Text style={styles.activeBannerTitle}>Parkir sedang berlangsung</Text>
-                      <Text style={styles.activeBannerDesc}>Parkir aktif di slot Anda.</Text>
-                    </View>
-
-                    <View style={styles.activeBannerRight}>
-                      <View style={styles.activeDurationBox}>
-                        <Text style={styles.activeDurationLabel}>Durasi</Text>
-                        <Text style={styles.activeDurationText}>{formattedTime}</Text>
-                      </View>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <Text style={styles.emptyText}>
-                Tidak ada booking aktif saat ini.
-              </Text>
-            )}
-          </>
-        ):(
-
-          // SUDAH TIBA DI MALL
-          <>
-            <Text style={styles.sectionTitle}>
-              Parkir Aktif
-            </Text>
-
-            {/* STATUS */}
+        {pendingBooking ? (
+          <TouchableOpacity
+            style={styles.card}
+            activeOpacity={0.85}
+            onPress={handleCardPress}
+          >
             <View style={styles.statusRow}>
-              <View style={styles.greenDot}/>
-              <Text style={styles.greenText}>
-                Parkir sedang berlangsung
-              </Text>
+              <View style={statusDotStyle} />
+              <Text style={statusTextStyle}>{statusLabel}</Text>
             </View>
 
-            {/* 👇 PERBAIKAN 2: Mengubah kartu Parkir Aktif agar bisa diklik seutuhnya */}
-            <TouchableOpacity 
-              style={styles.card}
-              activeOpacity={0.85}
-              onPress={() => router.push('/user/KonfirmasiSelesaiParkir')}
-            >
-              <View style={styles.mallRow}>
-                <View style={styles.mallInfo}>
-                  <View style={styles.parkingIcon}>
-                    <Ionicons
-                      name="car-outline"
-                      size={26}
-                      color="#111"
-                    />
-                  </View>
-                  <View>
-                    <Text style={styles.mallName}>
-                      Mall Ratu Indah
-                    </Text>
-                    <Text style={styles.location}>
-                      Ground Floor - Area A
-                    </Text>
-                  </View>
+            <View style={styles.mallRow}>
+              <View style={styles.mallInfo}>
+                <View style={styles.parkingIcon}>
+                  <Ionicons name="car-outline" size={26} color="#111" />
                 </View>
-
-                {/* Indikator Panah */}
                 <View>
-                  <Ionicons
-                    name='chevron-forward-outline'
-                    size={24}
-                    color="#1565C0"
-                  />
+                  <Text style={styles.mallName}>{pendingBooking.mall}</Text>
+                  <Text style={styles.location}>{pendingBooking.area}</Text>
                 </View>
               </View>
 
-              {/* DETAIL */}
-              <View style={styles.detailRow}>
-                {/* SLOT */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Slot Parkir
-                  </Text>
-                  <Text style={styles.bigText}>
-                    C4
-                  </Text>
-                  <Text style={styles.smallText}>
-                    Ground Floor - Area A
-                  </Text>
-                </View>
+              <View style={styles.arrowButton}>
+                <Ionicons name="chevron-forward-outline" size={24} color="#1565C0" />
+              </View>
+            </View>
 
-                <View style={styles.verticalLine} />
-                
-                {/* PARKING */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Parkir Berjalan
-                  </Text>
-                  <Text style={styles.runningText}>
-                    🟢 {runningParkingTime}
-                  </Text>
-                  <Text style={styles.smallText}>
-                    Sejak 10 Mei 2024, 12:15
-                  </Text>
-                </View>
+            <View style={styles.detailRow}>
+              <View style={styles.detailItem}>
+                <Text style={styles.detailTitle}>Slot Parkir</Text>
+                <Text style={styles.bigText}>{pendingBooking.slot ?? '-'}</Text>
+                <Text style={styles.smallText}>{pendingBooking.area}</Text>
+              </View>
 
-                <View style={styles.verticalLine} />
-                
-                {/* PLATE */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Plat Kendaraan 
-                  </Text>
-                  <Text style={styles.plate}>
-                    DD 1234 TNF
-                  </Text>
+              <View style={styles.verticalLine} />
+
+              <View style={styles.detailItem}>
+                <Text style={styles.detailTitle}>{timerLabel}</Text>
+                <Text style={styles.timeText}>{displayTimer}</Text>
+                <Text style={styles.smallText}>{formatTimeOnly(pendingBooking.createdAt)}</Text>
+              </View>
+
+              <View style={styles.verticalLine} />
+
+              <View style={styles.detailItem}>
+                <Text style={styles.detailTitle}>Plat Kendaraan</Text>
+                <Text style={styles.plate}>{pendingBooking.plateNumber ?? '—'}</Text>
+              </View>
+            </View>
+
+            <View style={styles.activeBanner}>
+              <View style={styles.activeBannerLeft}>
+                <Text style={styles.activeBannerTitle}>{statusLabel}</Text>
+                <Text style={styles.activeBannerDesc}>{description}</Text>
+              </View>
+              <View style={styles.activeBannerRight}>
+                <View style={styles.activeDurationBox}>
+                  <Text style={styles.activeDurationLabel}>{timerLabel}</Text>
+                  <Text style={styles.activeDurationText}>{displayTimer}</Text>
                 </View>
               </View>
-            </TouchableOpacity>
-          </>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.emptyText}>Tidak ada booking aktif saat ini.</Text>
         )}
       </ScrollView>
     </View>
-  )
+  );
 }
 
 // Style bawaan kamu tetap aman di bawah ini tanpa ada yang berubah
@@ -507,13 +402,13 @@ const styles = StyleSheet.create({
   activeBanner: {
     marginTop: 15,
     backgroundColor: '#E8F6EE',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    borderRadius: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(76,175,80,0.12)',
+    borderColor: '#C6E6C8',
   },
   activeBannerLeft: {
     flex: 1,
@@ -522,29 +417,35 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#2E7D32',
     marginBottom: 4,
-    fontSize: 14,
+    fontSize: 15,
   },
   activeBannerDesc: {
     color: '#2E7D32',
-    opacity: 0.9,
-    fontSize: 12,
+    opacity: 0.92,
+    fontSize: 13,
   },
   activeBannerRight: {
-    marginLeft: 12,
+    marginLeft: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   activeDurationBox: {
+    backgroundColor: '#DFF3DE',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    minWidth: 96,
+    alignItems: 'center',
   },
   activeDurationLabel: {
     color: '#2E7D32',
     fontSize: 11,
-    marginBottom: 4,
-    opacity: 0.9,
+    marginBottom: 6,
+    opacity: 0.95,
   },
   activeDurationText: {
     color: '#2E7D32',
     fontWeight: '800',
-    fontSize: 16,
+    fontSize: 18,
   },
 });

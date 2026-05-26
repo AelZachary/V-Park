@@ -8,16 +8,17 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 
-const INITIAL_SECONDS = 0 * 3600 + 0 * 60 + 0;
-const PENDING_SECONDS = 30 * 60; // 30 minutes default pending hold
+const INITIAL_SECONDS = 0;
+const PENDING_SECONDS = 30 * 60;
 
 function formatTime(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
+
   return {
     hours: String(h).padStart(2, '0'),
     minutes: String(m).padStart(2, '0'),
@@ -31,7 +32,7 @@ export default function KonfirmasiSelesaiParkir() {
   const customerName = String(params.customerName ?? '');
   const customerPhone = String(params.customerPhone ?? '');
   const vehicleType = String(params.vehicleType ?? '');
-  const plateNumber = String(params.plateNumber ?? 'DD 1234 TNF');
+  const plateNumber = String(params.plateNumber ?? '');
   const selectedSlot = String(params.slot ?? 'C4');
   const selectedFloor = String(params.floor ?? 'Basement');
   const mallName = String(params.mall ?? 'Mall Ratu Indah');
@@ -197,6 +198,7 @@ export default function KonfirmasiSelesaiParkir() {
               customerPhone,
               vehicleType,
               plateNumber,
+              status: existing?.status ?? 'pending',
               createdAt: createdToSave,
               expiresAt: expiresToSave,
             });
