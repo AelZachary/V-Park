@@ -15,12 +15,17 @@ type PetugasLoginResponse = {
   ShiftSelesaiBertugas: string;
 };
 
+type LoginTokenResponse = {
+  Token: string;
+};
+
 export type PengunjungLoginResult = {
   User: {
     IDUser: number;
     Username: string;
     Pengunjung: PengunjungLoginResponse;
   };
+  Token: LoginTokenResponse;
 };
 
 export type PetugasLoginResult = {
@@ -29,6 +34,7 @@ export type PetugasLoginResult = {
     Username: string;
     Petugas: PetugasLoginResponse;
   };
+  Token: LoginTokenResponse;
 };
 
 export type LoginResult =

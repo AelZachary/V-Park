@@ -10,6 +10,9 @@ type Props = {
   checkOut: string;
   duration: string;
   total: string;
+  slot?: string;
+  plate?: string;
+  status?: 'pending' | 'completed' | 'expired';
 };
 
 export default function ActivityHistoryCard({
@@ -20,7 +23,13 @@ export default function ActivityHistoryCard({
   checkOut,
   duration,
   total,
+  slot,
+  plate,
+  status = 'completed',
 }: Props) {
+  const isPending = status === 'pending';
+  const badgeText = isPending ? 'Menunggu' : status === 'expired' ? 'Kedaluwarsa' : 'Selesai';
+
   return (
     <View style={styles.card}>
 
@@ -42,8 +51,14 @@ export default function ActivityHistoryCard({
           </View>
         </View>
 
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>Selesai</Text>
+        <View style={[
+          styles.statusBadge,
+          isPending ? styles.pendingBadge : status === 'expired' ? styles.expiredBadge : styles.completedBadge,
+        ]}>
+          <Text style={[
+            styles.statusText,
+            isPending ? styles.pendingText : status === 'expired' ? styles.expiredText : styles.completedText,
+          ]}>{badgeText}</Text>
         </View>
 
       </View>
@@ -51,7 +66,7 @@ export default function ActivityHistoryCard({
       {/* DETAIL */}
       <View style={styles.detailRow}>
 
-        {/* MASUK */}
+        {/* MASUK / MULAI */}
         <View style={styles.detailItem}>
           <View style={styles.detailTitleRow}>
             <Ionicons
@@ -59,7 +74,7 @@ export default function ActivityHistoryCard({
               size={20}
               color="#1565C0"
             />
-            <Text style={styles.detailTitle}>Masuk</Text>
+            <Text style={styles.detailTitle}>{isPending ? 'Mulai' : 'Masuk'}</Text>
           </View>
 
           <Text style={styles.timeText}>{checkIn}</Text>
@@ -68,7 +83,7 @@ export default function ActivityHistoryCard({
 
         <View style={styles.verticalLine} />
 
-        {/* KELUAR */}
+        {/* KELUAR / SISA WAKTU */}
         <View style={styles.detailItem}>
           <View style={styles.detailTitleRow}>
             <Ionicons
@@ -76,7 +91,7 @@ export default function ActivityHistoryCard({
               size={20}
               color="#1565C0"
             />
-            <Text style={styles.detailTitle}>Keluar</Text>
+            <Text style={styles.detailTitle}>{isPending ? 'Sisa Waktu' : 'Keluar'}</Text>
           </View>
 
           <Text style={styles.timeText}>{checkOut}</Text>
@@ -85,7 +100,7 @@ export default function ActivityHistoryCard({
 
         <View style={styles.verticalLine} />
 
-        {/* DURASI */}
+        {/* SLOT / DURASI */}
         <View style={styles.detailItem}>
           <View style={styles.detailTitleRow}>
             <Ionicons
@@ -93,10 +108,10 @@ export default function ActivityHistoryCard({
               size={20}
               color="#1565C0"
             />
-            <Text style={styles.detailTitle}>Durasi</Text>
+            <Text style={styles.detailTitle}>{isPending ? 'Slot' : 'Durasi'}</Text>
           </View>
 
-          <Text style={styles.durationText}>{duration}</Text>
+          <Text style={styles.durationText}>{isPending ? slot || duration : duration}</Text>
         </View>
 
       </View>
@@ -107,11 +122,11 @@ export default function ActivityHistoryCard({
       {/* PAYMENT */}
       <View style={styles.paymentRow}>
         <Text style={styles.paymentTitle}>
-          Total Pembayaran
+          {isPending ? 'Plat Kendaraan' : 'Total Pembayaran'}
         </Text>
 
         <Text style={styles.paymentValue}>
-          {total}
+          {isPending ? plate || total : total}
         </Text>
       </View>
 
@@ -178,10 +193,30 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
 
+  completedBadge: {
+    backgroundColor: '#E5F5E4',
+  },
+
+  pendingBadge: {
+    backgroundColor: '#FFF4DB',
+  },
+
+  expiredBadge: {
+    backgroundColor: '#FCEAEA',
+  },
+
   statusText: {
     color: '#2ECC71',
     fontSize: 13,
     fontWeight: '700',
+  },
+
+  pendingText: {
+    color: '#9E7116',
+  },
+
+  expiredText: {
+    color: '#C62828',
   },
 
   /* DETAIL */

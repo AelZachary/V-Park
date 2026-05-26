@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { loadPendingBooking, clearPendingBooking, PendingBooking } from '@/fetching/viewmodels/bookingStorage';
 import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
@@ -10,7 +11,8 @@ import {
 } from 'react-native';
 
 export default function ActivityScreen(){
-  const [timeLeft, setTimeLeft] = useState(1800);
+  const [pendingBooking, setPendingBooking] = useState<PendingBooking | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   // STATE KETIKA SUDAH TIBA
   const params = useLocalSearchParams();
@@ -20,14 +22,56 @@ export default function ActivityScreen(){
   const [parkingDuration, setParkingDuration] = useState(0);
 
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    let active = true;
+
+    async function loadBooking() {
+      const booking = await loadPendingBooking();
+      if (!active) return;
+
+      if (!booking) {
+        setPendingBooking(null);
+        return;
+      }
+
+      const secondsLeft = Math.max(0, Math.round((booking.expiresAt - Date.now()) / 1000));
+      if (secondsLeft <= 0) {
+        await clearPendingBooking();
+        setPendingBooking(null);
+        return;
+      }
+
+      setPendingBooking(booking);
+      setTimeLeft(secondsLeft);
+    }
+
+    loadBooking();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!pendingBooking) return;
+    if (timeLeft <= 0) {
+      clearPendingBooking();
+      setPendingBooking(null);
+      return;
+    }
 
     const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearPendingBooking();
+          setPendingBooking(null);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [pendingBooking, timeLeft]);
 
   // TIMER PARKIR BERJALAN 
   useEffect(() => {
@@ -68,112 +112,125 @@ export default function ActivityScreen(){
               Booking Aktif
             </Text>
 
-            {/* STATUS */}
-            <View style={styles.statusRow}>
-              <View style={styles.yellowDot}/>
-              <Text style={styles.statusText}>
-                Menunggu Kedatangan Anda di Mall
+            {pendingBooking ? (
+              <>
+                {/* STATUS */}
+                <View style={styles.statusRow}>
+                  <View style={styles.yellowDot}/>
+                  <Text style={styles.statusText}>
+                    Menunggu Kedatangan Anda di Mall
+                  </Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.card}
+                  activeOpacity={0.85}
+                  onPress={() => router.push({
+                    pathname: '/user/konfirmasiKedatangan',
+                    params: {
+                      customerName: pendingBooking.customerName,
+                      customerPhone: pendingBooking.customerPhone,
+                      vehicleType: pendingBooking.vehicleType,
+                      plateNumber: pendingBooking.plateNumber,
+                      slot: pendingBooking.slot,
+                      floor: pendingBooking.area,
+                      remainingSeconds: String(timeLeft),
+                    },
+                  })}
+                >
+                  <View style={styles.mallRow}>
+                    <View style={styles.mallInfo}>
+                      <View style={styles.parkingIcon}>
+                        <Ionicons
+                          name="car-outline"
+                          size={26}
+                          color="#111"
+                        />
+                      </View>
+                      <View>
+                        <Text style={styles.mallName}>
+                          {pendingBooking.mall}
+                        </Text>
+                        <Text style={styles.location}>
+                          {pendingBooking.area}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.arrowButton}>
+                      <Ionicons
+                        name='chevron-forward-outline'
+                        size={24}
+                        color="#1565C0"
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <View style={styles.detailItem}>
+                      <Text style={styles.detailTitle}>
+                        Slot Parkir
+                      </Text>
+                      <Text style={styles.bigText}>
+                        {pendingBooking.slot ?? '-'}
+                      </Text>
+                      <Text style={styles.smallText}>
+                        {pendingBooking.area}
+                      </Text>
+                    </View>
+
+                    <View style={styles.verticalLine}/>
+                    
+                    <View style={styles.detailItem}>
+                      <Text style={styles.detailTitle}>
+                        Dipesan
+                      </Text>
+                      <Text style={styles.timeText}>
+                        ⏰ {formattedTime} tersisa
+                      </Text>
+                      <Text style={styles.smallText}>
+                        {pendingBooking.area}
+                      </Text>
+                    </View>
+
+                    <View style={styles.verticalLine}/>
+                    
+                    <View style={styles.detailItem}>
+                      <Text style={styles.detailTitle}>
+                        Plat Kendaraan                  
+                      </Text>
+                      <Text style={styles.plate}>
+                        {pendingBooking.plateNumber ?? '—'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.warningBox}>
+                    <View style={{ flex: 1}}>
+                      <Text style={styles.warningTitle}>
+                        Slot Anda sedang ditahan
+                      </Text>
+                      <Text style={styles.warningDesc}>
+                        Silahkan tiba di Mall sebelum waktu habis
+                      </Text>
+                    </View>
+
+                    <View style={styles.timerBox}>
+                      <Text style={styles.timerLabel}>
+                        Sisa Waktu
+                      </Text>
+                      <Text style={styles.timer}>
+                        {formattedTime}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <Text style={styles.emptyText}>
+                Tidak ada booking aktif saat ini.
               </Text>
-            </View>
-
-            {/* 👇 PERBAIKAN 1: Mengubah View menjadi TouchableOpacity agar seluruh kartu bisa diklik */}
-            <TouchableOpacity 
-              style={styles.card}
-              activeOpacity={0.85}
-              onPress={() => router.push('/user/konfirmasiKedatangan')}
-            >
-              <View style={styles.mallRow}>
-                <View style={styles.mallInfo}>
-                  <View style={styles.parkingIcon}>
-                    <Ionicons
-                      name="car-outline"
-                      size={26}
-                      color="#111"
-                    />
-                  </View>
-                  <View>
-                    <Text style={styles.mallName}>
-                      Mall Ratu Indah
-                    </Text>
-                    <Text style={styles.location}>
-                      Ground Floor - Area A
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Indikator Panah (Kini murni menjadi pemanis visual/tanpa tombol pembungkus) */}
-                <View style={styles.arrowButton}>
-                  <Ionicons
-                    name='chevron-forward-outline'
-                    size={24}
-                    color="#1565C0"
-                  />
-                </View>
-              </View>
-
-              {/* DETAIL */}
-              <View style={styles.detailRow}>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Slot Parkir
-                  </Text>
-                  <Text style={styles.bigText}>
-                    C4
-                  </Text>
-                  <Text style={styles.smallText}>
-                    Ground Floor - Area A
-                  </Text>
-                </View>
-
-                <View style={styles.verticalLine}/>
-                
-                {/* TIME */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Dipesan
-                  </Text>
-                  <Text style={styles.timeText}>
-                    ⏰ 12 Menit yang lalu
-                  </Text>
-                  <Text style={styles.smallText}>
-                    Ground Floor - Area A
-                  </Text>
-                </View>
-
-                <View style={styles.verticalLine}/>
-                
-                {/* PLATE */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Plat Kendaraan                  
-                  </Text>
-                  <Text style={styles.plate}>
-                    DD 1234 TNF
-                  </Text>
-                </View>
-              </View>
-
-              {/* WARNING */}
-              <View style={styles.warningBox}>
-                <View style={{ flex: 1}}>
-                  <Text style={styles.warningTitle}>
-                    Slot Anda sedang ditahan
-                  </Text>
-                  <Text style={styles.warningDesc}>
-                    Silahkan tiba di Mall sebelum waktu habis
-                  </Text>
-                </View>
-
-                <View style={styles.timerBox}>
-                  <Text style={styles.timerLabel}>
-                    Sisa Waktu
-                  </Text>
-                  <Text style={styles.timer}>
-                    {formattedTime}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+            )}
           </>
         ):(
 
@@ -425,6 +482,13 @@ const styles = StyleSheet.create({
   greenText: {
     color: '#2E8BEF',
     fontSize: 15,
+  },
+  emptyText: {
+    marginHorizontal: 20,
+    marginTop: 24,
+    color: '#555',
+    fontSize: 16,
+    lineHeight: 24,
   },
   runningText: {
     fontWeight: '800',

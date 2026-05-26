@@ -1,14 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { loginUser } from '@/fetching/services/loginservices';
-
+import { setToken } from '@/fetching/auth/auth';
 import {
   isPengunjungLoginResult,
   isPetugasLoginResult,
   loginUser,
 } from '@/fetching/services/loginservices';
-import { setToken } from '@/fetching/auth/auth';
 import { registerUser } from '@/fetching/services/registrasiservice';
 
 export const useAuthVM = () => {
@@ -30,7 +28,6 @@ export const useAuthVM = () => {
     }
 
     try {
-<<<<<<< Updated upstream
       const result = await loginUser(name, password);
 
       const token = (result as any)?.Token?.Token;
@@ -51,16 +48,6 @@ export const useAuthVM = () => {
       Alert.alert('Login Failed', 'Unexpected login response.');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
-=======
-      await loginUser(name, password);
-      console.log('Login Success');
-      router.replace('../user/home');
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Login failed';
->>>>>>> Stashed changes
       Alert.alert('Login Failed', message);
     }
   };

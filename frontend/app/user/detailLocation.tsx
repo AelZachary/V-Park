@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
-import { router, useSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useProfileVM } from '@/viewmodels/useProfileVM';
 
 import ButtonPrimary from '@/components/common/ButtonPrimary';
@@ -28,7 +28,7 @@ export default function DetailLocation() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const { profile } = useProfileVM();
-  const params = useSearchParams();
+  const params = useLocalSearchParams();
 
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
@@ -52,6 +52,8 @@ export default function DetailLocation() {
         customerPhone: phone,
         vehicleType,
         plateNumber: platNumber,
+        slot: selectedSlot,
+        floor: selectedFloor,
       },
     });
   };

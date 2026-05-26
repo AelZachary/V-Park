@@ -1,6 +1,5 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 import { clearToken } from '@/fetching/auth/auth';
 import { getProfilePengunjung, ProfilePengunjungResponse } from '@/fetching/services/profileService';
 
@@ -16,20 +15,20 @@ export const useProfileVM = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadProfile() {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getProfilePengunjung();
-        setProfile(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load profile');
-      } finally {
-        setLoading(false);
-      }
+  const loadProfile = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getProfilePengunjung();
+      setProfile(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load profile');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadProfile();
   }, []);
 

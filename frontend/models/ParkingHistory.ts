@@ -7,4 +7,6 @@ export interface ParkingHistory {
   checkOut: string;
   duration: string;
   total: string;
+  plate?: string;
+  status?: 'pending' | 'completed' | 'expired';
 }

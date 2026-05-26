@@ -1,6 +1,6 @@
 import { COLORS } from '@/constants/theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter, useSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ScrollView,
@@ -25,7 +25,7 @@ function formatTime(totalSeconds: number) {
 
 export default function KonfirmasiSelesaiParkir() {
   const router = useRouter();
-  const params = useSearchParams();
+  const params = useLocalSearchParams();
   const [elapsed, setElapsed] = useState(INITIAL_SECONDS);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -33,6 +33,8 @@ export default function KonfirmasiSelesaiParkir() {
   const customerPhone = params.customerPhone || '';
   const vehicleType = params.vehicleType || '';
   const plateNumber = params.plateNumber || 'DD 1234 TNF';
+  const selectedSlot = String(params.slot || 'C4');
+  const selectedFloor = String(params.floor || 'Basement');
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -51,7 +53,7 @@ export default function KonfirmasiSelesaiParkir() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.replace('/user/activity')} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={28} color="#1565C0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Konfirmasi Selesai Parkir</Text>
@@ -87,7 +89,7 @@ export default function KonfirmasiSelesaiParkir() {
             </View>
             <View style={styles.locationInfo}>
               <Text style={styles.mallName}>Trans Studio Mall Makassar</Text>
-              <Text style={styles.locationSub}>Basement</Text>
+              <Text style={styles.locationSub}>{selectedFloor}</Text>
             </View>
           </View>
           <View style={styles.slotDivider} />
@@ -101,8 +103,8 @@ export default function KonfirmasiSelesaiParkir() {
           <View style={styles.slotRow}>
             <View style={styles.slotBlock}>
               <Text style={styles.slotLabel}>Slot Parkir</Text>
-              <Text style={styles.slotValue}>C4</Text>
-              <Text style={styles.slotSub}>Basement</Text>
+              <Text style={styles.slotValue}>{selectedSlot}</Text>
+              <Text style={styles.slotSub}>{selectedFloor}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.slotBlock}>

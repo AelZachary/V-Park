@@ -43,6 +43,12 @@ export default function ProfileScreen() {
         <Text style={styles.title}>Profile</Text>
       </View>
 
+      {loading ? (
+        <Text style={styles.statusText}>Loading profile...</Text>
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : null}
+
       {/* PROFILE */}
       <View style={styles.profileSection}>
 
@@ -425,6 +431,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 22,
     fontWeight: '700',
+  },
+
+  statusText: {
+    textAlign: 'center',
+    marginVertical: 12,
+    color: '#1565C0',
+    fontWeight: '600',
+  },
+
+  errorText: {
+    textAlign: 'center',
+    marginVertical: 12,
+    color: '#B00020',
+    fontWeight: '600',
   },
 
   /* MODAL */

@@ -1,6 +1,7 @@
 import { COLORS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { savePendingBooking } from '@/fetching/viewmodels/bookingStorage';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
@@ -14,8 +15,18 @@ import {
 } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-// Impor komponen denah lokasi parkir Ground Floor Area A
+// Impor komponen denah lokasi parkir untuk setiap lantai
+import GroundFloor from '@/components/booking/floors/GroundFloor';
 import GroundFloorA from '@/components/booking/floors/GroundFloorA';
+import P1 from '@/components/booking/floors/P1';
+import P1A from '@/components/booking/floors/P1A';
+import P2 from '@/components/booking/floors/P2';
+import P2A from '@/components/booking/floors/P2A';
+import P3 from '@/components/booking/floors/P3';
+import P3A from '@/components/booking/floors/P3A';
+import P4 from '@/components/booking/floors/P4';
+import P4A from '@/components/booking/floors/P4A';
+import P5 from '@/components/booking/floors/P5';
 
 const INITIAL_SECONDS = 30 * 60 + 0;
 
@@ -140,15 +151,130 @@ function PlatCarIcon() {
 
 export default function KonfirmasiKedatangan() {
   const router = useRouter();
-  const params = useSearchParams();
-  const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS);
+  const params = useLocalSearchParams();
+  const initialRemainingSeconds = Number(params.remainingSeconds ?? NaN);
+  const [secondsLeft, setSecondsLeft] = useState(
+    Number.isFinite(initialRemainingSeconds) && initialRemainingSeconds > 0
+      ? initialRemainingSeconds
+      : INITIAL_SECONDS
+  );
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const customerName = params.customerName || 'Guest';
   const customerPhone = params.customerPhone || '-';
   const vehicleType = params.vehicleType || 'Mobil Creta';
   const plateNumber = params.plateNumber || 'DD 1234 TNF';
-  const targetSlotId = 'L4';
+  const targetSlotId = String(params.slot || 'L4');
+  const selectedFloor = String(params.floor || 'Ground Floor');
+  const selectedSlotStatuses = { [targetSlotId]: 'selected' as const };
+
+  useEffect(() => {
+    const remainingSeconds = Number(params.remainingSeconds ?? NaN);
+    if (Number.isFinite(remainingSeconds) && remainingSeconds > 0) {
+      setSecondsLeft(remainingSeconds);
+    }
+  }, [params.remainingSeconds, targetSlotId]);
+
+  const renderFloorLayout = () => {
+    switch (selectedFloor) {
+      case 'Ground Floor':
+        return (
+          <GroundFloor
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Ground Floor - Area A':
+        return (
+          <GroundFloorA
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P1':
+        return (
+          <P1
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P1 - Area A':
+        return (
+          <P1A
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P2':
+        return (
+          <P2
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P2 - Area A':
+        return (
+          <P2A
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P3':
+        return (
+          <P3
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P3 - Area A':
+        return (
+          <P3A
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P4':
+        return (
+          <P4
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P4 - Area A':
+        return (
+          <P4A
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      case 'Lantai P5':
+        return (
+          <P5
+            selectedSlot={targetSlotId}
+            slotStatuses={selectedSlotStatuses}
+            onSelectSlot={() => {}}
+          />
+        );
+      default:
+        return (
+          <View style={{ padding: 20 }}>
+            <Text style={{ color: '#fff', textAlign: 'center' }}>
+              Layout untuk {selectedFloor} belum dibuat.
+            </Text>
+          </View>
+        );
+    }
+  };
 
   // 🌟 STATES KONTROL UNTUK KEDUA POP-UP MODAL DIALOG
   const [popupVisible, setPopupVisible] = useState(false);       // Pop-up Tiba di Mall
@@ -196,6 +322,8 @@ export default function KonfirmasiKedatangan() {
         customerPhone,
         vehicleType,
         plateNumber,
+        slot: targetSlotId,
+        floor: selectedFloor,
       },
     });
   };
@@ -210,7 +338,7 @@ export default function KonfirmasiKedatangan() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.replace('/user/activity')} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={28} color="#1565C0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Konfirmasi Kedatangan</Text>
@@ -267,7 +395,7 @@ export default function KonfirmasiKedatangan() {
         {/* Detail Lokasi Tempat Parkir */}
         <View style={styles.locationMapCard}>
           <Text style={styles.locationMapHeading}>Detail Lokasi Tempat Parkir</Text>
-          
+          <Text style={styles.locationMapSubtext}>Lantai: {selectedFloor} • Slot: {targetSlotId}</Text>
           <View style={styles.miniMapFrame}>
             <ScrollView 
               nestedScrollEnabled={true}
@@ -275,7 +403,7 @@ export default function KonfirmasiKedatangan() {
               contentContainerStyle={styles.miniMapVerticalContent}
             >
               <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                <GroundFloorA selectedSlot={targetSlotId} onSelectSlot={() => {}} />
+                {renderFloorLayout()}
               </ScrollView>
             </ScrollView>
           </View>
@@ -338,10 +466,22 @@ export default function KonfirmasiKedatangan() {
         <TouchableOpacity
           style={styles.secondaryButton}
           activeOpacity={0.85}
-          onPress={() => router.push({
-            pathname: '/user/activity',
-            params: { arrived: 'false' }
-          })}
+          onPress={async () => {
+            const now = Date.now();
+            await savePendingBooking({
+              id: now,
+              mall: 'Mall Ratu Indah',
+              area: selectedFloor,
+              slot: targetSlotId,
+              customerName,
+              customerPhone,
+              vehicleType,
+              plateNumber,
+              createdAt: now,
+              expiresAt: now + INITIAL_SECONDS * 1000,
+            });
+            router.push('/user/activity');
+          }}
         >
           <Text style={styles.secondaryText}>Belum, Nanti Saja</Text>
         </TouchableOpacity>
@@ -362,13 +502,13 @@ export default function KonfirmasiKedatangan() {
 
         <View style={styles.popupWrapper}>
           <View style={styles.popupBox}>
-            <div style={styles.popupIconCircle}>
+            <View style={styles.popupIconCircle}>
               <Ionicons name="location-outline" size={38} color="#1565C0" />
-            </div>
+            </View>
 
             <Text style={styles.popupTitle}>Konfirmasi Kedatangan?</Text>
             <Text style={styles.popupDesc}>
-              Apakah Anda yakin sudah berada di lokasi mall? Waktu perhitungan argo parkir Anda untuk slot <Text style={{ fontWeight: '700', color: '#1565C0' }}>{rawSlotValue}</Text> akan langsung berjalan otomatis.
+              Apakah Anda yakin sudah berada di lokasi mall? Waktu perhitungan argo parkir Anda untuk slot <Text style={{ fontWeight: '700', color: '#1565C0' }}>{targetSlotId}</Text> akan langsung berjalan otomatis.
             </Text>
 
             <View style={styles.popupActionRow}>
@@ -578,7 +718,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#1565C0',
-    marginBottom: 12,
+    marginBottom: 6,
+  },
+  locationMapSubtext: {
+    fontSize: 13,
+    color: '#4B4B4B',
+    marginBottom: 10,
   },
   miniMapFrame: {
     height: 330,
