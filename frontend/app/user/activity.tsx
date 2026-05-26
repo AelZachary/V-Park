@@ -227,7 +227,6 @@ export default function ActivityScreen(){
   );
 }
 
-// Style bawaan kamu tetap aman di bawah ini tanpa ada yang berubah
 const styles = StyleSheet.create({
   container: {
     flex: 1, 
@@ -243,8 +242,9 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
+    marginTop: 1,
     marginHorizontal: 1,
+    marginBottom: 10,
   },
   yellowDot: {
     width: 12,

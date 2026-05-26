@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { clearToken } from '@/fetching/auth/auth';
-import { getProfilePengunjung, ProfilePengunjungResponse } from '@/fetching/services/profileService';
+import { getProfilePengunjung, editProfilePengunjung, ProfilePengunjungResponse } from '@/fetching/services/profileService';
 
 const initialProfile = {
   User: { Username: '' },
@@ -14,6 +14,8 @@ export const useProfileVM = () => {
   const [profile, setProfile] = useState<ProfilePengunjungResponse>(initialProfile);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const loadProfile = async () => {
     setLoading(true);
@@ -25,6 +27,22 @@ export const useProfileVM = () => {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateProfile = async (vehicle: string, plate: string) => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const response = await editProfilePengunjung({ JenisKendaraan: vehicle, PlatKendaraan: plate });
+      await loadProfile();
+      return response;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update profile';
+      setSaveError(message);
+      throw err;
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -44,6 +62,9 @@ export const useProfileVM = () => {
     profile,
     loading,
     error,
+    saving,
+    saveError,
+    updateProfile,
     logout,
   };
 };

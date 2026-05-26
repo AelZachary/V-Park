@@ -18,17 +18,27 @@ export default function ProfileScreen() {
     profile,
     loading,
     error,
+    saving,
+    saveError,
+    updateProfile,
     logout,
   } = useProfileVM();
 
   const [showEditVehicle, setShowEditVehicle] = useState(false);
   const [vehicle, setVehicle] = useState(profile.Pengunjung.KendaraanPengguna);
   const [plate, setPlate] = useState(profile.Pengunjung.PlatPengguna);
+  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     setVehicle(profile.Pengunjung.KendaraanPengguna);
     setPlate(profile.Pengunjung.PlatPengguna);
   }, [profile]);
+
+  useEffect(() => {
+    if (saveError) {
+      setSaveFeedback(saveError);
+    }
+  }, [saveError]);
 
   return (
     <View style={styles.container}>
@@ -243,13 +253,23 @@ export default function ProfileScreen() {
             </View>
 
             {/* BUTTON */}
+            {saveFeedback ? <Text style={styles.errorText}>{saveFeedback}</Text> : null}
             <TouchableOpacity
-              style={styles.saveButton}
-              onPress={() => setShowEditVehicle(false)}
+              style={[styles.saveButton, saving ? styles.saveButtonDisabled : null]}
+              onPress={async () => {
+                try {
+                  await updateProfile(vehicle, plate);
+                  setShowEditVehicle(false);
+                  setSaveFeedback(null);
+                } catch {
+                  setSaveFeedback('Gagal menyimpan perubahan. Coba lagi.');
+                }
+              }}
+              disabled={saving}
             >
 
               <Text style={styles.saveButtonText}>
-                Simpan
+                {saving ? 'Menyimpan...' : 'Simpan'}
               </Text>
 
             </TouchableOpacity>

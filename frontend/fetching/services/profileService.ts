@@ -53,12 +53,28 @@ export async function editProfilePengunjung(
     FotoPengunjung?: any;
   };
 
-  const form = new FormData();
-  if (data.JenisKendaraan) form.append('JenisKendaraan', data.JenisKendaraan);
-  if (data.PlatKendaraan) form.append('PlatKendaraan', data.PlatKendaraan);
-  if (data.FotoPengunjung) form.append('FotoPengunjung', data.FotoPengunjung as any);
+  const headers: Record<string, string> = {};
+  const body = data.FotoPengunjung
+    ? (() => {
+        const form = new FormData();
+        if (data.JenisKendaraan !== undefined) form.append('JenisKendaraan', data.JenisKendaraan);
+        if (data.PlatKendaraan !== undefined) form.append('PlatKendaraan', data.PlatKendaraan);
+        form.append('FotoPengunjung', data.FotoPengunjung as any);
+        return form;
+      })()
+    : (() => {
+        const params = new URLSearchParams();
+        if (data.JenisKendaraan !== undefined) params.append('JenisKendaraan', data.JenisKendaraan);
+        if (data.PlatKendaraan !== undefined) params.append('PlatKendaraan', data.PlatKendaraan);
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        return params.toString();
+      })();
 
-  const res = await authFetch(`${API_BASE_URL}/api/profile/edit/pengunjung`, { method: 'POST', body: form }, token);
+  const res = await authFetch(
+    `${API_BASE_URL}/api/profile/edit/pengunjung`,
+    { method: 'POST', headers, body },
+    token
+  );
 
   const raw = await res.text();
   const payload = raw ? (JSON.parse(raw) as unknown) : null;
