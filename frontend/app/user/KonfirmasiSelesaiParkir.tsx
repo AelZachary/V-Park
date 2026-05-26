@@ -97,20 +97,9 @@ export default function KonfirmasiSelesaiParkir() {
             </View>
             <View style={styles.locationInfo}>
               <Text style={styles.mallName}>{mallName}</Text>
-              <Text style={styles.locationSub}>{selectedFloor}</Text>
-              {Number.isFinite(createdAt) && (
-                <Text style={styles.locationSub}>Mulai: {new Date(createdAt).toLocaleString()}</Text>
-              )}
             </View>
           </View>
           <View style={styles.slotDivider} />
-          {Boolean(customerName || customerPhone || vehicleType) && (
-            <View style={styles.userInfoCard}>
-              {customerName ? <Text style={styles.userInfoLabel}>{customerName}</Text> : null}
-              {customerPhone ? <Text style={styles.userInfoValue}>{customerPhone}</Text> : null}
-              {vehicleType ? <Text style={styles.userInfoValue}>{vehicleType}</Text> : null}
-            </View>
-          )}
           <View style={styles.slotRow}>
             <View style={styles.slotBlock}>
               <Text style={styles.slotLabel}>Slot Parkir</Text>
@@ -301,22 +290,6 @@ const styles = StyleSheet.create({
   },
   timerLabelMenit: {
     width: 60,
-  },
-  userInfoCard: {
-    backgroundColor: '#E3F2FD',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  userInfoLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1565C0',
-    marginBottom: 4,
-  },
-  userInfoValue: {
-    fontSize: 14,
-    color: '#141B34',
   },
   timerLabelDetik: {
     width: 40,

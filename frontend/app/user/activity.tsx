@@ -216,17 +216,7 @@ export default function ActivityScreen(){
               </View>
             </View>
 
-            <View style={styles.activeBanner}>
-              <View style={styles.activeBannerLeft}>
-                <Text style={styles.activeBannerTitle}>{statusLabel}</Text>
-                <Text style={styles.activeBannerDesc}>{description}</Text>
-              </View>
-              <View style={styles.activeBannerRight}>
-                <View style={styles.activeDurationBox}>
-                  <Text style={styles.activeDurationLabel}>{timerLabel}</Text>
-                  <Text style={styles.activeDurationText}>{displayTimer}</Text>
-                </View>
-              </View>
+            <View>
             </View>
           </TouchableOpacity>
         ) : (
@@ -254,7 +244,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 5,
-    marginHorizontal: 20,
+    marginHorizontal: 1,
   },
   yellowDot: {
     width: 12,
@@ -412,6 +402,7 @@ const styles = StyleSheet.create({
   },
   activeBannerLeft: {
     flex: 1,
+    alignItems: 'center'
   },
   activeBannerTitle: {
     fontWeight: '700',
