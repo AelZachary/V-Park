@@ -414,7 +414,11 @@ export default function SelectParkingSpot() {
             onPress={() =>
               router.push({
                 pathname: '/user/detailLocation',
-                params: { slot: selectedSlot, floor: selectedFloor },
+                params: {
+                  slot: selectedSlot,
+                  floor: selectedFloor,
+                  mallId: String(activeMallId || mallId),
+                },
               })
             }
           >

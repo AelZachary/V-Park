@@ -17,6 +17,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import ButtonPrimary from '@/components/common/ButtonPrimary';
 import InfoRow from '@/components/common/InfoRow';
 import InputField from '@/components/common/InputField';
+import { createBookingPengunjung } from '@/fetching/services/bookingPengunjungService';
+import { getTempatParkir } from '@/fetching/services/tempatparkirService';
 import { useDetailLokasiVM } from '@/viewmodels/useDetailLokasiVM';
 import { useProfileVM } from '@/viewmodels/useProfileVM';
 
@@ -33,6 +35,7 @@ export default function DetailLocation() {
   const params = useLocalSearchParams<{
     slot?: string;
     floor?: string;
+    mallId?: string;
   }>();
 
   const [selectedImage, setSelectedImage] = useState(0);
@@ -56,15 +59,59 @@ export default function DetailLocation() {
     }
   }, [error]);
 
-  const handlePressNext = () => {
-    router.push({
-      pathname: '/user/konfirmasiKedatangan',
-      params: {
-        bookingID: String(data?.Booking?.IDBooking ?? ''),
-        slot: params.slot || data?.TempatParkir?.KodeTempat || '',
-        floor: params.floor || 'Ground Floor',
-      },
-    });
+  const normalizeSlotCode = (rawCode: string) => {
+    const trimmed = String(rawCode || '').trim();
+    if (!trimmed) return '';
+
+    const collapsed = trimmed.replace(/\s+/g, ' ');
+    const parts = collapsed.split(/\s*[-–—/]\s*|\s+/).filter(Boolean);
+    const normalized = parts.length > 0 ? parts[parts.length - 1] : collapsed;
+    return normalized.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  };
+
+  const handlePressNext = async () => {
+    try {
+      const slotCode = params.slot || data?.TempatParkir?.KodeTempat || '';
+      const mallId = Number(params.mallId || 0);
+
+      if (!mallId) {
+        throw new Error('ID lokasi mall tidak ditemukan');
+      }
+
+      const payload = await getTempatParkir(mallId);
+      const slots = Array.isArray((payload as any)?.tempat_parkir)
+        ? (payload as any).tempat_parkir
+        : Array.isArray((payload as any)?.TempatParkir)
+          ? (payload as any).TempatParkir
+          : [];
+
+      const normalizedSlotCode = normalizeSlotCode(slotCode);
+      const matchedSlot = slots.find((slot: any) => normalizeSlotCode(slot.KodeTempat || '') === normalizedSlotCode);
+
+      if (!matchedSlot?.IDTempatParkir) {
+        throw new Error('Slot parkir tidak ditemukan');
+      }
+
+      const bookingResult = await createBookingPengunjung({
+        IDTempatParkir: Number(matchedSlot.IDTempatParkir),
+        NamaPengguna: profile.name || '',
+        NoPengguna: profile.phone || '',
+        KendaraanPengguna: profile.vehicle || '',
+        PlatPengguna: profile.plate || '',
+      });
+
+      router.push({
+        pathname: '/user/konfirmasiKedatangan',
+        params: {
+          bookingID: String(bookingResult.Booking.IDBooking),
+          slot: bookingResult.TempatParkir.KodeTempat || slotCode,
+          floor: params.floor || 'Ground Floor',
+        },
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Gagal membuat booking';
+      Alert.alert('Error', message);
+    }
   };
 
   const handlePressBack = () => {
