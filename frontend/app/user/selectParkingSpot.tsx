@@ -15,6 +15,8 @@ import P1A from '@/components/booking/floors/P1A';
 import P2A from '@/components/booking/floors/P2A';
 import P3A from '@/components/booking/floors/P3A';
 import { getTempatParkir } from '@/fetching/services/tempatparkirService';
+import { getDashboardLokasiMall } from '@/fetching/services/dashboardService';
+import { API_BASE_URL } from '@/fetching/response/responseconfig';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -40,6 +42,7 @@ export default function SelectParkingSpot() {
   const [selectedFloor, setSelectedFloor] = useState<string>(initialFloor);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotStatuses, setSlotStatuses] = useState<Record<string, 'available' | 'occupied' | 'online' | 'manual' | 'selected'>>({});
+  const [imageUri, setImageUri] = useState<string | null>(null);
 
   const mallId = Number(
     params?.mallId || params?.idlokasimall || params?.id_lokasi_mall || params?.id_lokasi || 0
@@ -99,6 +102,32 @@ export default function SelectParkingSpot() {
     loadSlotStatuses();
   }, [mallId]);
 
+  useEffect(() => {
+    async function loadLocationImage() {
+      if (!mallId) return;
+
+      try {
+        const data = await getDashboardLokasiMall();
+        const matched = (data || []).find((d: any) => (d?.LokasiMall?.IDLokasiMall || 0) === Number(mallId));
+        const fotos = matched?.FotoLokasiMall ?? [];
+        if (Array.isArray(fotos) && fotos.length > 0) {
+          const first = fotos[0].FotoLokasi as string;
+          if (first) {
+            const cleaned = first.startsWith('/') ? first.slice(1) : first;
+            setImageUri(`${API_BASE_URL}/${cleaned}`);
+            return;
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      setImageUri(null);
+    }
+
+    loadLocationImage();
+  }, [mallId]);
+
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (currentStatus === 'available') {
       if (selectedSlot === slotId) {
@@ -110,7 +139,15 @@ export default function SelectParkingSpot() {
   };
 
   const handlePressBack = () => {
-    router.back();
+    try {
+      if (router.canGoBack?.()) {
+        router.back();
+      } else {
+        router.replace('/user/home');
+      }
+    } catch (_error) {
+      router.replace('/user/home');
+    }
   };
 
   const floorOptions = [
@@ -243,7 +280,11 @@ export default function SelectParkingSpot() {
       {/* INFO CARD ATAS */}
       <View style={styles.infoCard}>
         <View style={styles.leftSection}>
-          <Image source={require('../../assets/images/G.jpg')} style={styles.cardImage} />
+          {imageUri ? (
+            <Image source={{ uri: imageUri }} style={styles.cardImage} />
+          ) : (
+            <Image source={require('../../assets/images/G.jpg')} style={styles.cardImage} />
+          )}
           <Text style={styles.availableText}>Tersedia 120 Slot</Text>
         </View>
         <View style={styles.rightSection}>

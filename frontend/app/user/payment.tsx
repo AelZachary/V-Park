@@ -105,7 +105,15 @@ export default function PembayaranQris() {
   const { minutes, seconds } = formatCountdown(countdown);
 
   const handleBack = () => {
-    router.back();
+    try {
+      if (router.canGoBack?.()) {
+        router.back();
+      } else {
+        router.replace('/user/home');
+      }
+    } catch (_error) {
+      router.replace('/user/home');
+    }
   };
 
   const handleRefreshQr = () => {
