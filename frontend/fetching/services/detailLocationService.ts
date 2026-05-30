@@ -73,8 +73,13 @@ export async function getDetailLokasi(): Promise<DetailLokasiResponse | null> {
     return null;
   }
 
-  // Return the first item as DetailLokasiResponse. If the backend includes
-  // `FotoLokasiMall` (from the database column `foto_lokasi_mall`), it will
-  // be present on the returned object and available to callers.
-  return payload[0] as DetailLokasiResponse;
+  const pendingBooking = payload.find((item: any) => {
+    const status = String(item?.RiwayatBooking?.StatusBooking || '').trim().toLowerCase();
+    return status === 'menunggukonfirmasi' || status === 'menunggu konfirmasi';
+  });
+
+  const selectedBooking = pendingBooking || payload[0];
+
+  // Prefer the booking that is still waiting for arrival confirmation.
+  return selectedBooking as DetailLokasiResponse;
 }

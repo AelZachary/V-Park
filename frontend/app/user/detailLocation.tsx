@@ -57,7 +57,14 @@ export default function DetailLocation() {
   }, [error]);
 
   const handlePressNext = () => {
-    router.push('/user/konfirmasiKedatangan');
+    router.push({
+      pathname: '/user/konfirmasiKedatangan',
+      params: {
+        bookingID: String(data?.Booking?.IDBooking ?? ''),
+        slot: params.slot || data?.TempatParkir?.KodeTempat || '',
+        floor: params.floor || 'Ground Floor',
+      },
+    });
   };
 
   const handlePressBack = () => {

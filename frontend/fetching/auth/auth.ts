@@ -1,6 +1,7 @@
-import { getCurrentUser } from '@/fetching/auth/session';
+import { ensureCurrentUserLoaded, getCurrentUser } from '@/fetching/auth/session';
 
 export async function authFetch(input: RequestInfo, init: RequestInit = {}) {
+  await ensureCurrentUserLoaded();
   const currentUser = getCurrentUser();
   const token = currentUser?.token;
   if (!token) {
