@@ -47,6 +47,9 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir(filepath.Join("..", "..", "..", "internal", "uploads")))))
 
+	// Serve static fotos stored under internal/foto (seeders use paths like internal/foto/internal/fotolokasimall/...)
+	mux.Handle("/internal/foto/", http.StripPrefix("/internal/foto/", http.FileServer(http.Dir(filepath.Join("..", "..", "..", "internal", "foto")))))
+
 	loginController := &authenticationcontroller.LoginPengunjung{DB: db}
 	authenticationroutes.RegisterLoginRoutes(mux, loginController)
 

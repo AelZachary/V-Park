@@ -182,6 +182,18 @@ export default function KonfirmasiKedatangan() {
   const slotNumber = rawSlotValue.replace(/[^0-9]/g, ''); 
   const targetSlotId = `L${slotNumber}`; 
 
+  const handlePressBack = () => {
+    try {
+      if (router.canGoBack?.()) {
+        router.back();
+      } else {
+        router.replace('/user/detailLocation');
+      }
+    } catch (_error) {
+      router.replace('/user/detailLocation');
+    }
+  };
+
   // Handler jika klik 'Ya, Saya Tiba' di Pop-up Kedatangan
   const handleConfirmArrival = () => {
     setPopupVisible(false);
@@ -198,7 +210,7 @@ export default function KonfirmasiKedatangan() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={handlePressBack} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={28} color="#1565C0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Konfirmasi Kedatangan</Text>

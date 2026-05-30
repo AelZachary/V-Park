@@ -6,15 +6,19 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import ButtonPrimary from '@/components/common/ButtonPrimary';
 import InfoRow from '@/components/common/InfoRow';
 import InputField from '@/components/common/InputField';
+import { useDetailLokasiVM } from '@/viewmodels/useDetailLokasiVM';
+import { useProfileVM } from '@/viewmodels/useProfileVM';
 
 const PARKING_IMAGES = [
   require('../../assets/images/1.jpg'),
@@ -24,25 +28,100 @@ const PARKING_IMAGES = [
 ];
 
 export default function DetailLocation() {
+  const { data, loading, error } = useDetailLokasiVM();
+  const { profile } = useProfileVM();
+  const params = useLocalSearchParams<{
+    slot?: string;
+    floor?: string;
+  }>();
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
 
-  const [username, setUsername] = useState('Pinky Pie');
-  const [phone, setPhone] = useState('+628213456789');
-  const [vehicleType, setVehicleType] = useState('Mobil Creta');
-  const [platNumber, setPlatNumber] = useState('DD 1234 TNF');
+  const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
+  const [vehicleType, setVehicleType] = useState('');
+  const [platNumber, setPlatNumber] = useState('');
+
+  React.useEffect(() => {
+    setUsername(profile.name || '');
+    setPhone(profile.phone || '');
+    setVehicleType(profile.vehicle || '');
+    setPlatNumber(profile.plate || '');
+  }, [profile]);
+
+  React.useEffect(() => {
+    if (error) {
+      Alert.alert('Error', error);
+    }
+  }, [error]);
 
   const handlePressNext = () => {
     router.push('/user/konfirmasiKedatangan');
   };
 
   const handlePressBack = () => {
-    router.back();
+    try {
+      if (router.canGoBack?.()) {
+        router.back();
+      } else {
+        router.replace('/user/selectParkingSpot');
+      }
+    } catch (_error) {
+      router.replace('/user/selectParkingSpot');
+    }
   };
 
   const handleSaveEdit = () => {
     setIsEditing(false);
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handlePressBack}>
+            <Ionicons name="chevron-back" size={26} color="#1565C0" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detail Lokasi</Text>
+        </View>
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color="#1565C0" />
+          <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handlePressBack}>
+            <Ionicons name="chevron-back" size={26} color="#1565C0" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detail Lokasi</Text>
+        </View>
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Ionicons name="alert-circle-outline" size={48} color="#d32f2f" />
+          <Text style={{ marginTop: 10, fontSize: 16, color: '#d32f2f', textAlign: 'center', paddingHorizontal: 20 }}>
+            {error || 'Parking data not found'}
+          </Text>
+          <TouchableOpacity 
+            style={[styles.confirmButton, { marginTop: 20, width: 120 }]} 
+            onPress={handlePressBack}
+          >
+            <Text style={styles.confirmText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  const parkingCode = params.slot || (data?.TempatParkir.KodeTempat.split(' ').pop() || data?.TempatParkir.KodeTempat);
+  const parkingFloor = params.floor || 'Ground Floor';
+  const locationAddress = data?.LokasiMall.AlamatLokasi || 'N/A';
+  const bookingTime = data ? new Date(data.Booking.WaktuBooking).toLocaleString('id-ID') : 'N/A';
 
   return (
     <View style={styles.container}>
@@ -87,18 +166,21 @@ export default function DetailLocation() {
         {/* CARD DETAIL */}
         <View style={styles.card}>
           {/* AREA PARKIR */}
-          <Text style={styles.sectionTitle}>Area Parkir Basement</Text>
+          <Text style={styles.sectionTitle}>Area Parkir {parkingFloor}</Text>
 
           <View style={styles.parkingInfoRow}>
             <View style={styles.slotBadge}>
-              <Text style={styles.slotText}>L4</Text>
+              <Text style={styles.slotText}>{parkingCode}</Text>
             </View>
 
             <View style={styles.descriptionContainer}>
-              <Text style={styles.descriptionTitle}>Deskripsi</Text>
+              <Text style={styles.descriptionTitle}>Lokasi</Text>
               <Text style={styles.descriptionText}>
-                Kendaraan Anda telah berhasil diparkir di area Basement Lantai 2, pada slot B1. 
-                Gunakan informasi ini sebagai panduan untuk menuju lokasi kendaraan Anda dengan lebih cepat dan efisien.
+                {locationAddress}
+              </Text>
+              <Text style={[styles.descriptionTitle, { marginTop: 8 }]}>Waktu Booking</Text>
+              <Text style={styles.descriptionText}>
+                {bookingTime}
               </Text>
             </View>
           </View>

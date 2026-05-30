@@ -40,12 +40,24 @@ export default function KonfirmasiSelesaiParkir() {
     };
   }, []);
 
+  const handlePressBack = () => {
+    try {
+      if (router.canGoBack?.()) {
+        router.back();
+      } else {
+        router.replace('/user/konfirmasiKedatangan');
+      }
+    } catch (_error) {
+      router.replace('/user/konfirmasiKedatangan');
+    }
+  };
+
   const { hours, minutes, seconds } = formatTime(elapsed);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={handlePressBack} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={28} color="#1565C0" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Konfirmasi Selesai Parkir</Text>
