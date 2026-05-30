@@ -2,6 +2,7 @@ import type {
   PengunjungLoginResult,
   PetugasLoginResult,
 } from '@/fetching/services/loginservices';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type SessionUser =
   | PengunjungLoginResult['User']
@@ -17,39 +18,47 @@ export type CurrentUser =
 
 const STORAGE_KEY = 'VPARK_CURRENT_USER';
 let currentUser: CurrentUser = null;
+let loadPromise: Promise<void> | null = null;
+let isHydrated = false;
 
-function loadFromStorage(): CurrentUser {
-  if (currentUser !== null) {
-    return currentUser;
+async function hydrateFromStorage() {
+  if (isHydrated) {
+    return;
   }
 
-  if (typeof window === 'undefined') {
-    return null;
+  if (loadPromise) {
+    await loadPromise;
+    return;
   }
 
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
+  loadPromise = (async () => {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        currentUser = null;
+        return;
+      }
 
-    currentUser = JSON.parse(raw) as CurrentUser;
-    return currentUser;
-  } catch {
-    window.localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
+      currentUser = JSON.parse(raw) as CurrentUser;
+    } catch {
+      currentUser = null;
+      await AsyncStorage.removeItem(STORAGE_KEY).catch(() => null);
+    } finally {
+      isHydrated = true;
+      loadPromise = null;
+    }
+  })();
+
+  await loadPromise;
 }
 
 function saveToStorage(user: CurrentUser) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
   if (!user) {
-    window.localStorage.removeItem(STORAGE_KEY);
+    void AsyncStorage.removeItem(STORAGE_KEY).catch(() => null);
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(user)).catch(() => null);
 }
 
 export function setCurrentUser(user: CurrentUser) {
@@ -57,6 +66,12 @@ export function setCurrentUser(user: CurrentUser) {
   saveToStorage(user);
 }
 
-export function getCurrentUser(): CurrentUser {
-  return loadFromStorage();
+export async function ensureCurrentUserLoaded() {
+  await hydrateFromStorage();
 }
+
+export function getCurrentUser(): CurrentUser {
+  return currentUser;
+}
+
+void hydrateFromStorage();

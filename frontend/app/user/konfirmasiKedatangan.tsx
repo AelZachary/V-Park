@@ -1,21 +1,22 @@
 import { COLORS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
-  Modal, // 🌟 Menggunakan Modal bawaan untuk Pop-up
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback, // Supaya bisa klik di luar untuk menutup pop-up
-  View
+  TouchableWithoutFeedback,
+  View,
+  Alert,
 } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-// Impor komponen denah lokasi parkir Ground Floor Area A
 import GroundFloorA from '@/components/booking/floors/GroundFloorA';
+import { konfirmasiTiba } from '@/fetching/services/konfirmasiTibaService';
 
 const INITIAL_SECONDS = 30 * 60 + 0;
 
@@ -137,31 +138,9 @@ function PlatCarIcon() {
   );
 }
 
-const bookingDetails = [
-  {
-    icon: <CarIcon />,
-    label: 'Area Parkir',
-    value: 'Ground Floor - Area A',
-  },
-  {
-    icon: <ParkingAreaIcon />,
-    label: 'Slot Parkir',
-    value: 'L4',
-  },
-  {
-    icon: <CarIcon />,
-    label: 'Jenis Kendaraan',
-    value: 'Mobil Creta',
-  },
-  {
-    icon: <PlatCarIcon />,
-    label: 'Plat Kendaraan',
-    value: 'DD 1234 TNF',
-  },
-];
-
 export default function KonfirmasiKedatangan() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string }>();
   const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -178,9 +157,12 @@ export default function KonfirmasiKedatangan() {
     };
   }, []);
 
-  const rawSlotValue = bookingDetails[1].value; 
-  const slotNumber = rawSlotValue.replace(/[^0-9]/g, ''); 
-  const targetSlotId = `L${slotNumber}`; 
+  const parkingFloor = params.floor || 'Ground Floor';
+  const rawSlotValue = params.slot || 'Unknown';
+  const targetSlotId = rawSlotValue;
+  const bookingID = Number(params?.bookingID);
+  const vehicleType = 'Mobil';
+  const platNumber = 'DD 1234 TNF';
 
   const handlePressBack = () => {
     try {
@@ -197,7 +179,23 @@ export default function KonfirmasiKedatangan() {
   // Handler jika klik 'Ya, Saya Tiba' di Pop-up Kedatangan
   const handleConfirmArrival = () => {
     setPopupVisible(false);
-    router.push('/user/KonfirmasiSelesaiParkir');
+    handleConfirmArrivalAPI();
+  };
+
+  const handleConfirmArrivalAPI = async () => {
+    try {
+      if (!bookingID) {
+        throw new Error('bookingID tidak ditemukan');
+      }
+
+      const result = await konfirmasiTiba(bookingID);
+      console.log('✓ Konfirmasi Tiba berhasil:', result);
+      router.push('/user/KonfirmasiSelesaiParkir');
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Gagal konfirmasi kedatangan';
+      console.error('❌ Konfirmasi Tiba gagal:', errorMsg);
+      Alert.alert('Konfirmasi Gagal', errorMsg);
+    }
   };
 
   // Handler jika klik 'Yes' di Pop-up Pembatalan
@@ -284,20 +282,39 @@ export default function KonfirmasiKedatangan() {
         {/* Detail Booking Card */}
         <View style={styles.card}>
           <Text style={styles.cardHeading}>Detail Booking</Text>
-          {bookingDetails.map((item, index) => (
-            <View key={index}>
-              <View style={styles.detailRow}>
-                <View style={styles.iconBox}>{item.icon}</View>
-                <View style={styles.detailText}>
-                  <Text style={styles.detailLabel}>{item.label}</Text>
-                  <Text style={styles.detailValue}>{item.value}</Text>
-                </View>
+          <View>
+            <View style={styles.detailRow}>
+              <View style={styles.iconBox}><CarIcon /></View>
+              <View style={styles.detailText}>
+                <Text style={styles.detailLabel}>Area Parkir</Text>
+                <Text style={styles.detailValue}>{parkingFloor}</Text>
               </View>
-              {index < bookingDetails.length - 1 && (
-                <View style={styles.rowDivider} />
-              )}
             </View>
-          ))}
+            <View style={styles.rowDivider} />
+            <View style={styles.detailRow}>
+              <View style={styles.iconBox}><ParkingAreaIcon /></View>
+              <View style={styles.detailText}>
+                <Text style={styles.detailLabel}>Slot Parkir</Text>
+                <Text style={styles.detailValue}>{rawSlotValue}</Text>
+              </View>
+            </View>
+            <View style={styles.rowDivider} />
+            <View style={styles.detailRow}>
+              <View style={styles.iconBox}><CarIcon /></View>
+              <View style={styles.detailText}>
+                <Text style={styles.detailLabel}>Jenis Kendaraan</Text>
+                <Text style={styles.detailValue}>{vehicleType}</Text>
+              </View>
+            </View>
+            <View style={styles.rowDivider} />
+            <View style={styles.detailRow}>
+              <View style={styles.iconBox}><PlatCarIcon /></View>
+              <View style={styles.detailText}>
+                <Text style={styles.detailLabel}>Plat Kendaraan</Text>
+                <Text style={styles.detailValue}>{platNumber}</Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* Perhatian banner */}
@@ -362,9 +379,9 @@ export default function KonfirmasiKedatangan() {
 
         <View style={styles.popupWrapper}>
           <View style={styles.popupBox}>
-            <div style={styles.popupIconCircle}>
+            <View style={styles.popupIconCircle}>
               <Ionicons name="location-outline" size={38} color="#1565C0" />
-            </div>
+            </View>
 
             <Text style={styles.popupTitle}>Konfirmasi Kedatangan?</Text>
             <Text style={styles.popupDesc}>

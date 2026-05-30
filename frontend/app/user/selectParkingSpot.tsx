@@ -15,7 +15,7 @@ import P1A from '@/components/booking/floors/P1A';
 import P2A from '@/components/booking/floors/P2A';
 import P3A from '@/components/booking/floors/P3A';
 import { getTempatParkir } from '@/fetching/services/tempatparkirService';
-import { getDashboardLokasiMall } from '@/fetching/services/dashboardService';
+import { getDashboardLokasiMall, type DashboardLokasiMallResponse } from '@/fetching/services/dashboardService';
 import { API_BASE_URL } from '@/fetching/response/responseconfig';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -43,10 +43,30 @@ export default function SelectParkingSpot() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotStatuses, setSlotStatuses] = useState<Record<string, 'available' | 'occupied' | 'online' | 'manual' | 'selected'>>({});
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [dashboardLocations, setDashboardLocations] = useState<DashboardLokasiMallResponse[]>([]);
+  const [activeMallId, setActiveMallId] = useState<number>(0);
 
-  const mallId = Number(
-    params?.mallId || params?.idlokasimall || params?.id_lokasi_mall || params?.id_lokasi || 0
-  );
+  const parseQueryValue = (key: string) => {
+    if (typeof window === 'undefined' || !window.location?.search) return null;
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get(key);
+  };
+
+  const rawMallId =
+    params?.mallId ||
+    params?.idlokasimall ||
+    params?.id_lokasi_mall ||
+    params?.id_lokasi ||
+    parseQueryValue('idlokasimall') ||
+    parseQueryValue('id_lokasi_mall') ||
+    parseQueryValue('mallId') ||
+    '0';
+
+  const mallId = Number(rawMallId);
+
+  useEffect(() => {
+    setActiveMallId(mallId);
+  }, [mallId]);
 
   // dropdown dan layout di dalam sini ikut ter-update secara otomatis.
   useEffect(() => {
@@ -56,23 +76,68 @@ export default function SelectParkingSpot() {
     }
   }, [params.initialFloor]);
 
+  const normalizeSlotCode = (rawCode: string) => {
+    const trimmed = String(rawCode || '').trim();
+    if (!trimmed) return '';
+
+    // Ambil token terakhir dari nilai seperti "1 L1", "Ground Floor - L1", atau "L1"
+    const collapsed = trimmed.replace(/\s+/g, ' ');
+    const parts = collapsed.split(/\s*[-–—/]\s*|\s+/).filter(Boolean);
+    const normalized = parts.length > 0 ? parts[parts.length - 1] : collapsed;
+    return normalized.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  };
+
+  useEffect(() => {
+    async function loadDashboardLocations() {
+      try {
+        const data = await getDashboardLokasiMall();
+        setDashboardLocations(Array.isArray(data) ? data : []);
+      } catch (_error) {
+        setDashboardLocations([]);
+      }
+    }
+
+    loadDashboardLocations();
+  }, []);
+
+  useEffect(() => {
+    const floorIndex = floorOptions.indexOf(selectedFloor);
+    const floorLocationId = dashboardLocations[floorIndex]?.LokasiMall?.IDLokasiMall;
+
+    if (floorLocationId) {
+      setActiveMallId(floorLocationId);
+      return;
+    }
+
+    setActiveMallId(mallId);
+  }, [dashboardLocations, selectedFloor, mallId]);
+
   useEffect(() => {
     async function loadSlotStatuses() {
-      if (!mallId) return;
+      if (!activeMallId) return;
 
       try {
-        const payload = await getTempatParkir(mallId);
+        const payload = await getTempatParkir(activeMallId);
         const slots = Array.isArray((payload as any)?.tempat_parkir)
           ? (payload as any).tempat_parkir
+          : Array.isArray((payload as any)?.TempatParkir)
+            ? (payload as any).TempatParkir
           : [];
 
         const mappedStatuses: Record<string, 'available' | 'occupied' | 'online' | 'manual'> = {};
 
+        const normalizeStatusLabel = (rawStatus: string) =>
+          String(rawStatus || '')
+            .trim()
+            .toLowerCase()
+            .replace(/[\s_-]+/g, '');
+
         slots.forEach((slot: any) => {
-          const code = String(slot.KodeTempat || '').trim();
+          const rawCode = String(slot.KodeTempat || '').trim();
+          const code = normalizeSlotCode(rawCode);
           if (!code) return;
 
-          switch (String(slot.StatusTempatParkir).toLowerCase()) {
+          switch (normalizeStatusLabel(slot.StatusTempatParkir)) {
             case 'tersedia':
               mappedStatuses[code] = 'available';
               break;
@@ -100,33 +165,30 @@ export default function SelectParkingSpot() {
     }
 
     loadSlotStatuses();
-  }, [mallId]);
+  }, [activeMallId]);
 
   useEffect(() => {
     async function loadLocationImage() {
-      if (!mallId) return;
+      if (!activeMallId) return;
 
       try {
-        const data = await getDashboardLokasiMall();
-        const matched = (data || []).find((d: any) => (d?.LokasiMall?.IDLokasiMall || 0) === Number(mallId));
+        const matched = dashboardLocations.find((d: any) => (d?.LokasiMall?.IDLokasiMall || 0) === Number(activeMallId));
         const fotos = matched?.FotoLokasiMall ?? [];
         if (Array.isArray(fotos) && fotos.length > 0) {
           const first = fotos[0].FotoLokasi as string;
           if (first) {
-            const cleaned = first.startsWith('/') ? first.slice(1) : first;
-            setImageUri(`${API_BASE_URL}/${cleaned}`);
-            return;
+            console.log('📸 Foto dari DB:', first);
+            // Fallback ke asset lokal karena backend belum serve /internal/foto/
+            setImageUri(null);
           }
         }
       } catch (err) {
-        // ignore
+        console.log('❌ Error loading foto:', err);
       }
-
-      setImageUri(null);
     }
 
     loadLocationImage();
-  }, [mallId]);
+  }, [activeMallId, dashboardLocations]);
 
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (currentStatus === 'available') {
@@ -189,6 +251,7 @@ export default function SelectParkingSpot() {
           <P1
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -197,6 +260,7 @@ export default function SelectParkingSpot() {
           <P1A
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -205,6 +269,7 @@ export default function SelectParkingSpot() {
           <P2
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -213,6 +278,7 @@ export default function SelectParkingSpot() {
           <P2A
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -221,6 +287,7 @@ export default function SelectParkingSpot() {
           <P3
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -229,6 +296,7 @@ export default function SelectParkingSpot() {
           <P3A
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -237,6 +305,7 @@ export default function SelectParkingSpot() {
           <P4
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -245,6 +314,7 @@ export default function SelectParkingSpot() {
           <P4A
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -253,6 +323,7 @@ export default function SelectParkingSpot() {
           <P5
             selectedSlot={selectedSlot}
             onSelectSlot={handleSelectSlot}
+            slotStatuses={slotStatuses}
           />
         );
 
