@@ -1,9 +1,13 @@
 import { useProfileVM } from '@/viewmodels/useProfileVM';
+import { updatePengunjungProfile } from '@/fetching/services/profileService';
+import { setCurrentUser, getCurrentUser } from '@/fetching/auth/session';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
+  Alert,
   Image,
   Modal,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -25,6 +29,67 @@ export default function ProfileScreen() {
 
     const [vehicle, setVehicle] = useState(profile.vehicle);
     const [plate, setPlate] = useState(profile.plate);
+
+    const saveVehicleChanges = async () => {
+      try {
+        console.log('saveVehicleChanges start', { vehicle, plate });
+        const currentSession = getCurrentUser();
+        console.log('currentSession', currentSession);
+
+      const currentSessionUser = currentSession && typeof currentSession === 'object' && 'user' in currentSession
+        ? (currentSession.user as Record<string, any>)
+        : (currentSession as Record<string, any> | null);
+
+      if (
+        !currentSessionUser ||
+        typeof currentSessionUser !== 'object' ||
+        !('Pengunjung' in currentSessionUser)
+      ) {
+        throw new Error('User session is not available or tidak ada data Pengunjung');
+      }
+
+        const updatedProfile = await updatePengunjungProfile(vehicle, plate);
+        console.log('updatedProfile', updatedProfile);
+
+        const updatedSession = currentSession && typeof currentSession === 'object' && 'user' in currentSession
+          ? {
+              ...currentSession,
+              user: {
+                ...currentSessionUser,
+                Pengunjung: {
+                  ...currentSessionUser.Pengunjung,
+                  JenisKendaraan: updatedProfile.JenisKendaraan,
+                  PlatKendaraan: updatedProfile.PlatKendaraan,
+                },
+              },
+            }
+          : {
+              ...currentSessionUser,
+              Pengunjung: {
+                ...currentSessionUser.Pengunjung,
+                JenisKendaraan: updatedProfile.JenisKendaraan,
+                PlatKendaraan: updatedProfile.PlatKendaraan,
+              },
+            };
+
+        setCurrentUser(updatedSession);
+        setShowEditVehicle(false);
+
+        if (typeof Alert !== 'undefined' && Alert.alert) {
+          Alert.alert('Berhasil', 'Kendaraan berhasil diperbarui.');
+        } else if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+          window.alert('Kendaraan berhasil diperbarui.');
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Gagal menyimpan perubahan';
+        console.error('saveVehicleChanges error', errorMessage, error);
+        if (typeof Alert !== 'undefined' && Alert.alert) {
+          Alert.alert('Error', errorMessage);
+        } else if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+          window.alert(`Error: ${errorMessage}`);
+        }
+      }
+    };
 
   return (
     <View style={styles.container}>
@@ -233,16 +298,17 @@ export default function ProfileScreen() {
             </View>
 
             {/* BUTTON */}
-            <TouchableOpacity
+            <Pressable
               style={styles.saveButton}
-              onPress={() => setShowEditVehicle(false)}
+              onPress={saveVehicleChanges}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
 
               <Text style={styles.saveButtonText}>
                 Simpan
               </Text>
 
-            </TouchableOpacity>
+            </Pressable>
 
           </View>
 
@@ -548,6 +614,7 @@ const styles = StyleSheet.create({
 
   saveButton: {
     backgroundColor: '#1565C0',
+    width: '100%',
     height: 50,
     borderRadius: 15,
     justifyContent: 'center',

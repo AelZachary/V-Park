@@ -1,5 +1,7 @@
 import { API_BASE_URL } from '@/fetching/response/responseconfig';
 import type { ControllerResponse } from '@/fetching/response/response';
+import { setCurrentUser } from '@/fetching/auth/session';
+import type { CurrentUser } from '@/fetching/auth/session';
 
 type PengunjungLoginResponse = {
   IDPengunjung: number;
@@ -15,12 +17,17 @@ type PetugasLoginResponse = {
   ShiftSelesaiBertugas: string;
 };
 
+type LoginTokenResponse = {
+  Token: string;
+};
+
 export type PengunjungLoginResult = {
   User: {
     IDUser: number;
     Username: string;
     Pengunjung: PengunjungLoginResponse;
   };
+  Token: LoginTokenResponse;
 };
 
 export type PetugasLoginResult = {
@@ -29,6 +36,7 @@ export type PetugasLoginResult = {
     Username: string;
     Petugas: PetugasLoginResponse;
   };
+  Token: LoginTokenResponse;
 };
 
 export type LoginResult =
@@ -69,8 +77,11 @@ export async function loginUser(
   username: string,
   password: string
 ): Promise<LoginResult> {
+  const url = `${API_BASE_URL}/api/authentication/login`;
+  console.log('loginUser request', { url, username });
+
   const response = await fetch(
-    `${API_BASE_URL}/api/authentication/login`,
+    url,
     {
       method: 'POST',
       headers: {
@@ -88,6 +99,12 @@ export async function loginUser(
     ? (JSON.parse(rawBody) as LoginResult | ControllerResponse)
     : null;
 
+  console.log('loginUser response', {
+    status: response.status,
+    ok: response.ok,
+    payload,
+  });
+
   if (!response.ok) {
     const message = extractErrorMessage(
       payload,
@@ -97,9 +114,14 @@ export async function loginUser(
     throw new Error(message);
   }
 
-  if (!payload || !('User' in payload)) {
+  if (!payload || !('User' in payload) || !('Token' in payload)) {
     throw new Error('Invalid login response');
   }
+
+  setCurrentUser({
+    user: payload.User as PengunjungLoginResult['User'] | PetugasLoginResult['User'],
+    token: payload.Token.Token,
+  });
 
   return payload;
 }
