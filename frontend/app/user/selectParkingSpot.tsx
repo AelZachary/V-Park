@@ -14,6 +14,7 @@ import P1 from '@/components/booking/floors/P1';
 import P1A from '@/components/booking/floors/P1A';
 import P2A from '@/components/booking/floors/P2A';
 import P3A from '@/components/booking/floors/P3A';
+import { getTempatParkir } from '@/fetching/services/tempatparkirService';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -27,15 +28,21 @@ import {
 } from 'react-native';
 
 export default function SelectParkingSpot() {
-  const handlePressBack = () => {
-    router.back();
-  };
+  const params = useLocalSearchParams<{
+    initialFloor?: string;
+    mallId?: string;
+    idlokasimall?: string;
+    id_lokasi_mall?: string;
+    id_lokasi?: string;
+  }>();
+  const initialFloor = params?.initialFloor ?? 'Ground Floor';
 
-  const params = useLocalSearchParams();
-
+  const [selectedFloor, setSelectedFloor] = useState<string>(initialFloor);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [selectedFloor, setSelectedFloor] = useState<string>(
-    (params.initialFloor as string) || 'Ground Floor'
+  const [slotStatuses, setSlotStatuses] = useState<Record<string, 'available' | 'occupied' | 'online' | 'manual' | 'selected'>>({});
+
+  const mallId = Number(
+    params?.mallId || params?.idlokasimall || params?.id_lokasi_mall || params?.id_lokasi || 0
   );
 
   // dropdown dan layout di dalam sini ikut ter-update secara otomatis.
@@ -46,15 +53,65 @@ export default function SelectParkingSpot() {
     }
   }, [params.initialFloor]);
 
+  useEffect(() => {
+    async function loadSlotStatuses() {
+      if (!mallId) return;
+
+      try {
+        const payload = await getTempatParkir(mallId);
+        const slots = Array.isArray((payload as any)?.tempat_parkir)
+          ? (payload as any).tempat_parkir
+          : [];
+
+        const mappedStatuses: Record<string, 'available' | 'occupied' | 'online' | 'manual'> = {};
+
+        slots.forEach((slot: any) => {
+          const code = String(slot.KodeTempat || '').trim();
+          if (!code) return;
+
+          switch (String(slot.StatusTempatParkir).toLowerCase()) {
+            case 'tersedia':
+              mappedStatuses[code] = 'available';
+              break;
+            case 'terisi':
+              mappedStatuses[code] = 'occupied';
+              break;
+            case 'dipesan':
+            case 'bookingonline':
+            case 'booking online':
+              mappedStatuses[code] = 'online';
+              break;
+            case 'perawatan':
+              mappedStatuses[code] = 'manual';
+              break;
+            default:
+              mappedStatuses[code] = 'occupied';
+              break;
+          }
+        });
+
+        setSlotStatuses(mappedStatuses);
+      } catch (error) {
+        setSlotStatuses({});
+      }
+    }
+
+    loadSlotStatuses();
+  }, [mallId]);
+
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (currentStatus === 'available') {
       if (selectedSlot === slotId) {
-        setSelectedSlot(null); 
-      } else { 
-        setSelectedSlot(slotId); 
-      } 
-    } 
-  }; 
+        setSelectedSlot(null);
+      } else {
+        setSelectedSlot(slotId);
+      }
+    }
+  };
+
+  const handlePressBack = () => {
+    router.back();
+  };
 
   const floorOptions = [
     'Ground Floor',
@@ -67,10 +124,9 @@ export default function SelectParkingSpot() {
     'Lantai P3 - Area A',
     'Lantai P4',
     'Lantai P4 - Area A',
-    'Lantai P5'
+    'Lantai P5',
   ];
 
-  // 2. FUNGSI UNTUK MENENTUKAN KOMPONEN BERDASARKAN LANTAI YANG DIPILIH
   const renderFloorLayout = () => {
     switch (selectedFloor) {
       case 'Ground Floor':
@@ -78,6 +134,7 @@ export default function SelectParkingSpot() {
           <GroundFloor 
             selectedSlot={selectedSlot} 
             onSelectSlot={handleSelectSlot} 
+            slotStatuses={slotStatuses}
           />
         );
 
@@ -86,9 +143,10 @@ export default function SelectParkingSpot() {
           <GroundFloorA 
             selectedSlot={selectedSlot} 
             onSelectSlot={handleSelectSlot} 
+            slotStatuses={slotStatuses}
           />
         );
-      
+
       case 'Lantai P1':
         return (
           <P1
@@ -96,7 +154,7 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot}
           />
         );
-      
+
       case 'Lantai P1 - Area A':
         return (
           <P1A
@@ -128,7 +186,7 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot}
           />
         );
-    
+
       case 'Lantai P3 - Area A':
         return (
           <P3A
@@ -144,6 +202,7 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot}
           />
         );
+
       case 'Lantai P4 - Area A':
         return (
           <P4A
@@ -151,6 +210,7 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot}
           />
         );
+
       case 'Lantai P5':
         return (
           <P5
@@ -158,10 +218,13 @@ export default function SelectParkingSpot() {
             onSelectSlot={handleSelectSlot}
           />
         );
+
       default:
         return (
           <View style={{ padding: 20 }}>
-            <Text style={{ color: '#fff', textAlign: 'center' }}>Layout untuk {selectedFloor} belum dibuat.</Text>
+            <Text style={{ color: '#fff', textAlign: 'center' }}>
+              Layout untuk {selectedFloor} belum dibuat.
+            </Text>
           </View>
         );
     }
@@ -193,7 +256,7 @@ export default function SelectParkingSpot() {
             selectedValue={selectedFloor}
             onValueChange={(value) => {
               setSelectedFloor(value);
-              setSelectedSlot(null); // Reset pilihan slot saat ganti lantai
+              setSelectedSlot(null);
             }}
           />
         </View>
@@ -208,62 +271,49 @@ export default function SelectParkingSpot() {
       </View>
 
       {/* MAP VIEW SCROLL */}
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={[
-          styles.scrollContent, 
-          selectedSlot ? { paddingBottom: 180 } : { paddingBottom: 40 }
-        ]} 
+          styles.scrollContent,
+          selectedSlot ? { paddingBottom: 180 } : { paddingBottom: 40 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.mapContainer}>
-          
-          {/* 👇 PANGGIL LOGIKA RENDER DINAMISNYA DI SINI */}
-          {renderFloorLayout()}
-          
-        </View>
+        <View style={styles.mapContainer}>{renderFloorLayout()}</View>
       </ScrollView>
 
       {/* DYNAMIC CARD POP-UP */}
-{selectedSlot && (
-  <View style={styles.popupContainer}>
-    {/* Baris Atas: Judul & Status Nomor Slot */}
-    <View style={styles.popupHeaderRow}>
-      <Text style={styles.popupTitle}>Slot Terpilih</Text>
-      <View style={styles.statusBadge}>
-        {/* Bulatan Dot Hijau */}
-        <View style={styles.statusDot} />
-        {/* 👇 PERBAIKAN: Mengubah teks "Tersedia" menjadi nomor slot hijau (A1, A2, A3, dll.) */}
-        <Text style={styles.statusText}>{selectedSlot}</Text>
-      </View>
-    </View>
-    
-    {/* Garis Abu Pembatas Tipis */}
-    <View style={styles.popupDividerLine} />
+      {selectedSlot && (
+        <View style={styles.popupContainer}>
+          <View style={styles.popupHeaderRow}>
+            <Text style={styles.popupTitle}>Slot Terpilih</Text>
+            <View style={styles.statusBadge}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusText}>{selectedSlot}</Text>
+            </View>
+          </View>
 
-    {/* Sub Deskripsi Lokasi */}
-    <Text style={styles.popupSubDesc}>{selectedFloor} • Dekat Lift & Pintu Keluar</Text>
-    
-    {/* Tombol Lanjutkan */}
-    <TouchableOpacity 
-      style={styles.confirmButton} 
-      activeOpacity={0.85} 
-      onPress={() => router.push({
-        pathname: '/user/detailLocation',
-        params: { slot: selectedSlot, floor: selectedFloor }
-      })}
-    >
-      <Text style={styles.confirmText}>Lanjutkan</Text>
-    </TouchableOpacity>
-  </View>
-)}
+          <View style={styles.popupDividerLine} />
 
-      {/* Default footer jika belum memilih slot */}
+          <Text style={styles.popupSubDesc}>{selectedFloor} • Dekat Lift & Pintu Keluar</Text>
+
+          <TouchableOpacity
+            style={styles.confirmButton}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({
+                pathname: '/user/detailLocation',
+                params: { slot: selectedSlot, floor: selectedFloor },
+              })
+            }
+          >
+            <Text style={styles.confirmText}>Lanjutkan</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {!selectedSlot && (
         <View style={styles.bottomSection}>
-          <TouchableOpacity 
-            style={[styles.confirmButton, { backgroundColor: '#B0BEC5' }]} 
-            disabled={true}
-          >
+          <TouchableOpacity style={[styles.confirmButton, { backgroundColor: '#B0BEC5' }]} disabled={true}>
             <Text style={styles.confirmText}>Lanjut</Text>
           </TouchableOpacity>
         </View>
@@ -360,9 +410,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 15,
     alignItems: 'center',
-    alignSelf: 'center', 
-    width: 'auto',      
-    minWidth: 300, 
+    alignSelf: 'center',
+    width: 'auto',
+    minWidth: 300,
   },
   scrollContent: {
     paddingHorizontal: 17,
@@ -415,32 +465,31 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1A237E',
   },
-
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6, // Jarak antara bulatan hijau dengan tulisan "Tersedia"
+    gap: 6,
   },
   statusDot: {
-    width: 20, // Ukuran dot hijau bulat pas sesuai gambar figma
+    width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#7BC67B', // Hijau indikator tersedia
+    backgroundColor: '#7BC67B',
   },
   statusText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#7BC67B', // Tulisan "Tersedia" berwarna hijau tebal
+    color: '#7BC67B',
   },
   popupDividerLine: {
     height: 1.5,
-    backgroundColor: '#B0BEC5', // Garis abu-abu pembatas horizontal tengah
+    backgroundColor: '#B0BEC5',
     width: '100%',
     marginVertical: 10,
   },
   popupSubDesc: {
     fontSize: 15,
-    color: '#1565C0', // Warna biru soft untuk sub deskripsi lokasi
+    color: '#1565C0',
     fontWeight: '500',
     marginBottom: 20,
   },

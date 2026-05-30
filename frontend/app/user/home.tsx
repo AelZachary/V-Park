@@ -14,13 +14,16 @@ import {
   View,
 } from 'react-native';
 
+const PLACEHOLDER_IMAGE = require('../../assets/images/G.jpg');
+
 export default function HomeScreen() {
 
   const {
     search,
     setSearch,
-
     filteredParking,
+    loading,
+    error,
   } = useHomeVM();
 
   return (
@@ -50,31 +53,49 @@ export default function HomeScreen() {
       </View>
 
       {/* LIST */}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-        {filteredParking.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.card}
-            onPress={() => {
-              if (item.name === 'Ground Floor' || item.name === 'Ground Floor - Area A' || item.name === 'Lantai P1' || item.name === 'Lantai P1 - Area A' || item.name === 'Lantai P2' || item.name === 'Lantai P2 - Area A' || item.name === 'Lantai P3' || item.name === 'Lantai P3 - Area A' || item.name === 'Lantai P4' || item.name === 'Lantai P4 - Area A' || item.name === 'Lantai P5') {
-                router.push({
-                  pathname: '/user/selectParkingSpot',
-                  params: { initialFloor: item.name }
-                });
-              }
-            }}
-          >
+      {loading ? (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>Memuat lokasi mall...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.messageContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : filteredParking.length === 0 ? (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>Tidak ada mall ditemukan.</Text>
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+          {filteredParking.map((item, index) => {
+            const mallName = `Mall ${item.LokasiMall.IDLokasiMall}`;
+            const address = item.LokasiMall.AlamatLokasi;
 
-            <Image source={item.image} style={styles.cardImage} />
+            return (
+              <TouchableOpacity
+                key={index}
+                style={styles.card}
+                onPress={() => {
+                  router.push({
+                    pathname: '/user/selectParkingSpot',
+                    params: {
+                      idlokasimall: String(item.LokasiMall.IDLokasiMall),
+                      initialFloor: 'Ground Floor',
+                    },
+                  });
+                }}
+              >
+                <Image source={PLACEHOLDER_IMAGE} style={styles.cardImage} />
 
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.mallName}>{item.name}</Text>
-              <Text style={styles.address}>{item.description}</Text>
-            </View>
-
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={styles.mallName}>{mallName}</Text>
+                  <Text style={styles.address}>{address}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
       
       {/* BOTTOM NAV */}
       <BottomNavbar active="home" />
@@ -180,5 +201,24 @@ const styles = StyleSheet.create({
   distance: {
     fontSize: FONT_SIZE.xs,
     color: COLORS.subtext,
+  },
+
+  messageContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 30,
+  },
+
+  messageText: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.subtext,
+  },
+
+  errorText: {
+    fontSize: FONT_SIZE.sm,
+    color: '#D32F2F',
+    textAlign: 'center',
+    marginHorizontal: 20,
   },
 });

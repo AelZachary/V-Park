@@ -19,6 +19,8 @@ export const useAuthVM = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const login = async () => {
+    console.log('useAuthVM login pressed', { name, password });
+
     if (!name || !password) {
       Alert.alert('Login Failed', 'Please fill all fields.');
       return;
