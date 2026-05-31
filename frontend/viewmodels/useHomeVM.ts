@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { getCurrentUser } from '@/fetching/auth/session';
+import { getLokasiDisplayName } from '@/fetching/response/locationDisplayName';
 import { getDashboardLokasiMall, type DashboardLokasiMallResponse } from '@/fetching/services/dashboardService';
 
 export const useHomeVM = () => {
@@ -45,7 +46,7 @@ export const useHomeVM = () => {
     }
 
     const normalizedSearch = search.trim().toLowerCase();
-    const mallLabel = `Mall ${place.LokasiMall.IDLokasiMall}`.toLowerCase();
+    const mallLabel = getLokasiDisplayName(place.LokasiMall).toLowerCase();
     const address = place.LokasiMall.AlamatLokasi.toLowerCase();
 
     return mallLabel.includes(normalizedSearch) || address.includes(normalizedSearch);

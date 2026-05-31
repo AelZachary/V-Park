@@ -29,6 +29,48 @@ import {
   View,
 } from 'react-native';
 
+const floorOptions = [
+  'Ground Floor',
+  'Ground Floor - Area A',
+  'Lantai P1',
+  'Lantai P1 - Area A',
+  'Lantai P2',
+  'Lantai P2 - Area A',
+  'Lantai P3',
+  'Lantai P3 - Area A',
+  'Lantai P4',
+  'Lantai P4 - Area A',
+  'Lantai P5',
+];
+
+const floorToLocationId: Record<string, number> = {
+  'Ground Floor': 1,
+  'Ground Floor - Area A': 2,
+  'Lantai P1': 3,
+  'Lantai P1 - Area A': 4,
+  'Lantai P2': 5,
+  'Lantai P2 - Area A': 6,
+  'Lantai P3': 7,
+  'Lantai P3 - Area A': 8,
+  'Lantai P4': 9,
+  'Lantai P4 - Area A': 10,
+  'Lantai P5': 11,
+};
+
+const locationIdToFloor: Record<number, string> = {
+  1: 'Ground Floor',
+  2: 'Ground Floor - Area A',
+  3: 'Lantai P1',
+  4: 'Lantai P1 - Area A',
+  5: 'Lantai P2',
+  6: 'Lantai P2 - Area A',
+  7: 'Lantai P3',
+  8: 'Lantai P3 - Area A',
+  9: 'Lantai P4',
+  10: 'Lantai P4 - Area A',
+  11: 'Lantai P5',
+};
+
 export default function SelectParkingSpot() {
   const params = useLocalSearchParams<{
     initialFloor?: string;
@@ -65,16 +107,11 @@ export default function SelectParkingSpot() {
   const mallId = Number(rawMallId);
 
   useEffect(() => {
-    setActiveMallId(mallId);
-  }, [mallId]);
-
-  // dropdown dan layout di dalam sini ikut ter-update secara otomatis.
-  useEffect(() => {
-    if (params.initialFloor) {
-      setSelectedFloor(params.initialFloor as string);
-      setSelectedSlot(null); // Reset slot terpilih jika lantai berubah dari luar
-    }
-  }, [params.initialFloor]);
+    const floorFromMallId = locationIdToFloor[mallId];
+    const nextFloor = params.initialFloor || floorFromMallId || 'Ground Floor';
+    setSelectedFloor(nextFloor);
+    setSelectedSlot(null);
+  }, [mallId, params.initialFloor]);
 
   const normalizeSlotCode = (rawCode: string) => {
     const trimmed = String(rawCode || '').trim();
@@ -101,16 +138,9 @@ export default function SelectParkingSpot() {
   }, []);
 
   useEffect(() => {
-    const floorIndex = floorOptions.indexOf(selectedFloor);
-    const floorLocationId = dashboardLocations[floorIndex]?.LokasiMall?.IDLokasiMall;
-
-    if (floorLocationId) {
-      setActiveMallId(floorLocationId);
-      return;
-    }
-
-    setActiveMallId(mallId);
-  }, [dashboardLocations, selectedFloor, mallId]);
+    const mappedId = floorToLocationId[selectedFloor];
+    setActiveMallId(mappedId || mallId);
+  }, [selectedFloor, mallId]);
 
   useEffect(() => {
     async function loadSlotStatuses() {
@@ -118,11 +148,18 @@ export default function SelectParkingSpot() {
 
       try {
         const payload = await getTempatParkir(activeMallId);
-        const slots = Array.isArray((payload as any)?.tempat_parkir)
-          ? (payload as any).tempat_parkir
-          : Array.isArray((payload as any)?.TempatParkir)
-            ? (payload as any).TempatParkir
-          : [];
+        const source = payload as any;
+        const slots = Array.isArray(source?.tempat_parkir)
+          ? source.tempat_parkir
+          : Array.isArray(source?.TempatParkir)
+            ? source.TempatParkir
+            : Array.isArray(source?.data?.tempat_parkir)
+              ? source.data.tempat_parkir
+              : Array.isArray(source?.ControllerData?.tempat_parkir)
+                ? source.ControllerData.tempat_parkir
+                : Array.isArray(source?.CoontrollerData?.tempat_parkir)
+                  ? source.CoontrollerData.tempat_parkir
+                  : [];
 
         const mappedStatuses: Record<string, 'available' | 'occupied' | 'online' | 'manual'> = {};
 
@@ -130,36 +167,53 @@ export default function SelectParkingSpot() {
           String(rawStatus || '')
             .trim()
             .toLowerCase()
-            .replace(/[\s_-]+/g, '');
+            .replace(/[^a-z0-9]/g, '');
+
+        const mapBackendStatus = (rawStatus: string): 'available' | 'occupied' | 'online' | 'manual' | null => {
+          switch (normalizeStatusLabel(rawStatus)) {
+            case 'tersedia':
+            case 'kosong':
+            case 'available':
+            case 'empty':
+              return 'available';
+            case 'terisi':
+            case 'occupied':
+            case 'penuh':
+              return 'occupied';
+            case 'dipesan':
+            case 'booked':
+            case 'bookingonline':
+              return 'online';
+            case 'bookingmanual':
+            case 'manual':
+            case 'perawatan':
+              return 'manual';
+            default:
+              return null;
+          }
+        };
 
         slots.forEach((slot: any) => {
-          const rawCode = String(slot.KodeTempat || '').trim();
+          const rawCode = String(slot.KodeTempat || slot.kode_tempat || '').trim();
           const code = normalizeSlotCode(rawCode);
           if (!code) return;
 
-          switch (normalizeStatusLabel(slot.StatusTempatParkir)) {
-            case 'tersedia':
-              mappedStatuses[code] = 'available';
-              break;
-            case 'terisi':
-              mappedStatuses[code] = 'occupied';
-              break;
-            case 'dipesan':
-            case 'bookingonline':
-            case 'booking online':
-              mappedStatuses[code] = 'online';
-              break;
-            case 'perawatan':
-              mappedStatuses[code] = 'manual';
-              break;
-            default:
-              mappedStatuses[code] = 'occupied';
-              break;
+          const mappedStatus = mapBackendStatus(slot.StatusTempatParkir || slot.status_tempat_parkir);
+          if (mappedStatus) {
+            mappedStatuses[code] = mappedStatus;
           }
+        });
+
+        console.log('🧩 Slot status loaded', {
+          mallId: activeMallId,
+          slotCount: slots.length,
+          mappedCount: Object.keys(mappedStatuses).length,
+          sample: Object.entries(mappedStatuses).slice(0, 5),
         });
 
         setSlotStatuses(mappedStatuses);
       } catch (error) {
+        console.log('❌ Error fetching slot status:', error);
         setSlotStatuses({});
       }
     }
@@ -211,20 +265,6 @@ export default function SelectParkingSpot() {
       router.replace('/user/home');
     }
   };
-
-  const floorOptions = [
-    'Ground Floor',
-    'Ground Floor - Area A',
-    'Lantai P1',
-    'Lantai P1 - Area A',
-    'Lantai P2',
-    'Lantai P2 - Area A',
-    'Lantai P3',
-    'Lantai P3 - Area A',
-    'Lantai P4',
-    'Lantai P4 - Area A',
-    'Lantai P5',
-  ];
 
   const renderFloorLayout = () => {
     switch (selectedFloor) {

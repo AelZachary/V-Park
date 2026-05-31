@@ -1,6 +1,12 @@
 import { useProfileVM } from '@/viewmodels/useProfileVM';
 import { updatePengunjungProfile } from '@/fetching/services/profileService';
-import { setCurrentUser, getCurrentUser } from '@/fetching/auth/session';
+import {
+  getCurrentSessionUser,
+  getCurrentUser,
+  setCurrentUser,
+  type CurrentUser,
+  type SessionUser,
+} from '@/fetching/auth/session';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
@@ -34,11 +40,8 @@ export default function ProfileScreen() {
       try {
         console.log('saveVehicleChanges start', { vehicle, plate });
         const currentSession = getCurrentUser();
+        const currentSessionUser = getCurrentSessionUser();
         console.log('currentSession', currentSession);
-
-      const currentSessionUser = currentSession && typeof currentSession === 'object' && 'user' in currentSession
-        ? (currentSession.user as Record<string, any>)
-        : (currentSession as Record<string, any> | null);
 
       if (
         !currentSessionUser ||
@@ -51,26 +54,26 @@ export default function ProfileScreen() {
         const updatedProfile = await updatePengunjungProfile(vehicle, plate);
         console.log('updatedProfile', updatedProfile);
 
-        const updatedSession = currentSession && typeof currentSession === 'object' && 'user' in currentSession
-          ? {
-              ...currentSession,
-              user: {
-                ...currentSessionUser,
-                Pengunjung: {
-                  ...currentSessionUser.Pengunjung,
-                  JenisKendaraan: updatedProfile.JenisKendaraan,
-                  PlatKendaraan: updatedProfile.PlatKendaraan,
-                },
-              },
-            }
-          : {
-              ...currentSessionUser,
-              Pengunjung: {
-                ...currentSessionUser.Pengunjung,
-                JenisKendaraan: updatedProfile.JenisKendaraan,
-                PlatKendaraan: updatedProfile.PlatKendaraan,
-              },
-            };
+        const updatedUser: SessionUser = {
+          ...currentSessionUser,
+          Pengunjung: {
+            ...currentSessionUser.Pengunjung,
+            JenisKendaraan: updatedProfile.JenisKendaraan,
+            PlatKendaraan: updatedProfile.PlatKendaraan,
+          },
+        };
+
+        const updatedSession: CurrentUser =
+          currentSession &&
+          typeof currentSession === 'object' &&
+          'user' in currentSession &&
+          'token' in currentSession &&
+          typeof currentSession.token === 'string'
+            ? {
+                ...currentSession,
+                user: updatedUser,
+              }
+            : updatedUser;
 
         setCurrentUser(updatedSession);
         setShowEditVehicle(false);

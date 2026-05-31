@@ -1,9 +1,8 @@
-import { ensureCurrentUserLoaded, getCurrentUser } from '@/fetching/auth/session';
+import { ensureCurrentUserLoaded, getCurrentSessionToken } from '@/fetching/auth/session';
 
 export async function authFetch(input: RequestInfo, init: RequestInit = {}) {
   await ensureCurrentUserLoaded();
-  const currentUser = getCurrentUser();
-  const token = currentUser?.token;
+  const token = getCurrentSessionToken();
   if (!token) {
     console.warn('authFetch: no token available for authenticated request', { input });
   }

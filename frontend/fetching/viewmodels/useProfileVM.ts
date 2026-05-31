@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { getCurrentUser, setCurrentUser } from '@/fetching/auth/session';
+import { getCurrentSessionUser, setCurrentUser } from '@/fetching/auth/session';
 
 export const useProfileVM = () => {
-  const currentUser = getCurrentUser()?.user ?? getCurrentUser();
+  const currentUser = getCurrentSessionUser();
 
   const [showLogout, setShowLogout] = useState(false);
 
