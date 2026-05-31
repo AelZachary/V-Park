@@ -61,6 +61,25 @@ function saveToStorage(user: CurrentUser) {
   void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(user)).catch(() => null);
 }
 
+function isSessionWrapper(value: CurrentUser): value is { user: SessionUser; token: string } {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    'user' in value &&
+    'token' in value &&
+    typeof (value as { token?: unknown }).token === 'string'
+  );
+}
+
+function isSessionUser(value: unknown): value is SessionUser {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    'IDUser' in value &&
+    'Username' in value
+  );
+}
+
 export function setCurrentUser(user: CurrentUser) {
   currentUser = user;
   saveToStorage(user);
@@ -72,6 +91,26 @@ export async function ensureCurrentUserLoaded() {
 
 export function getCurrentUser(): CurrentUser {
   return currentUser;
+}
+
+export function getCurrentSessionToken(): string | null {
+  if (isSessionWrapper(currentUser)) {
+    return currentUser.token;
+  }
+
+  return null;
+}
+
+export function getCurrentSessionUser(): SessionUser | null {
+  if (isSessionWrapper(currentUser)) {
+    return currentUser.user;
+  }
+
+  if (isSessionUser(currentUser)) {
+    return currentUser;
+  }
+
+  return null;
 }
 
 void hydrateFromStorage();

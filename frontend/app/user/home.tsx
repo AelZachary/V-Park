@@ -1,5 +1,6 @@
 import BottomNavbar from '@/components/navigation/BottomNavbar';
 import { COLORS, FONT_SIZE, RADIUS, SPACING } from '@/constants/theme';
+import { getLokasiDisplayName } from '@/fetching/response/locationDisplayName';
 import { useHomeVM } from '@/viewmodels/useHomeVM';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -68,7 +69,7 @@ export default function HomeScreen() {
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
           {filteredParking.map((item, index) => {
-            const mallName = `Mall ${item.LokasiMall.IDLokasiMall}`;
+            const mallName = getLokasiDisplayName(item.LokasiMall);
             const address = item.LokasiMall.AlamatLokasi;
 
             return (
@@ -76,11 +77,12 @@ export default function HomeScreen() {
                 key={index}
                 style={styles.card}
                 onPress={() => {
+                  const selectedFloor = getLokasiDisplayName(item.LokasiMall);
                   router.push({
                     pathname: '/user/selectParkingSpot',
                     params: {
                       idlokasimall: String(item.LokasiMall.IDLokasiMall),
-                      initialFloor: 'Ground Floor',
+                      initialFloor: selectedFloor,
                     },
                   });
                 }}

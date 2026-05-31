@@ -4,6 +4,10 @@ import { authFetch } from '@/fetching/auth/auth';
 type LokasiMallData = {
   IDLokasiMall: number;
   AlamatLokasi: string;
+  KodeLokasi?: string;
+  NamaLokasi?: string;
+  kode_lokasi?: string;
+  nama_lokasi?: string;
 };
 
 type FotoLokasiMallResponse = {

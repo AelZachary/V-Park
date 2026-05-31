@@ -1,5 +1,6 @@
-import { API_BASE_URL } from '@/fetching/response/responseconfig';
+import { API_BASE_URL } from '../response/responseconfig';
 import { authFetch } from '../auth/auth';
+import { ensureCurrentUserLoaded, getCurrentUser } from '../auth/session';
 
 function extractMessage(payload: unknown, fallback = 'request failed') {
   if (!payload || typeof payload !== 'object') return fallback;
@@ -31,6 +32,111 @@ function parseSSEEvent(eventBlock: string) {
   } catch {
     return { event, data };
   }
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string) {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
+async function readFirstEventDataViaXHR(idLokasiMall: number) {
+  await ensureCurrentUserLoaded();
+  const currentUser = getCurrentUser();
+  const token =
+    currentUser &&
+    typeof currentUser === 'object' &&
+    'token' in currentUser &&
+    typeof currentUser.token === 'string'
+      ? currentUser.token
+      : null;
+
+  return new Promise<unknown>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    let settled = false;
+
+    const finish = (fn: (value: any) => void, value: any) => {
+      if (settled) return;
+      settled = true;
+      try {
+        xhr.abort();
+      } catch {
+        // no-op
+      }
+      fn(value);
+    };
+
+    const tryResolveFromResponseText = () => {
+      const raw = xhr.responseText || '';
+      if (!raw) return;
+
+      const lfIdx = raw.indexOf('\n\n');
+      const crlfIdx = raw.indexOf('\r\n\r\n');
+      let eventEnd = -1;
+      let separatorLength = 0;
+
+      if (lfIdx >= 0 && (crlfIdx < 0 || lfIdx < crlfIdx)) {
+        eventEnd = lfIdx;
+        separatorLength = 2;
+      } else if (crlfIdx >= 0) {
+        eventEnd = crlfIdx;
+        separatorLength = 4;
+      }
+
+      if (eventEnd < 0) return;
+
+      const eventBlock = raw.slice(0, eventEnd + separatorLength);
+      const parsed = parseSSEEvent(eventBlock);
+      if (parsed) {
+        finish(resolve, parsed.data ?? null);
+      }
+    };
+
+    xhr.open('GET', `${API_BASE_URL}/api/tempatparkir?idlokasimall=${idLokasiMall}`, true);
+    xhr.setRequestHeader('Accept', 'text/event-stream');
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
+    xhr.timeout = 12000;
+
+    xhr.onprogress = () => {
+      tryResolveFromResponseText();
+    };
+
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState >= 2 && xhr.status >= 400) {
+        finish(reject, new Error(`SSE request failed with status ${xhr.status}`));
+        return;
+      }
+
+      if (xhr.readyState === XMLHttpRequest.DONE && !settled) {
+        tryResolveFromResponseText();
+      }
+    };
+
+    xhr.onerror = () => {
+      finish(reject, new Error('SSE request failed'));
+    };
+
+    xhr.ontimeout = () => {
+      finish(reject, new Error('SSE request timed out'));
+    };
+
+    xhr.send();
+  });
 }
 
 async function readFirstEventData(response: Response) {
@@ -67,18 +173,41 @@ async function readFirstEventData(response: Response) {
 }
 
 export async function getTempatParkir(idLokasiMall: number) {
-  const res = await authFetch(`${API_BASE_URL}/api/tempatparkir?idlokasimall=${idLokasiMall}`, {
-    method: 'GET',
-    headers: {
-      Accept: 'text/event-stream',
-    },
-  });
+  try {
+    const res = await withTimeout(
+      authFetch(`${API_BASE_URL}/api/tempatparkir?idlokasimall=${idLokasiMall}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json, text/event-stream',
+        },
+      }),
+      8000,
+      'tempatparkir fetch'
+    );
 
-  const payload = await readFirstEventData(res);
+    const contentType = String(res.headers.get('content-type') || '').toLowerCase();
+    let payload: unknown = null;
 
-  if (!res.ok) throw new Error(extractMessage(payload, 'fetching tempat parkir failed'));
+    if (contentType.includes('application/json')) {
+      const text = await withTimeout(res.text(), 5000, 'tempatparkir json read');
+      payload = text ? JSON.parse(text) : null;
+    } else {
+      // Endpoint utama tempat parkir mengirim SSE; ambil event update pertama untuk snapshot status awal.
+      payload = await withTimeout(readFirstEventData(res), 6000, 'tempatparkir sse read');
+    }
 
-  return payload;
+    if (!res.ok) throw new Error(extractMessage(payload, 'fetching tempat parkir failed'));
+    if (payload == null) throw new Error('empty tempatparkir payload');
+
+    return payload;
+  } catch (primaryError) {
+    // Fallback untuk Expo Go/RN ketika streaming fetch tidak memberi event awal.
+    const payload = await readFirstEventDataViaXHR(idLokasiMall);
+    if (payload == null) {
+      throw primaryError;
+    }
+    return payload;
+  }
 }
 
 export async function subscribeTempatParkir(
