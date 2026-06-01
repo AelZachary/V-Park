@@ -17,6 +17,34 @@ import {
 
 const PLACEHOLDER_IMAGE = require('../../assets/images/G.jpg');
 
+const getLocationCardImage = (locationName: string) => {
+  switch (locationName) {
+    case 'Ground Floor - Area A':
+      return require('../../assets/images/GA.jpg');
+    case 'Lantai P1':
+      return require('../../assets/images/P1.jpg');
+    case 'Lantai P1 - Area A':
+      return require('../../assets/images/P1A.jpg');
+    case 'Lantai P2':
+      return require('../../assets/images/P2.jpg');
+    case 'Lantai P2 - Area A':
+      return require('../../assets/images/P2A.jpg');
+    case 'Lantai P3':
+      return require('../../assets/images/P3.jpg');
+    case 'Lantai P3 - Area A':
+      return require('../../assets/images/P3A.jpg');
+    case 'Lantai P4':
+      return require('../../assets/images/P4.jpg');
+    case 'Lantai P4 - Area A':
+      return require('../../assets/images/P4A.jpg');
+    case 'Lantai P5':
+      return require('../../assets/images/P5.jpg');
+    case 'Ground Floor':
+    default:
+      return PLACEHOLDER_IMAGE;
+  }
+};
+
 export default function HomeScreen() {
 
   const {
@@ -87,7 +115,7 @@ export default function HomeScreen() {
                   });
                 }}
               >
-                <Image source={PLACEHOLDER_IMAGE} style={styles.cardImage} />
+                <Image source={getLocationCardImage(mallName)} style={styles.cardImage} />
 
                 <View style={{ flex: 1, paddingRight: 10 }}>
                   <Text style={styles.mallName}>{mallName}</Text>

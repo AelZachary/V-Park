@@ -19,6 +19,8 @@ import InfoRow from '@/components/common/InfoRow';
 import InputField from '@/components/common/InputField';
 import { createBookingPengunjung } from '@/fetching/services/bookingPengunjungService';
 import { getTempatParkir } from '@/fetching/services/tempatparkirService';
+import { getDashboardLokasiMall } from '@/fetching/services/dashboardService';
+import { API_BASE_URL } from '@/fetching/response/responseconfig';
 import { useDetailLokasiVM } from '@/viewmodels/useDetailLokasiVM';
 import { useProfileVM } from '@/viewmodels/useProfileVM';
 
@@ -39,6 +41,7 @@ export default function DetailLocation() {
   }>();
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [galleryImages, setGalleryImages] = useState<any[]>(PARKING_IMAGES);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,6 +56,44 @@ export default function DetailLocation() {
     setVehicleType(profile.vehicle || '');
     setPlatNumber(profile.plate || '');
   }, [profile]);
+
+  React.useEffect(() => {
+    const mallId = Number(params.mallId || 0);
+    if (!mallId) {
+      setGalleryImages(PARKING_IMAGES);
+      return;
+    }
+
+    let isActive = true;
+    getDashboardLokasiMall()
+      .then((locations) => {
+        if (!isActive) return;
+        const matched = locations.find(
+          (item) => Number(item?.LokasiMall?.IDLokasiMall) === mallId,
+        );
+        const imageSources = matched?.FotoLokasiMall?.filter(Boolean).map((foto) => ({
+          uri: `${API_BASE_URL}/${String(foto.FotoLokasi).replace(/^\/+/, '')}`,
+        })) ?? [];
+        if (imageSources.length > 0) {
+          setGalleryImages(imageSources);
+        } else {
+          setGalleryImages(PARKING_IMAGES);
+        }
+      })
+      .catch(() => {
+        setGalleryImages(PARKING_IMAGES);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [params.mallId]);
+
+  React.useEffect(() => {
+    if (selectedImage >= galleryImages.length) {
+      setSelectedImage(0);
+    }
+  }, [galleryImages, selectedImage]);
 
   React.useEffect(() => {
     if (error) {
@@ -224,13 +265,13 @@ export default function DetailLocation() {
           </View>
         )}
         <Image
-          source={PARKING_IMAGES[selectedImage]}
+          source={galleryImages[selectedImage]}
           style={styles.mainImage}
           resizeMode="cover"
         />
 
         <View style={styles.thumbnailRowContainer}>
-          {PARKING_IMAGES.map((imgRequire, index) => (
+          {galleryImages.map((imgRequire, index) => (
             <TouchableOpacity
               key={index}
               onPress={() => setSelectedImage(index)}
