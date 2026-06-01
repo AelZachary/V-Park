@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getCancelledBookings } from '@/fetching/services/bookingActivityService';
 
 export type CancelledBooking = {
   mall: string;
@@ -7,41 +8,56 @@ export type CancelledBooking = {
 };
 
 export const useActivityCancelledVM = () => {
+  const [cancelledData, setCancelledData] = useState<CancelledBooking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [cancelledData, setCancelledData] = useState<CancelledBooking[]>([
-    {
-      mall: 'Mall Ratu Indah',
-      area: 'Lantai P2',
-      date: '15 Apr 2024, 09:10',
-    },
-    {
-      mall: 'Mall Ratu Indah',
-      area: 'Lantai P5',
-      date: '15 Apr 2024, 09:10',
-    },
-    {
-      mall: 'Mall Ratu Indah',
-      area: 'Lantai P3 - Area A',
-      date: '15 Apr 2024, 09:10',
-    },
-    {
-      mall: 'Mall Ratu Indah',
-      area: 'Lantai P1 - Area A',
-      date: '15 Apr 2024, 09:10',
-    },
-  ]);
-  
-  const addCancelledBooking = (newBooking: CancelledBooking) => {
+  useEffect(() => {
+    let isMounted = true;
 
-    setCancelledData(prev => [
-      newBooking,
-      ...prev,
-    ]);
+    async function fetchCancelledBookings() {
+      try {
+        setLoading(true);
+        setError(null);
 
-  };
+        const data = await getCancelledBookings();
+        if (!isMounted) return;
+
+        setCancelledData(
+          data.map((item) => ({
+            mall: item.LokasiMall.AlamatLokasi,
+            area: item.TempatParkir.KodeTempat,
+            date: new Date(item.Booking.WaktuBooking).toLocaleString('id-ID', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          }))
+        );
+      } catch (fetchError) {
+        if (!isMounted) return;
+        const message = fetchError instanceof Error ? fetchError.message : 'Unknown error occurred';
+        setError(message);
+        setCancelledData([]);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchCancelledBookings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return {
     cancelledData,
-    addCancelledBooking,
+    loading,
+    error,
   };
 };

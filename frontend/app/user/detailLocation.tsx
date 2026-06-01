@@ -118,6 +118,7 @@ export default function DetailLocation() {
           bookingID: String(bookingResult.Booking.IDBooking),
           slot: bookingResult.TempatParkir.KodeTempat || slotCode,
           floor: params.floor || 'Ground Floor',
+          mallId: String(mallId),
         },
       });
     } catch (err) {

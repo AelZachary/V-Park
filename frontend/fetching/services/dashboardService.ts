@@ -1,6 +1,12 @@
 import { API_BASE_URL } from '@/fetching/response/responseconfig';
 import { authFetch } from '@/fetching/auth/auth';
 
+const DASHBOARD_CACHE_TTL_MS = 300000;
+
+let cachedDashboardLocations: DashboardLokasiMallResponse[] | null = null;
+let cachedDashboardFetchedAt = 0;
+let dashboardRequestPromise: Promise<DashboardLokasiMallResponse[]> | null = null;
+
 type LokasiMallData = {
   IDLokasiMall: number;
   AlamatLokasi: string;
@@ -60,6 +66,15 @@ function getControllerData(payload: unknown) {
 }
 
 export async function getDashboardLokasiMall(): Promise<DashboardLokasiMallResponse[]> {
+  if (cachedDashboardLocations && Date.now() - cachedDashboardFetchedAt < DASHBOARD_CACHE_TTL_MS) {
+    return cachedDashboardLocations;
+  }
+
+  if (dashboardRequestPromise) {
+    return dashboardRequestPromise;
+  }
+
+  dashboardRequestPromise = (async () => {
   const res = await authFetch(`${API_BASE_URL}/api/dashboard/pengunjung`, {
     method: 'GET',
     headers: {
@@ -77,6 +92,8 @@ export async function getDashboardLokasiMall(): Promise<DashboardLokasiMallRespo
   const data = getControllerData(payload);
 
   if (data == null) {
+    cachedDashboardLocations = [];
+    cachedDashboardFetchedAt = Date.now();
     return [];
   }
 
@@ -86,5 +103,15 @@ export async function getDashboardLokasiMall(): Promise<DashboardLokasiMallRespo
     );
   }
 
-  return data as DashboardLokasiMallResponse[];
+  const locations = data as DashboardLokasiMallResponse[];
+  cachedDashboardLocations = locations;
+  cachedDashboardFetchedAt = Date.now();
+  return locations;
+  })();
+
+  try {
+    return await dashboardRequestPromise;
+  } finally {
+    dashboardRequestPromise = null;
+  }
 }

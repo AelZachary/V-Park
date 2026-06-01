@@ -1,51 +1,64 @@
 import { ParkingHistory } from "@/models/ParkingHistory";
+import { useEffect, useState } from 'react';
+import { getFinishedBookings } from '@/fetching/services/bookingActivityService';
 
 export function useActivityHistoryVM() {
+  const [historyData, setHistoryData] = useState<ParkingHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const historyData: ParkingHistory[] = [
-    {
-      id: 1,
-      date: '10 Mei 2024',
-      mall: 'Mall Ratu Indah',
-      area: 'Ground Floor',
-      checkIn: '10:15',
-      checkOut: '14:05',
-      duration: '3 Jam 50 Menit',
-      total: 'Rp 20.000',
-    },
-    {
-      id: 2,
-      date: '11 Mei 2024',
-      mall: 'Mall Ratu Indah',
-      area: 'Lantai P1',
-      checkIn: '10:30',
-      checkOut: '14:10',
-      duration: '3 Jam 40 Menit',
-      total: 'Rp 20.000',
-    },
-    {
-      id: 3,
-      date: '12 Mei 2024',
-      mall: 'Mall Ratu Indah',
-      area: 'Ground Floor - Area A',
-      checkIn: '18:20',
-      checkOut: '21:10',
-      duration: '2 Jam 40 Menit',
-      total: 'Rp 20.000',
-    },
-    {
-      id: 4,
-      date: '13 Mei 2024',
-      mall: 'Mall Ratu Indah',
-      area: 'Lantai P1 - Area A',
-      checkIn: '16:00',
-      checkOut: '19:20',
-      duration: '3 Jam 20 Menit',
-      total: 'Rp 20.000',
-    },
-  ];
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchHistory() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getFinishedBookings();
+        if (!mounted) return;
+
+        const mapped = data.map((item, idx) => {
+          const waktuMasuk = item.RiwayatBooking?.WaktuMasuk ? new Date(item.RiwayatBooking.WaktuMasuk) : null;
+          const waktuKeluar = (item as any).RiwayatBooking?.WaktuKeluar ? new Date((item as any).RiwayatBooking.WaktuKeluar) : null;
+
+          const checkIn = waktuMasuk ? waktuMasuk.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+          const checkOut = waktuKeluar ? waktuKeluar.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+          const date = new Date(item.Booking.WaktuBooking).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
+          return {
+            id: item.Booking.IDBooking,
+            date,
+            mall: item.LokasiMall.AlamatLokasi,
+            area: item.TempatParkir.KodeTempat,
+            checkIn,
+            checkOut,
+            duration: '',
+            total: '',
+          } as ParkingHistory;
+        });
+
+        setHistoryData(mapped);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error occurred';
+        if (!mounted) return;
+        setError(message);
+        setHistoryData([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    void fetchHistory();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return {
     historyData,
+    loading,
+    error,
   };
 }
