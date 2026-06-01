@@ -40,8 +40,8 @@ type BookingSimple struct {
 }
 
 type RiwayatSimple struct {
-	WaktuTiba time.Time `json:"WaktuTiba"`
-	Durasi    int       `json:"Durasi"`
+	WaktuTiba *time.Time `json:"WaktuTiba,omitempty"`
+	Durasi    int        `json:"Durasi"`
 }
 
 type PembayaranSimple struct {

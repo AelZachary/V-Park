@@ -49,12 +49,11 @@ type RiwayatSelesaiResponse struct {
 	MetodePembayaran *RiwayatSelesaiMetodePembayaranResponse `json:"MetodePembayaran,omitempty"`
 }
 
-func timePtrSelesai(value time.Time) *time.Time {
-	if value.IsZero() {
+func timePtrSelesai(value *time.Time) *time.Time {
+	if value == nil || value.IsZero() {
 		return nil
 	}
-	copyValue := value
-	return &copyValue
+	return value
 }
 
 func intPtrSelesai(value int) *int {

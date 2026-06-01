@@ -26,12 +26,12 @@ type KonfirmasiTibaResponse struct {
 }
 
 type RiwayatBookingResponse struct {
-	IDRiwayatBooking uint      `json:"IDRiwayatBooking"`
-	IDBooking        uint      `json:"IDBooking"`
-	WaktuMasuk       time.Time `json:"WaktuMasuk"`
-	WaktuKeluar      time.Time `json:"WaktuKeluar"`
-	DurasiParkir     int       `json:"DurasiParkir"`
-	StatusBooking    string    `json:"StatusBooking"`
+	IDRiwayatBooking uint       `json:"IDRiwayatBooking"`
+	IDBooking        uint       `json:"IDBooking"`
+	WaktuMasuk       *time.Time `json:"WaktuMasuk,omitempty"`
+	WaktuKeluar      *time.Time `json:"WaktuKeluar,omitempty"`
+	DurasiParkir     int        `json:"DurasiParkir"`
+	StatusBooking    string     `json:"StatusBooking"`
 }
 
 type TempatParkirResponse struct {

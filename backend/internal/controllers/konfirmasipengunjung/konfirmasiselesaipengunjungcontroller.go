@@ -82,8 +82,12 @@ func (c *KonfirmasiSelesaiPengunjungController) CreateKonfirmasiSelesaiHandler(w
 			return fmt.Errorf("status booking tidak dapat diselesaikan")
 		}
 
+		if booking.RiwayatBooking.WaktuMasuk == nil {
+			return fmt.Errorf("waktu masuk not found")
+		}
+
 		now := time.Now()
-		durasiParkir, err := logic.CalculateDurasiParkir(booking.RiwayatBooking.WaktuMasuk, now)
+		durasiParkir, err := logic.CalculateDurasiParkir(*booking.RiwayatBooking.WaktuMasuk, now)
 		if err != nil {
 			return err
 		}
