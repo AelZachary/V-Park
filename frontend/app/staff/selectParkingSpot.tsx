@@ -261,7 +261,7 @@ export default function SelectParkingSpotStaff() {
 
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (isSlotStatusesLoading) return;
-    if (currentStatus === 'available') {
+    if (currentStatus === 'available' || currentStatus === 'occupied' || currentStatus === 'manual') {
       if (selectedSlot === slotId) {
         setSelectedSlot(null);
       } else {
