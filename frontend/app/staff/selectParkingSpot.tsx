@@ -70,7 +70,7 @@ const locationIdToFloor: Record<number, string> = {
   11: 'Lantai P5',
 };
 
-export default function SelectParkingSpot() {
+export default function SelectParkingSpotStaff() {
   const params = useLocalSearchParams<{
     initialFloor?: string;
     mallId?: string;
@@ -153,6 +153,7 @@ export default function SelectParkingSpot() {
 
   useEffect(() => {
     const mappedId = floorToLocationId[selectedFloor];
+    console.log('🏢 Setting activeMallId:', { selectedFloor, mappedId, mallId, final: mappedId || mallId });
     setActiveMallId(mappedId || mallId);
   }, [selectedFloor, mallId]);
 
@@ -160,13 +161,19 @@ export default function SelectParkingSpot() {
     let isActive = true;
 
     async function loadSlotStatuses() {
-      if (!activeMallId) return;
+      if (!activeMallId) {
+        console.log('❌ activeMallId is empty, skipping fetch');
+        return;
+      }
 
+      console.log('🔄 Starting fetch for activeMallId:', activeMallId);
       setIsSlotStatusesLoading(true);
 
       try {
+        console.log('📡 Calling getTempatParkir with activeMallId:', activeMallId);
         const payload = await getTempatParkir(activeMallId);
         if (!isActive) return;
+        console.log('✅ Response received:', payload);
         const source = payload as any;
         const slots = Array.isArray(source?.tempat_parkir)
           ? source.tempat_parkir
@@ -223,17 +230,18 @@ export default function SelectParkingSpot() {
           }
         });
 
-        console.log('🧩 Slot status loaded', {
-          mallId: activeMallId,
-          slotCount: slots.length,
-          mappedCount: Object.keys(mappedStatuses).length,
-          sample: Object.entries(mappedStatuses).slice(0, 5),
+        console.log('✅ Slot parsing complete:', {
+          totalSlots: slots.length,
+          mappedSlots: Object.keys(mappedStatuses).length,
+          statuses: mappedStatuses,
         });
 
         setSlotStatuses(mappedStatuses);
       } catch (error) {
         if (!isActive) return;
-        console.log('❌ Error fetching slot status:', error);
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.log('❌ ERROR fetching slot status for activeMallId', activeMallId, ':', errMsg);
+        console.log('Error object:', error);
         setSlotStatuses({});
       } finally {
         if (isActive) {
@@ -267,10 +275,10 @@ export default function SelectParkingSpot() {
       if (router.canGoBack?.()) {
         router.back();
       } else {
-        router.replace('/user/home');
+        router.replace('/staff/StaffProfile');
       }
     } catch (_error) {
-      router.replace('/user/home');
+      router.replace('/staff/StaffProfile');
     }
   };
 
@@ -470,7 +478,7 @@ export default function SelectParkingSpot() {
             activeOpacity={0.85}
             onPress={() =>
               router.push({
-                pathname: '/user/detailLocation',
+                pathname: '/staff/confirmParkingSpot',
                 params: {
                   slot: selectedSlot,
                   floor: selectedFloor,

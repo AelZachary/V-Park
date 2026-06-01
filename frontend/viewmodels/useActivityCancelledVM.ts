@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCancelledBookings } from '@/fetching/services/bookingActivityService';
+import { getLokasiDisplayName } from '@/fetching/response/locationDisplayName';
 
 export type CancelledBooking = {
   mall: string;
@@ -25,7 +26,7 @@ export const useActivityCancelledVM = () => {
 
         setCancelledData(
           data.map((item) => ({
-            mall: item.LokasiMall.AlamatLokasi,
+            mall: getLokasiDisplayName(item.LokasiMall),
             area: item.TempatParkir.KodeTempat,
             date: new Date(item.Booking.WaktuBooking).toLocaleString('id-ID', {
               day: '2-digit',

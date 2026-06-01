@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { formatFloorLabel } from '@/utils/formatFloorLabel';
 
 /* TYPE DATA */
 type Props = {
@@ -36,7 +37,7 @@ export default function ActivityCancelled({
             </Text>
 
             <Text style={styles.area}>
-              {area}
+              {formatFloorLabel(area)}
             </Text>
           </View>
 

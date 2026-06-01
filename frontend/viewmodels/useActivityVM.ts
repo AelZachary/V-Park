@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { ActiveBookingRecord, getActiveBookings } from '@/fetching/services/bookingActivityService';
+import { getLokasiDisplayName } from '@/fetching/response/locationDisplayName';
 
 const ARRIVAL_WINDOW_SECONDS = 30 * 60;
 const ACTIVE_BOOKING_STATUSES = new Set(['menunggukonfirmasi', 'konfirmasitiba']);
@@ -118,7 +119,7 @@ export const useActivityVM = () => {
 
       return {
         bookingId: bookingData.Booking.IDBooking,
-        mallLabel: bookingData.LokasiMall.AlamatLokasi,
+        mallLabel: getLokasiDisplayName(bookingData.LokasiMall),
         areaLabel: bookingData.TempatParkir.KodeTempat,
         slotLabel: bookingData.TempatParkir.KodeTempat,
         plateNumber: bookingData.Booking.PlatPengguna,

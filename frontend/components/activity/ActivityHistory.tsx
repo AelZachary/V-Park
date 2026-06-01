@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { formatFloorLabel } from '@/utils/formatFloorLabel';
 
 type Props = {
   mall: string;
@@ -38,7 +39,7 @@ export default function ActivityHistoryCard({
 
           <View>
             <Text style={styles.mallName}>{mall}</Text>
-            <Text style={styles.areaText}>{area}</Text>
+            <Text style={styles.areaText}>{formatFloorLabel(area)}</Text>
           </View>
         </View>
 

@@ -40,7 +40,7 @@ export const useAuthVM = () => {
       }
 
       if (isPetugasLoginResult(result)) {
-        router.replace('/staff/StaffProfile');
+        router.replace('/staff/confirmParkingSpot');
         return;
       }
 

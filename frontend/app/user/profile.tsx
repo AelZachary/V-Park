@@ -14,6 +14,7 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -96,7 +97,6 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-
       {/* HEADER */}
       <View style={styles.header}>
         <Image
@@ -107,8 +107,14 @@ export default function ProfileScreen() {
         <Text style={styles.title}>Profile</Text>
       </View>
 
-      {/* PROFILE */}
-      <View style={styles.profileSection}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 140 }}
+      >
+
+        {/* PROFILE */}
+        <View style={styles.profileSection}>
 
         <Image
           source={require('../../assets/images/ProfileKucing.jpg')}
@@ -207,6 +213,7 @@ export default function ProfileScreen() {
           Logout
         </Text>
       </TouchableOpacity>
+      </ScrollView>
 
       {/* LOGOUT MODAL */}
       <Modal
@@ -629,5 +636,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
+  },
+
+  scrollView: {
+    flex: 1,
   },
 });

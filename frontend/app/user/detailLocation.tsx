@@ -443,10 +443,10 @@ const styles = StyleSheet.create({
   mainImage: {
     marginHorizontal: 16,
     height: 197,
-    width: 380,
     borderRadius: 15,
     borderWidth: 1,
     borderColor: 'rgba(155,155,155,0.2)',
+    resizeMode: 'cover',
   },
 
   thumbnailContainer: {
@@ -458,12 +458,12 @@ const styles = StyleSheet.create({
     paddingRight: 16, // Memberi ruang ekstra di akhir geseran
   },
   thumbnailWrapper: {
-    width: 85,
-    height: 65,
+    width: 80,
+    height: 60,
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#FFF',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#E0E0E0',
   },
   thumbnailSelected: {
@@ -477,9 +477,12 @@ const styles = StyleSheet.create({
 
   thumbnailRowContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
     marginHorizontal: 16,
     marginTop: 10,
+    paddingVertical: 8,
   },
   
   card: {
