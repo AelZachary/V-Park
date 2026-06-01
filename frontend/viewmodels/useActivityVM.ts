@@ -140,5 +140,6 @@ export const useActivityVM = () => {
     loading,
     error,
     activities,
+    refreshActivities: fetchData,
   };
 };

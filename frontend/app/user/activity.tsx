@@ -1,19 +1,68 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Alert,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { useActivityVM } from '@/viewmodels/useActivityVM';
+import { cancelBookingPengunjung } from '@/fetching/services/bookingActivityService';
 
 export default function ActivityScreen(){
-  const { loading, error, activities } = useActivityVM();
+  const { loading, error, activities, refreshActivities } = useActivityVM();
+  const autoCancelledRef = useRef<Set<number>>(new Set());
+
+  useFocusEffect(
+    useCallback(() => {
+      autoCancelledRef.current.clear();
+    }, [])
+  );
+
+  useEffect(() => {
+    if (!activities || activities.length === 0) return;
+
+    const pending = activities.filter((a: any) => !a.isArrived);
+    if (pending.length === 0) return;
+
+    // Check if any pending booking has countdown === 0
+    const hasExpired = pending.some((activity: any) => {
+      const countdownStr = activity.countdownLabel;
+      return countdownStr === '00:00';
+    });
+
+    if (hasExpired) {
+      pending.forEach(async (activity: any) => {
+        const countdownStr = activity.countdownLabel;
+        if (countdownStr === '00:00' && !autoCancelledRef.current.has(activity.bookingId)) {
+          autoCancelledRef.current.add(activity.bookingId);
+
+          try {
+            await cancelBookingPengunjung(activity.bookingId);
+
+            Alert.alert(
+              'Booking Dibatalkan',
+              `Booking Anda untuk slot ${activity.slotLabel} telah dibatalkan otomatis karena waktu habis.`
+            );
+
+            // Refresh activities after cancel
+            setTimeout(() => {
+              void refreshActivities();
+            }, 500);
+          } catch (err) {
+            console.error('Auto-cancel failed:', err);
+            autoCancelledRef.current.delete(activity.bookingId);
+          }
+        }
+      });
+    }
+  }, [activities, refreshActivities]);
 
   if (loading) {
     return (
