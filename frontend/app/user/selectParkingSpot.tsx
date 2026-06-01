@@ -15,8 +15,6 @@ import P1A from '@/components/booking/floors/P1A';
 import P2A from '@/components/booking/floors/P2A';
 import P3A from '@/components/booking/floors/P3A';
 import { getTempatParkir } from '@/fetching/services/tempatparkirService';
-import { getDashboardLokasiMall, type DashboardLokasiMallResponse } from '@/fetching/services/dashboardService';
-import { API_BASE_URL } from '@/fetching/response/responseconfig';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -86,9 +84,35 @@ export default function SelectParkingSpot() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotStatuses, setSlotStatuses] = useState<Record<string, 'available' | 'occupied' | 'online' | 'manual' | 'selected'>>({});
   const [isSlotStatusesLoading, setIsSlotStatusesLoading] = useState(true);
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [dashboardLocations, setDashboardLocations] = useState<DashboardLokasiMallResponse[]>([]);
   const [activeMallId, setActiveMallId] = useState<number>(0);
+
+  const getFloorImage = (floor: string) => {
+    switch (floor) {
+      case 'Ground Floor - Area A':
+        return require('../../assets/images/GA.jpg');
+      case 'Lantai P1':
+        return require('../../assets/images/P1.jpg');
+      case 'Lantai P1 - Area A':
+        return require('../../assets/images/P1A.jpg');
+      case 'Lantai P2':
+        return require('../../assets/images/P2.jpg');
+      case 'Lantai P2 - Area A':
+        return require('../../assets/images/P2A.jpg');
+      case 'Lantai P3':
+        return require('../../assets/images/P3.jpg');
+      case 'Lantai P3 - Area A':
+        return require('../../assets/images/P3A.jpg');
+      case 'Lantai P4':
+        return require('../../assets/images/P4.jpg');
+      case 'Lantai P4 - Area A':
+        return require('../../assets/images/P4A.jpg');
+      case 'Lantai P5':
+        return require('../../assets/images/P5.jpg');
+      case 'Ground Floor':
+      default:
+        return require('../../assets/images/G.jpg');
+    }
+  };
 
   const parseQueryValue = (key: string) => {
     if (typeof window === 'undefined' || !window.location?.search) return null;
@@ -126,18 +150,6 @@ export default function SelectParkingSpot() {
     return normalized.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
   };
 
-  useEffect(() => {
-    async function loadDashboardLocations() {
-      try {
-        const data = await getDashboardLokasiMall();
-        setDashboardLocations(Array.isArray(data) ? data : []);
-      } catch (_error) {
-        setDashboardLocations([]);
-      }
-    }
-
-    loadDashboardLocations();
-  }, []);
 
   useEffect(() => {
     const mappedId = floorToLocationId[selectedFloor];
@@ -237,28 +249,6 @@ export default function SelectParkingSpot() {
     };
   }, [activeMallId]);
 
-  useEffect(() => {
-    async function loadLocationImage() {
-      if (!activeMallId) return;
-
-      try {
-        const matched = dashboardLocations.find((d: any) => (d?.LokasiMall?.IDLokasiMall || 0) === Number(activeMallId));
-        const fotos = matched?.FotoLokasiMall ?? [];
-        if (Array.isArray(fotos) && fotos.length > 0) {
-          const first = fotos[0].FotoLokasi as string;
-          if (first) {
-            console.log('📸 Foto dari DB:', first);
-            // Fallback ke asset lokal karena backend belum serve /internal/foto/
-            setImageUri(null);
-          }
-        }
-      } catch (err) {
-        console.log('❌ Error loading foto:', err);
-      }
-    }
-
-    loadLocationImage();
-  }, [activeMallId, dashboardLocations]);
 
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (isSlotStatusesLoading) return;
@@ -408,11 +398,7 @@ export default function SelectParkingSpot() {
       {/* INFO CARD ATAS */}
       <View style={styles.infoCard}>
         <View style={styles.leftSection}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.cardImage} />
-          ) : (
-            <Image source={require('../../assets/images/G.jpg')} style={styles.cardImage} />
-          )}
+          <Image source={getFloorImage(selectedFloor)} style={styles.cardImage} />
           <Text style={styles.availableText}>Tersedia 120 Slot</Text>
         </View>
         <View style={styles.rightSection}>

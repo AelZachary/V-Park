@@ -16,7 +16,17 @@ import {
 } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
+import GroundFloor from '@/components/booking/floors/GroundFloor';
 import GroundFloorA from '@/components/booking/floors/GroundFloorA';
+import P1 from '@/components/booking/floors/P1';
+import P1A from '@/components/booking/floors/P1A';
+import P2 from '@/components/booking/floors/P2';
+import P2A from '@/components/booking/floors/P2A';
+import P3 from '@/components/booking/floors/P3';
+import P3A from '@/components/booking/floors/P3A';
+import P4 from '@/components/booking/floors/P4';
+import P4A from '@/components/booking/floors/P4A';
+import P5 from '@/components/booking/floors/P5';
 import { cancelBookingPengunjung } from '@/fetching/services/bookingActivityService';
 import { konfirmasiTiba } from '@/fetching/services/konfirmasiTibaService';
 
@@ -240,6 +250,41 @@ export default function KonfirmasiKedatangan() {
     }
   };
 
+  const renderFloorLayout = () => {
+    const layoutProps = {
+      selectedSlot: targetSlotId,
+      onSelectSlot: () => {},
+      slotStatuses: {},
+    };
+
+    switch (parkingFloor) {
+      case 'Ground Floor':
+        return <GroundFloor {...layoutProps} />;
+      case 'Ground Floor - Area A':
+        return <GroundFloorA {...layoutProps} />;
+      case 'Lantai P1':
+        return <P1 {...layoutProps} />;
+      case 'Lantai P1 - Area A':
+        return <P1A {...layoutProps} />;
+      case 'Lantai P2':
+        return <P2 {...layoutProps} />;
+      case 'Lantai P2 - Area A':
+        return <P2A {...layoutProps} />;
+      case 'Lantai P3':
+        return <P3 {...layoutProps} />;
+      case 'Lantai P3 - Area A':
+        return <P3A {...layoutProps} />;
+      case 'Lantai P4':
+        return <P4 {...layoutProps} />;
+      case 'Lantai P4 - Area A':
+        return <P4A {...layoutProps} />;
+      case 'Lantai P5':
+        return <P5 {...layoutProps} />;
+      default:
+        return <GroundFloorA {...layoutProps} />;
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -301,7 +346,7 @@ export default function KonfirmasiKedatangan() {
         {/* Detail Lokasi Tempat Parkir */}
         <View style={styles.locationMapCard}>
           <Text style={styles.locationMapHeading}>Detail Lokasi Tempat Parkir</Text>
-          
+
           <View style={styles.miniMapFrame}>
             <ScrollView 
               nestedScrollEnabled={true}
@@ -309,7 +354,7 @@ export default function KonfirmasiKedatangan() {
               contentContainerStyle={styles.miniMapVerticalContent}
             >
               <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                <GroundFloorA selectedSlot={targetSlotId} onSelectSlot={() => {}} />
+                {renderFloorLayout()}
               </ScrollView>
             </ScrollView>
           </View>
