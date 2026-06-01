@@ -1,5 +1,5 @@
 import { COLORS } from '@/constants/theme';
-import { konfirmasiSelesai } from '@/fetching/services/konfirmasiSelesaiService';
+import { konfirmasiSelesai, type KonfirmasiSelesaiResponse } from '@/fetching/services/konfirmasiSelesaiService';
 import { getDashboardLokasiMall } from '@/fetching/services/dashboardService';
 import { getTempatParkir } from '@/fetching/services/tempatparkirService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -152,11 +152,17 @@ function StepIcon({ status }: { status: 'pending' | 'loading' | 'success' }) {
 
 export default function MemprosesPembayaran() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string }>();
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string; bookingTimeIso?: string }>();
   const progressAnim = useRef(new Animated.Value(0)).current;
   const hasSubmittedCompletionRef = useRef(false);
   const [stepOneStatus, setStepOneStatus] = useState<'pending' | 'loading' | 'success'>('loading');
   const [stepTwoStatus, setStepTwoStatus] = useState<'pending' | 'loading' | 'success'>('pending');
+  const [completionData, setCompletionData] = useState<KonfirmasiSelesaiResponse | null>(null);
+  const [transaction, setTransaction] = useState({
+    lokasi: 'Trans Studio Mall Makassar',
+    slotParkir: params.floor || 'Ground Floor',
+    totalPembayaran: 'Rp 20.000',
+  });
 
   useEffect(() => {
     Animated.timing(progressAnim, {
@@ -194,8 +200,15 @@ export default function MemprosesPembayaran() {
         const bookingID = Number(params.bookingID);
 
         try {
+          let completion: KonfirmasiSelesaiResponse | null = null;
           if (Number.isFinite(bookingID) && bookingID > 0) {
-            const completion = await konfirmasiSelesai(bookingID);
+            completion = await konfirmasiSelesai(bookingID);
+            setCompletionData(completion);
+            setTransaction({
+              lokasi: completion.LokasiMall.AlamatLokasi || params.floor || 'Ground Floor',
+              slotParkir: params.floor || completion.TempatParkir.KodeTempat || 'Ground Floor',
+              totalPembayaran: `Rp ${completion.Pembayaran.TotalPembayaran.toLocaleString('id-ID')}`,
+            });
             console.log('✓ Konfirmasi selesai berhasil:', completion);
           }
 
@@ -207,7 +220,7 @@ export default function MemprosesPembayaran() {
             ]);
           }
 
-          router.push({
+          router.replace({
             pathname: '/user/paymentSuccessful',
             params: {
               bookingID: params.bookingID || '',
@@ -215,6 +228,21 @@ export default function MemprosesPembayaran() {
               floor: params.floor || '',
               arrivedAt: params.arrivedAt || '',
               mallId: params.mallId || '',
+              bookingName: params.bookingName || '',
+              phone: params.phone || '',
+              vehicleType: params.vehicleType || '',
+              platNumber: params.platNumber || '',
+              bookingTimeIso: params.bookingTimeIso || '',
+              noOrder: completion?.Pembayaran.IDPembayaran ? String(completion.Pembayaran.IDPembayaran) : '',
+              lokasi: completion?.LokasiMall.AlamatLokasi || params.floor || '',
+              area: params.floor || '',
+              slotLabel: params.slot || '',
+              platKendaraan: params.platNumber || '',
+              waktuTiba: completion?.RiwayatBooking.WaktuMasuk || params.arrivedAt || '',
+              durasi: completion?.RiwayatBooking.DurasiParkir ? `${completion.RiwayatBooking.DurasiParkir} Jam` : '',
+              totalBiaya: completion ? `Rp ${((completion.Pembayaran.BiayaLayanan || 0) + (completion.Pembayaran.BiayaPajak || 0)).toLocaleString('id-ID')}` : 'Rp 20.000',
+              totalPembayaran: completion ? `Rp ${completion.Pembayaran.TotalPembayaran.toLocaleString('id-ID')}` : 'Rp 20.000',
+              waktuTransaksi: completion?.Pembayaran.WaktuPembayaran || new Date().toISOString(),
             },
           });
         } catch (error) {
@@ -300,17 +328,17 @@ export default function MemprosesPembayaran() {
 
           <View style={styles.biayaRow}>
             <Text style={styles.biayaLabel}>Lokasi</Text>
-            <Text style={styles.biayaValue}>{TRANSACTION.lokasi}</Text>
+            <Text style={styles.biayaValue}>{transaction.lokasi}</Text>
           </View>
 
           <View style={styles.biayaRow}>
             <Text style={styles.biayaLabel}>Area</Text>
-            <Text style={styles.biayaValue}>{TRANSACTION.slotParkir}</Text>
+            <Text style={styles.biayaValue}>{transaction.slotParkir}</Text>
           </View>
 
           <View style={styles.biayaRow}>
             <Text style={styles.totalLabel}>Total Pembayaran</Text>
-            <Text style={styles.totalValue}>{TRANSACTION.totalPembayaran}</Text>
+            <Text style={styles.totalValue}>{transaction.totalPembayaran}</Text>
           </View>
         </View>
 

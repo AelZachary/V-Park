@@ -143,7 +143,7 @@ function PlatCarIcon() {
 
 export default function KonfirmasiKedatangan() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; mallId?: string; bookingTimeIso?: string }>();
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; mallId?: string; bookingTimeIso?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string }>();
   const [now, setNow] = useState(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -170,8 +170,8 @@ export default function KonfirmasiKedatangan() {
   const rawSlotValue = params.slot || 'Unknown';
   const targetSlotId = rawSlotValue;
   const bookingID = Number(params?.bookingID);
-  const vehicleType = 'Mobil';
-  const platNumber = 'DD 1234 TNF';
+  const vehicleType = params.vehicleType || 'Mobil';
+  const platNumber = params.platNumber || 'DD 1234 TNF';
 
   const handlePressBack = () => {
     try {
@@ -199,7 +199,7 @@ export default function KonfirmasiKedatangan() {
 
       const result = await konfirmasiTiba(bookingID);
       console.log('✓ Konfirmasi Tiba berhasil:', result);
-      router.push({
+      router.replace({
         pathname: '/user/KonfirmasiSelesaiParkir',
         params: {
           bookingID: String(bookingID),
@@ -207,6 +207,11 @@ export default function KonfirmasiKedatangan() {
           floor: parkingFloor,
           mallId: params.mallId || '',
           arrivedAt: result?.RiwayatBooking?.WaktuMasuk || new Date().toISOString(),
+          bookingName: params.bookingName || '',
+          phone: params.phone || '',
+          vehicleType: params.vehicleType || '',
+          platNumber: params.platNumber || '',
+          bookingTimeIso: params.bookingTimeIso || '',
         },
       });
     } catch (err) {

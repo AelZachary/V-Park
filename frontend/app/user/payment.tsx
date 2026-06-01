@@ -69,7 +69,7 @@ function formatCountdown(totalSeconds: number) {
 }
 
 export default function PembayaranQris() {
-  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string }>();
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string; bookingTimeIso?: string }>();
   const [detailExpanded, setDetailExpanded] = useState(true);
   const [stepsExpanded, setStepsExpanded] = useState(true);
   const [countdown, setCountdown] = useState(PAYMENT_COUNTDOWN_SECONDS);
@@ -200,7 +200,7 @@ export default function PembayaranQris() {
           {/* 🌟 FIKS 4: Ganti Image statis menjadi komponen QRCode dinamis library */}
           <TouchableOpacity 
             style={styles.qrWrapper}
-            onPress={() => router.push({
+            onPress={() => router.replace({
               pathname: '/user/paymentProcessing',
               params: {
                 bookingID: params.bookingID || '',
@@ -208,6 +208,11 @@ export default function PembayaranQris() {
                 floor: params.floor || '',
                 arrivedAt: params.arrivedAt || '',
                 mallId: params.mallId || '',
+                bookingName: params.bookingName || '',
+                phone: params.phone || '',
+                vehicleType: params.vehicleType || '',
+                platNumber: params.platNumber || '',
+                bookingTimeIso: params.bookingTimeIso || '',
               },
             })}
             activeOpacity={0.9}

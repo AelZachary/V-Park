@@ -25,12 +25,14 @@ function formatTime(totalSeconds: number) {
 
 export default function KonfirmasiSelesaiParkir() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string }>();
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingTimeIso?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string }>();
   const [now, setNow] = useState(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const bookingID = Number(params.bookingID);
   const parkingFloor = params.floor || 'Ground Floor';
   const rawSlotValue = params.slot || 'Unknown';
+  const vehicleType = params.vehicleType || 'Mobil';
+  const platNumber = params.platNumber || 'DD 1234 TNF';
 
   const arrivedAtMs = useMemo(() => {
     if (!params.arrivedAt) {
@@ -120,7 +122,7 @@ export default function KonfirmasiSelesaiParkir() {
             <View style={styles.verticalDivider} />
             <View style={styles.slotBlock}>
               <Text style={styles.slotLabel}>Plat Kendaraan</Text>
-              <Text style={styles.platValue}>DD 1234 TNF</Text>
+              <Text style={styles.platValue}>{platNumber}</Text>
             </View>
           </View>
         </View>
@@ -172,7 +174,7 @@ export default function KonfirmasiSelesaiParkir() {
         </View>
 
         <TouchableOpacity style={styles.confirmButton} activeOpacity={0.85}
-        onPress={() => router.push({
+        onPress={() => router.replace({
           pathname: '/user/payment',
           params: {
             bookingID: Number.isFinite(bookingID) && bookingID > 0 ? String(bookingID) : '',
@@ -180,6 +182,11 @@ export default function KonfirmasiSelesaiParkir() {
             floor: parkingFloor,
             arrivedAt: params.arrivedAt || '',
             mallId: params.mallId || '',
+            bookingName: params.bookingName || '',
+            phone: params.phone || '',
+            vehicleType: params.vehicleType || vehicleType,
+            platNumber: params.platNumber || platNumber,
+            bookingTimeIso: params.bookingTimeIso || '',
           },
         })}>
           <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
