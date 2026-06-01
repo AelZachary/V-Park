@@ -14,9 +14,11 @@ import P5 from '@/components/booking/floors/P5';
 import { Ionicons } from '@expo/vector-icons';
 import { toggleMonitoringPetugas, type ToggleMonitoringPetugasResponse } from '../../fetching/services/monitoringPetugasService';
 import { getTempatParkir } from '@/fetching/services/tempatparkirService';
-import { router } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   Modal,
   ScrollView,
@@ -125,13 +127,164 @@ function ConfirmSlotsPopup({ visible, slots = [], onClose, onConfirmSubmit, mode
   );
 }
 
+type SlotDetail = {
+  id: number;
+  rawStatus: string;
+  mappedStatus: 'available' | 'occupied' | 'online' | 'manual';
+  kodeTempat: string;
+};
+
 export default function ConfirmParkingSpot() {
+  const params = useLocalSearchParams<{ slot?: string; floor?: string; mallId?: string }>();
   const [selectedFloor, setSelectedFloor] = useState('Ground Floor');
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [confirmedSlots, setConfirmedSlots] = useState<string[]>([]);
-  
+  const [backendSlots, setBackendSlots] = useState<Record<string, SlotDetail>>({});
+  const [activeMallId, setActiveMallId] = useState<number>(Number(params.mallId || 0));
+  const [isSlotDataLoading, setIsSlotDataLoading] = useState(true);
+  const [slotDataError, setSlotDataError] = useState<string | null>(null);
+
   const [justConfirmedSlots, setJustConfirmedSlots] = useState<string[]>([]);
   const [popupVisible, setPopupVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (params.floor) {
+      setSelectedFloor(String(params.floor));
+    }
+    if (params.slot) {
+      setSelectedSlots([String(params.slot)]);
+    }
+  }, [params.floor, params.slot]);
+
+  const floorToLocationId: Record<string, number> = {
+    'Ground Floor': 1,
+    'Ground Floor - Area A': 2,
+    'Lantai P1': 3,
+    'Lantai P1 - Area A': 4,
+    'Lantai P2': 5,
+    'Lantai P2 - Area A': 6,
+    'Lantai P3': 7,
+    'Lantai P3 - Area A': 8,
+    'Lantai P4': 9,
+    'Lantai P4 - Area A': 10,
+    'Lantai P5': 11,
+  };
+
+  useEffect(() => {
+    if (selectedFloor && floorToLocationId[selectedFloor]) {
+      setActiveMallId(floorToLocationId[selectedFloor]);
+    }
+  }, [selectedFloor]);
+
+  const normalizeSlotCode = (rawCode: string) => {
+    const trimmed = String(rawCode || '').trim();
+    if (!trimmed) return '';
+
+    const collapsed = trimmed.replace(/\s+/g, ' ');
+    const parts = collapsed.split(/\s*[-–—/\\]\s*|\s+/).filter(Boolean);
+    const normalized = parts.length > 0 ? parts[parts.length - 1] : collapsed;
+    return normalized.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  };
+
+  const normalizeStatusLabel = (rawStatus: string) =>
+    String(rawStatus || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+
+  const mapBackendStatus = (rawStatus: string): SlotDetail['mappedStatus'] => {
+    switch (normalizeStatusLabel(rawStatus)) {
+      case 'tersedia':
+      case 'kosong':
+      case 'available':
+      case 'empty':
+        return 'available';
+      case 'terisi':
+      case 'occupied':
+      case 'penuh':
+        return 'occupied';
+      case 'dipesan':
+      case 'booked':
+      case 'bookingonline':
+        return 'online';
+      case 'bookingmanual':
+      case 'manual':
+      case 'perawatan':
+        return 'manual';
+      default:
+        return 'manual';
+    }
+  };
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadBackendSlots() {
+      if (!activeMallId) {
+        setSlotDataError('ID lokasi parkir tidak ditemukan');
+        setBackendSlots({});
+        setIsSlotDataLoading(false);
+        return;
+      }
+
+      setIsSlotDataLoading(true);
+      setSlotDataError(null);
+
+      try {
+        const payload = await getTempatParkir(activeMallId);
+        if (!isActive) return;
+
+        const source = payload as any;
+        const slots = Array.isArray(source?.tempat_parkir)
+          ? source.tempat_parkir
+          : Array.isArray(source?.TempatParkir)
+          ? source.TempatParkir
+          : Array.isArray(source?.data?.tempat_parkir)
+          ? source.data.tempat_parkir
+          : [];
+
+        const mapped: Record<string, SlotDetail> = {};
+
+        slots.forEach((slot: any) => {
+          const rawKode = String(slot.KodeTempat || slot.kode_tempat || '').trim();
+          const code = normalizeSlotCode(rawKode);
+          if (!code) return;
+
+          const rawStatus = String(slot.StatusTempatParkir || slot.status_tempat_parkir || '');
+          mapped[code] = {
+            id: Number(slot.IDTempatParkir || slot.id_tempat_parkir || 0),
+            rawStatus,
+            mappedStatus: mapBackendStatus(rawStatus),
+            kodeTempat: rawKode,
+          };
+        });
+
+        setBackendSlots(mapped);
+      } catch (error) {
+        console.log('❌ Error loading backend slot data:', error);
+        setSlotDataError(error instanceof Error ? error.message : String(error));
+        setBackendSlots({});
+      } finally {
+        if (isActive) {
+          setIsSlotDataLoading(false);
+        }
+      }
+    }
+
+    loadBackendSlots();
+
+    return () => {
+      isActive = false;
+    };
+  }, [activeMallId]);
+
+  const isSlotActionAllowed = (slotCode: string) => {
+    const detail = backendSlots[normalizeSlotCode(slotCode)];
+    return detail?.mappedStatus === 'available' || detail?.mappedStatus === 'occupied';
+  };
+
+  const getSlotDetail = (slotCode: string) => backendSlots[normalizeSlotCode(slotCode)];
 
   // State untuk melacak mode pop-up yang aktif ('isi' untuk nambah mobil, 'hapus' untuk buang mobil)
   const [popupMode, setPopupMode] = useState<'isi' | 'hapus'>('isi');
@@ -158,7 +311,11 @@ export default function ConfirmParkingSpot() {
 
   const slotStatuses = useMemo(() => {
     const statuses: Record<string, 'available' | 'selected' | 'manual' | 'online' | 'occupied'> = {};
-    
+
+    Object.entries(backendSlots).forEach(([code, detail]) => {
+      statuses[code] = detail.mappedStatus;
+    });
+
     confirmedSlots.forEach((slot) => {
       statuses[slot] = 'occupied';
     });
@@ -172,10 +329,12 @@ export default function ConfirmParkingSpot() {
     });
 
     return statuses;
-  }, [selectedSlots, confirmedSlots, clearedManualSlots]);
+  }, [backendSlots, selectedSlots, confirmedSlots, clearedManualSlots]);
 
   // Logika Saklar Estafet Cerdas
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
+    if (isSlotDataLoading || isSubmitting) return;
+
     // Enforce mutual-exclusive selection: if already have selections originating from occupied (hapus),
     // prevent selecting available slots, and vice versa.
     const hasOriginOccupied = Object.values(originIsOccupied).some((v) => v === true) || selectedSlots.some((s) => originIsOccupied[s]);
@@ -207,9 +366,17 @@ export default function ConfirmParkingSpot() {
 
   // Tombol Bottom Ditekan -> Cek apakah ini antrean ISI atau antrean HAPUS
   const handleConfirmStage = () => {
-    if (!selectedSlots.length) return;
+    if (!selectedSlots.length || isSlotDataLoading || isSubmitting) return;
 
-    // Cek sampel slot pertama di antrean, apakah asalnya dari mobil merah?
+    const invalidSlots = selectedSlots.filter((slotCode) => !isSlotActionAllowed(slotCode));
+    if (invalidSlots.length > 0) {
+      Alert.alert(
+        'Slot tidak dapat diproses',
+        `Slot ${invalidSlots.join(', ')} tidak dapat diproses karena statusnya tidak mendukung perubahan.`
+      );
+      return;
+    }
+
     const sampleSlot = selectedSlots[0];
     const isHapusMode = originIsOccupied[sampleSlot] === true;
 
@@ -220,45 +387,34 @@ export default function ConfirmParkingSpot() {
 
   // Tombol di dalam Pop-up Ditekan -> Eksekusi Final simpan ke database state
   const handleSubmitFinal = () => {
-    // Persist to backend using monitoring API per slot
     (async () => {
+      setIsSubmitting(true);
       try {
         const results = await Promise.all<ToggleMonitoringPetugasResponse>(
           justConfirmedSlots.map(async (kode) => {
-            // We need to map kode (e.g., 'L1') to IDTempatParkir. The SSE payload contains ID in tempatparkir data
-            // For now, try to parse number suffix from kode (if exists) or call getTempatParkir to find mapping
-            // Simpler approach: call getTempatParkir and find matching KodeTempat.
-            const payload = await getTempatParkir(floorOptions.indexOf(selectedFloor) + 1);
-            const list = Array.isArray((payload as any)?.tempat_parkir)
-              ? (payload as any).tempat_parkir
-              : Array.isArray((payload as any)?.TempatParkir)
-                ? (payload as any).TempatParkir
-                : Array.isArray((payload as any)?.data?.tempat_parkir)
-                  ? (payload as any).data.tempat_parkir
-                  : [];
-
-            const matched = list.find((s: any) => {
-              const code = String(s.KodeTempat || s.kode_tempat || '').trim();
-              return code.split(/\s+/).pop() === kode || code === kode || (s.IDTempatParkir && String(s.IDTempatParkir) === kode);
-            });
-
-            if (!matched || !matched.IDTempatParkir) {
+            const detail = getSlotDetail(kode);
+            if (!detail || !detail.id) {
               throw new Error(`IDTempatParkir not found for ${kode}`);
             }
 
-            const id = Number(matched.IDTempatParkir);
-            const res = await toggleMonitoringPetugas(id);
-            return res;
+            if (detail.mappedStatus !== 'available' && detail.mappedStatus !== 'occupied') {
+              throw new Error(`Slot ${kode} memiliki status tidak valid: ${detail.rawStatus}`);
+            }
+
+            return await toggleMonitoringPetugas(detail.id);
           })
         );
 
-        // Update local state according to responses
         if (popupMode === 'isi') {
-          const newly = results.map((r) => r.TempatParkir.KodeTempat?.split(' ').pop()).filter(Boolean) as string[];
+          const newly = results
+            .map((r) => normalizeSlotCode(String(r.TempatParkir.KodeTempat || '')))
+            .filter(Boolean) as string[];
           setConfirmedSlots((prev) => Array.from(new Set([...prev, ...newly])));
           setClearedManualSlots((prev) => prev.filter((slot) => !justConfirmedSlots.includes(slot)));
         } else {
-          const newlyCleared = results.map((r) => r.TempatParkir.KodeTempat?.split(' ').pop()).filter(Boolean) as string[];
+          const newlyCleared = results
+            .map((r) => normalizeSlotCode(String(r.TempatParkir.KodeTempat || '')))
+            .filter(Boolean) as string[];
           setConfirmedSlots((prev) => prev.filter((slot) => !justConfirmedSlots.includes(slot)));
           setClearedManualSlots((prev) => Array.from(new Set([...prev, ...newlyCleared])));
         }
@@ -267,8 +423,11 @@ export default function ConfirmParkingSpot() {
         setOriginIsOccupied({});
         setPopupVisible(false);
       } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
         console.log('❌ Failed to persist monitoring actions:', err);
-        // keep popup open so user can retry
+        Alert.alert('Gagal menyimpan perubahan', errorMsg);
+      } finally {
+        setIsSubmitting(false);
       }
     })();
   };
@@ -279,75 +438,117 @@ export default function ConfirmParkingSpot() {
   };
 
   const renderFloorLayout = () => {
+    const selectedSlot = selectedSlots.length > 0 ? selectedSlots[selectedSlots.length - 1] : null;
+
     switch (selectedFloor) {
       case 'Ground Floor':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <GroundFloor onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <GroundFloor
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Ground Floor - Area A':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <GroundFloorA 
-              onSelectSlot={handleSelectSlot} 
-              slotStatuses={slotStatuses} 
-              selectedSlot={selectedSlots.length > 0 ? selectedSlots[selectedSlots.length - 1] : null} 
+            <GroundFloorA
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
             />
           </ScrollView>
         );
       case 'Lantai P1':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P1 onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P1
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Lantai P1 - Area A':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P1A onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P1A
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Lantai P2':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P2 onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P2
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Lantai P2 - Area A':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P2A onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P2A
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Lantai P3':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P3 onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P3
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Lantai P3 - Area A':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P3A onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P3A
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Lantai P4':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P4 onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P4
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Lantai P4 - Area A':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P4A onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P4A
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       case 'Lantai P5':
         return (
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <P5 onSelectSlot={handleSelectSlot} slotStatuses={slotStatuses} />
+            <P5
+              selectedSlot={selectedSlot}
+              onSelectSlot={handleSelectSlot}
+              slotStatuses={slotStatuses}
+            />
           </ScrollView>
         );
       default:
@@ -429,7 +630,20 @@ export default function ConfirmParkingSpot() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.mapContainer}>{renderFloorLayout()}</View>
+        <View style={[styles.mapContainer, isSlotDataLoading && styles.loadingMapContainer]}>
+          {isSlotDataLoading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator size="large" color="#FFFFFF" />
+              <Text style={styles.loadingText}>Memuat status slot parkir...</Text>
+            </View>
+          ) : slotDataError ? (
+            <View style={styles.loadingState}>
+              <Text style={styles.loadingText}>Terjadi kesalahan: {slotDataError}</Text>
+            </View>
+          ) : (
+            renderFloorLayout()
+          )}
+        </View>
       </ScrollView>
 
       {/* BOTTOM CONFIRM CONTAINER */}
@@ -437,12 +651,12 @@ export default function ConfirmParkingSpot() {
         <TouchableOpacity
           style={[
             styles.confirmButton, 
-            !selectedSlots.length && styles.disabledButton,
+            (!selectedSlots.length || isSlotDataLoading || isSubmitting) && styles.disabledButton,
             selectedSlots.length > 0 && originIsOccupied[selectedSlots[0]] && { backgroundColor: '#D32F2F' } // Berubah jadi merah jika mendeteksi hapus bokingan
           ]}
           activeOpacity={0.8}
           onPress={handleConfirmStage}
-          disabled={!selectedSlots.length}
+          disabled={!selectedSlots.length || isSlotDataLoading || isSubmitting}
         >
           <Text style={styles.confirmText}>{getBottomButtonText()}</Text>
         </TouchableOpacity>
@@ -459,6 +673,16 @@ export default function ConfirmParkingSpot() {
         onConfirmSubmit={handleSubmitFinal}
         mode={popupMode} // 🌟 OPER STATE MODE NYA DI SINI
       />
+
+      {isSubmitting && (
+        <View style={styles.submittingOverlay} pointerEvents="auto">
+          <View style={styles.submittingCard}>
+            <ActivityIndicator size="large" color="#1565C0" />
+            <Text style={styles.submittingTitle}>Menyimpan perubahan...</Text>
+            <Text style={styles.submittingSubtitle}>Tunggu sebentar sampai aksi berhasil diproses.</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -570,6 +794,60 @@ const styles = StyleSheet.create({
         alignSelf: 'center', 
         width: 'auto', 
         minWidth: 300 
+    },
+    loadingMapContainer: {
+      minHeight: 320,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingState: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: '100%',
+      paddingVertical: 24,
+    },
+    loadingText: {
+      marginTop: 14,
+      color: '#FFFFFF',
+      fontSize: 14,
+      textAlign: 'center',
+      maxWidth: '80%',
+    },
+    submittingOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 99,
+    },
+    submittingCard: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 20,
+      padding: 24,
+      width: '80%',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 6,
+    },
+    submittingTitle: {
+      marginTop: 16,
+      fontSize: 16,
+      fontWeight: '700',
+      color: '#1565C0',
+      textAlign: 'center',
+    },
+    submittingSubtitle: {
+      marginTop: 8,
+      fontSize: 13,
+      color: '#444',
+      textAlign: 'center',
+      lineHeight: 18,
     },
     scrollContent: { 
         paddingHorizontal: 17, 
