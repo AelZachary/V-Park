@@ -16,12 +16,11 @@ type RiwayatAktifController struct {
 	DB *gorm.DB
 }
 
-func timePtr(value time.Time) *time.Time {
-	if value.IsZero() {
+func timePtr(value *time.Time) *time.Time {
+	if value == nil || value.IsZero() {
 		return nil
 	}
-	copyValue := value
-	return &copyValue
+	return value
 }
 
 type RiwayatAktifBookingResponse struct {

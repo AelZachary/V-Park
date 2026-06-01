@@ -31,8 +31,8 @@ func RiwayatBookingBulkSeeders(db *gorm.DB, bookings []models.Booking) []models.
 			status = "KonfirmasiSelesai"
 		}
 
-		var waktuMasuk time.Time
-		var waktuKeluar time.Time
+		var waktuMasuk *time.Time
+		var waktuKeluar *time.Time
 		var durasi int
 
 		if status == "Dibatalkan" || status == "MenungguKonfirmasi" {
@@ -41,15 +41,18 @@ func RiwayatBookingBulkSeeders(db *gorm.DB, bookings []models.Booking) []models.
 		} else if status == "KonfirmasiTiba" {
 			// Check-in done, no check-out yet
 			masukOffset := time.Duration(rand.Intn(120)) * time.Minute
-			waktuMasuk = b.WaktuBooking.Add(masukOffset)
+			value := b.WaktuBooking.Add(masukOffset)
+			waktuMasuk = &value
 			durasi = 0
 		} else if status == "KonfirmasiSelesai" {
 			// Check-in and check-out done, with duration in seconds
 			masukOffset := time.Duration(rand.Intn(120)) * time.Minute
-			waktuMasuk = b.WaktuBooking.Add(masukOffset)
+			value := b.WaktuBooking.Add(masukOffset)
+			waktuMasuk = &value
 			// Duration: 30 minutes to 8 hours (in seconds)
 			durasi = rand.Intn((8*3600)-(30*60)) + (30 * 60)
-			waktuKeluar = waktuMasuk.Add(time.Duration(durasi) * time.Second)
+			keluar := value.Add(time.Duration(durasi) * time.Second)
+			waktuKeluar = &keluar
 		}
 
 		riwayat := models.RiwayatBooking{

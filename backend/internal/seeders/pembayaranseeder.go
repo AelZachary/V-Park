@@ -47,6 +47,9 @@ func PembayaranBulkSeeders(db *gorm.DB, riwayats []models.RiwayatBooking) []mode
 		var waktuPembayaran *time.Time
 
 		if statusPembayaran == "Lunas" {
+			if r.WaktuKeluar == nil {
+				continue
+			}
 			waktu := r.WaktuKeluar.Add(time.Duration(rand.Intn(60)) * time.Minute)
 			waktuPembayaran = &waktu
 		}
