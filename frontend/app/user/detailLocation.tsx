@@ -162,7 +162,7 @@ export default function DetailLocation() {
     );
   }
 
-  if (error || !data) {
+  if (error) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
@@ -187,10 +187,13 @@ export default function DetailLocation() {
     );
   }
 
-  const parkingCode = params.slot || (data?.TempatParkir.KodeTempat.split(' ').pop() || data?.TempatParkir.KodeTempat);
+  const hasActiveHistory = Boolean(data);
+  const parkingCode = params.slot || data?.TempatParkir?.KodeTempat?.split(' ').pop() || data?.TempatParkir?.KodeTempat || '';
   const parkingFloor = params.floor || 'Ground Floor';
-  const locationAddress = data?.LokasiMall.AlamatLokasi || 'N/A';
-  const bookingTime = data ? new Date(data.Booking.WaktuBooking).toLocaleString('id-ID') : 'N/A';
+  const locationAddress = data?.LokasiMall?.AlamatLokasi || 'Alamat tidak tersedia';
+  const bookingTime = data?.Booking?.WaktuBooking
+    ? new Date(data.Booking.WaktuBooking).toLocaleString('id-ID')
+    : 'Belum ada riwayat aktif';
 
   return (
     <View style={styles.container}>
@@ -207,6 +210,14 @@ export default function DetailLocation() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {!hasActiveHistory && (
+          <View style={styles.emptyNoticeBox}>
+            <Ionicons name="information-circle-outline" size={18} color="#1565C0" />
+            <Text style={styles.emptyNoticeText}>
+              Belum ada riwayat aktif. Kamu bisa membuat booking baru atau kembali.
+            </Text>
+          </View>
+        )}
         <Image
           source={PARKING_IMAGES[selectedImage]}
           style={styles.mainImage}
@@ -562,5 +573,23 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: '#607080',
     textAlign: 'center',
+  },
+  emptyNoticeBox: {
+    marginHorizontal: 16,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: 'rgba(21,101,192,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(21,101,192,0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  emptyNoticeText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1565C0',
+    lineHeight: 18,
   },
 });
