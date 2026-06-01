@@ -100,7 +100,12 @@ func (c *MonitoringPetugasController) ToggleMonitoringHandler(w http.ResponseWri
 
 		now := time.Now()
 
-		var monitoring models.Monitoring
+		monitoring := models.Monitoring{
+			IDPetugas:       uint(idPetugas),
+			IDTempatParkir:  req.IDTempatParkir,
+			WaktuMonitoring: now,
+		}
+
 		if err := tx.Where("id_petugas = ? AND id_tempat_parkir = ?", uint(idPetugas), req.IDTempatParkir).
 			Assign(models.Monitoring{WaktuMonitoring: now}).
 			FirstOrCreate(&monitoring).Error; err != nil {
