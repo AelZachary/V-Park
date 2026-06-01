@@ -1,6 +1,7 @@
 import { ParkingHistory } from "@/models/ParkingHistory";
 import { useEffect, useState } from 'react';
 import { getFinishedBookings } from '@/fetching/services/bookingActivityService';
+import { getLokasiDisplayName } from '@/fetching/response/locationDisplayName';
 
 export function useActivityHistoryVM() {
   const [historyData, setHistoryData] = useState<ParkingHistory[]>([]);
@@ -29,7 +30,7 @@ export function useActivityHistoryVM() {
           return {
             id: item.Booking.IDBooking,
             date,
-            mall: item.LokasiMall.AlamatLokasi,
+            mall: getLokasiDisplayName(item.LokasiMall),
             area: item.TempatParkir.KodeTempat,
             checkIn,
             checkOut,

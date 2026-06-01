@@ -9,6 +9,7 @@ type GroundFloorProps = {
   selectedSlot?: string | null;
   onSelectSlot: (slotId: string, currentStatus: string) => void;
   slotStatuses?: Record<string, SlotStatus>;
+  forceEnable?: boolean;
 };
 
 const resolveSlotStatus = (
@@ -29,7 +30,7 @@ const resolveSlotStatus = (
   return baseStatus;
 };
 
-export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }: GroundFloorProps) {
+export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses, forceEnable = false }: GroundFloorProps) {
   return (
     <View style={styles.parkingLayout}>
       <View style={styles.rowGroup}>
@@ -38,33 +39,33 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
         <View style={styles.sideColumn}>
           {/* BLOK 1: R1, R2, spacer */}
           <View style={styles.block3Rows}>
-            <ParkingSlot disabled={false} slot="R1" status={resolveSlotStatus("R1", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R1", resolveSlotStatus("R1", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R1" status={resolveSlotStatus("R1", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R1", resolveSlotStatus("R1", "manual", slotStatuses, selectedSlot))} />
             <View style={styles.spacerSlot} />
-            <ParkingSlot disabled={false} slot="R2" status={resolveSlotStatus("R2", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R2", resolveSlotStatus("R2", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R2" status={resolveSlotStatus("R2", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R2", resolveSlotStatus("R2", "manual", slotStatuses, selectedSlot))} />
           </View>
           <View style={styles.groupDividerLeft} />
 
           {/* BLOK 2: R3, R4, R5 */}
           <View style={styles.block3Rows}>
-            <ParkingSlot disabled={false} slot="R3" status={resolveSlotStatus("R3", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R3", resolveSlotStatus("R3", "manual", slotStatuses, selectedSlot))} />
-            <ParkingSlot disabled={false} slot="R4" status={resolveSlotStatus("R4", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R4", resolveSlotStatus("R4", "manual", slotStatuses, selectedSlot))} />
-            <ParkingSlot disabled={false} slot="R5" status={resolveSlotStatus("R5", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R5", resolveSlotStatus("R5", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R3" status={resolveSlotStatus("R3", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R3", resolveSlotStatus("R3", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R4" status={resolveSlotStatus("R4", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R4", resolveSlotStatus("R4", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R5" status={resolveSlotStatus("R5", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R5", resolveSlotStatus("R5", "manual", slotStatuses, selectedSlot))} />
           </View>
           <View style={styles.groupDividerLeft} />
 
           {/* BLOK 3: R6, R7, R8 */}
           <View style={styles.block3Rows}>
-            <ParkingSlot disabled={false} slot="R6" status={resolveSlotStatus("R6", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R6", resolveSlotStatus("R6", "manual", slotStatuses, selectedSlot))} />
-            <ParkingSlot disabled={false} slot="R7" status={resolveSlotStatus("R7", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R7", resolveSlotStatus("R7", "manual", slotStatuses, selectedSlot))} />
-            <ParkingSlot disabled={false} slot="R8" status={resolveSlotStatus("R8", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R8", resolveSlotStatus("R8", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R6" status={resolveSlotStatus("R6", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R6", resolveSlotStatus("R6", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R7" status={resolveSlotStatus("R7", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R7", resolveSlotStatus("R7", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R8" status={resolveSlotStatus("R8", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R8", resolveSlotStatus("R8", "manual", slotStatuses, selectedSlot))} />
           </View>
           <View style={styles.groupDividerLeft} />
 
           {/* BLOK 4: R9, R10, R11 */}
           <View style={styles.block3Rows}>
-            <ParkingSlot disabled={false} slot="R9" status={resolveSlotStatus("R9", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R9", resolveSlotStatus("R9", "manual", slotStatuses, selectedSlot))} />
-            <ParkingSlot disabled={false} slot="R10" status={resolveSlotStatus("R10", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R10", resolveSlotStatus("R10", "manual", slotStatuses, selectedSlot))} />
-            <ParkingSlot disabled={false} slot="R11" status={resolveSlotStatus("R11", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R11", resolveSlotStatus("R11", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R9" status={resolveSlotStatus("R9", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R9", resolveSlotStatus("R9", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R10" status={resolveSlotStatus("R10", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R10", resolveSlotStatus("R10", "manual", slotStatuses, selectedSlot))} />
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R11" status={resolveSlotStatus("R11", "manual", slotStatuses, selectedSlot)} side="left" onPress={() => onSelectSlot("R11", resolveSlotStatus("R11", "manual", slotStatuses, selectedSlot))} />
           </View>
           <View style={styles.groupDividerLeft} />
 
@@ -78,14 +79,14 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
 
           {/* BLOK 6: R12, R13, R14 */}
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="R12" status={resolveSlotStatus("R12", "online", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot disabled={false}
+            <ParkingSlot disabled={forceEnable ? false : undefined} slot="R12" status={resolveSlotStatus("R12", "online", slotStatuses, selectedSlot)} side="left" />
+            <ParkingSlot disabled={forceEnable ? false : undefined}
               slot="R13" 
               status={resolveSlotStatus("R13", "available", slotStatuses, selectedSlot)}
               side="left" 
               onPress={() => onSelectSlot('R13', resolveSlotStatus("R13", "available", slotStatuses, selectedSlot))}
             />
-            <ParkingSlot disabled={false}
+            <ParkingSlot disabled={forceEnable ? false : undefined}
               slot="R14" 
               status={resolveSlotStatus("R14", "available", slotStatuses, selectedSlot)} 
               side="left" 
@@ -96,7 +97,7 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses }
 
           {/* BLOK 7: R15, R16, R17 */}
           <View style={styles.block3Rows}>
-            <ParkingSlot disabled={false}
+            <ParkingSlot disabled={forceEnable ? false : undefined}
               slot="R15" 
               status={resolveSlotStatus("R15", "available", slotStatuses, selectedSlot)} 
               side="left" 

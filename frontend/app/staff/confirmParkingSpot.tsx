@@ -12,6 +12,8 @@ import P4 from '@/components/booking/floors/P4';
 import P4A from '@/components/booking/floors/P4A';
 import P5 from '@/components/booking/floors/P5';
 import { Ionicons } from '@expo/vector-icons';
+import { toggleMonitoringPetugas, type ToggleMonitoringPetugasResponse } from '../../fetching/services/monitoringPetugasService';
+import { getTempatParkir } from '@/fetching/services/tempatparkirService';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
@@ -174,15 +176,20 @@ export default function ConfirmParkingSpot() {
 
   // Logika Saklar Estafet Cerdas
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
+    // Enforce mutual-exclusive selection: if already have selections originating from occupied (hapus),
+    // prevent selecting available slots, and vice versa.
+    const hasOriginOccupied = Object.values(originIsOccupied).some((v) => v === true) || selectedSlots.some((s) => originIsOccupied[s]);
+    const hasOriginAvailable = selectedSlots.length > 0 && !hasOriginOccupied;
+
     if (currentStatus === 'occupied' || currentStatus === 'manual') {
-      setOriginIsOccupied((prev) => ({ ...prev, [slotId]: true })); 
-      setSelectedSlots((prev) => [...prev, slotId]);
-      return; 
+      if (hasOriginAvailable) return; // cannot mix
+      setOriginIsOccupied((prev) => ({ ...prev, [slotId]: true }));
+      if (!selectedSlots.includes(slotId)) setSelectedSlots((prev) => [...prev, slotId]);
+      return;
     }
-    
+
     if (currentStatus === 'selected') {
       setSelectedSlots((prev) => prev.filter((slot) => slot !== slotId));
-      
       if (originIsOccupied[slotId]) {
         setOriginIsOccupied((prev) => ({ ...prev, [slotId]: false }));
       }
@@ -191,8 +198,9 @@ export default function ConfirmParkingSpot() {
 
     // JIKA SLOT HIJAU DIKLIK -> Berubah jadi Kuning (Antrean Isi)
     if (currentStatus === 'available') {
+      if (hasOriginOccupied) return; // cannot mix
       setOriginIsOccupied((prev) => ({ ...prev, [slotId]: false })); // Asalnya murni dari hijau
-      setSelectedSlots((prev) => [...prev, slotId]);
+      if (!selectedSlots.includes(slotId)) setSelectedSlots((prev) => [...prev, slotId]);
       return;
     }
   };
@@ -212,20 +220,57 @@ export default function ConfirmParkingSpot() {
 
   // Tombol di dalam Pop-up Ditekan -> Eksekusi Final simpan ke database state
   const handleSubmitFinal = () => {
-    if (popupMode === 'isi') {
-      // MODE ISI: Kunci jadi merah permanen
-      setConfirmedSlots((prev) => Array.from(new Set([...prev, ...justConfirmedSlots])));
-      setClearedManualSlots((prev) => prev.filter((slot) => !justConfirmedSlots.includes(slot)));
-    } else {
-      // MODE HAPUS: Singkirkan dari merah, paksa hapus jadi hijau bersih
-      setConfirmedSlots((prev) => prev.filter((slot) => !justConfirmedSlots.includes(slot)));
-      setClearedManualSlots((prev) => Array.from(new Set([...prev, ...justConfirmedSlots])));
-    }
+    // Persist to backend using monitoring API per slot
+    (async () => {
+      try {
+        const results = await Promise.all<ToggleMonitoringPetugasResponse>(
+          justConfirmedSlots.map(async (kode) => {
+            // We need to map kode (e.g., 'L1') to IDTempatParkir. The SSE payload contains ID in tempatparkir data
+            // For now, try to parse number suffix from kode (if exists) or call getTempatParkir to find mapping
+            // Simpler approach: call getTempatParkir and find matching KodeTempat.
+            const payload = await getTempatParkir(floorOptions.indexOf(selectedFloor) + 1);
+            const list = Array.isArray((payload as any)?.tempat_parkir)
+              ? (payload as any).tempat_parkir
+              : Array.isArray((payload as any)?.TempatParkir)
+                ? (payload as any).TempatParkir
+                : Array.isArray((payload as any)?.data?.tempat_parkir)
+                  ? (payload as any).data.tempat_parkir
+                  : [];
 
-    // Bersihkan semua antrean
-    setSelectedSlots([]);
-    setOriginIsOccupied({});
-    setPopupVisible(false);
+            const matched = list.find((s: any) => {
+              const code = String(s.KodeTempat || s.kode_tempat || '').trim();
+              return code.split(/\s+/).pop() === kode || code === kode || (s.IDTempatParkir && String(s.IDTempatParkir) === kode);
+            });
+
+            if (!matched || !matched.IDTempatParkir) {
+              throw new Error(`IDTempatParkir not found for ${kode}`);
+            }
+
+            const id = Number(matched.IDTempatParkir);
+            const res = await toggleMonitoringPetugas(id);
+            return res;
+          })
+        );
+
+        // Update local state according to responses
+        if (popupMode === 'isi') {
+          const newly = results.map((r) => r.TempatParkir.KodeTempat?.split(' ').pop()).filter(Boolean) as string[];
+          setConfirmedSlots((prev) => Array.from(new Set([...prev, ...newly])));
+          setClearedManualSlots((prev) => prev.filter((slot) => !justConfirmedSlots.includes(slot)));
+        } else {
+          const newlyCleared = results.map((r) => r.TempatParkir.KodeTempat?.split(' ').pop()).filter(Boolean) as string[];
+          setConfirmedSlots((prev) => prev.filter((slot) => !justConfirmedSlots.includes(slot)));
+          setClearedManualSlots((prev) => Array.from(new Set([...prev, ...newlyCleared])));
+        }
+
+        setSelectedSlots([]);
+        setOriginIsOccupied({});
+        setPopupVisible(false);
+      } catch (err) {
+        console.log('❌ Failed to persist monitoring actions:', err);
+        // keep popup open so user can retry
+      }
+    })();
   };
 
   const handleClosePopup = () => {
