@@ -1,7 +1,11 @@
 import { COLORS } from '@/constants/theme';
-import { useRouter } from 'expo-router';
+import { konfirmasiSelesai } from '@/fetching/services/konfirmasiSelesaiService';
+import { getDashboardLokasiMall } from '@/fetching/services/dashboardService';
+import { getTempatParkir } from '@/fetching/services/tempatparkirService';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
     Animated,
     Easing,
     ScrollView,
@@ -148,7 +152,9 @@ function StepIcon({ status }: { status: 'pending' | 'loading' | 'success' }) {
 
 export default function MemprosesPembayaran() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string }>();
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const hasSubmittedCompletionRef = useRef(false);
   const [stepOneStatus, setStepOneStatus] = useState<'pending' | 'loading' | 'success'>('loading');
   const [stepTwoStatus, setStepTwoStatus] = useState<'pending' | 'loading' | 'success'>('pending');
 
@@ -178,9 +184,49 @@ export default function MemprosesPembayaran() {
 
   useEffect(() => {
     if (stepTwoStatus === 'success') {
-      router.push('/user/paymentSuccessful');
+      const submitCompletion = async () => {
+        if (hasSubmittedCompletionRef.current) {
+          return;
+        }
+
+        hasSubmittedCompletionRef.current = true;
+
+        const bookingID = Number(params.bookingID);
+
+        try {
+          if (Number.isFinite(bookingID) && bookingID > 0) {
+            const completion = await konfirmasiSelesai(bookingID);
+            console.log('✓ Konfirmasi selesai berhasil:', completion);
+          }
+
+          const mallId = Number(params.mallId);
+          if (Number.isFinite(mallId) && mallId > 0) {
+            await Promise.all([
+              getDashboardLokasiMall().catch(() => null),
+              getTempatParkir(mallId).catch(() => null),
+            ]);
+          }
+
+          router.push({
+            pathname: '/user/paymentSuccessful',
+            params: {
+              bookingID: params.bookingID || '',
+              slot: params.slot || '',
+              floor: params.floor || '',
+              arrivedAt: params.arrivedAt || '',
+              mallId: params.mallId || '',
+            },
+          });
+        } catch (error) {
+          hasSubmittedCompletionRef.current = false;
+          const errorMsg = error instanceof Error ? error.message : 'Gagal menyelesaikan parkir';
+          Alert.alert('Konfirmasi Selesai Gagal', errorMsg);
+        }
+      };
+
+      submitCompletion();
     }
-  }, [stepTwoStatus, router]);
+  }, [stepTwoStatus, router, params.bookingID, params.slot, params.floor, params.arrivedAt, params.mallId]);
 
   const isAllDone = stepTwoStatus === 'success';
 

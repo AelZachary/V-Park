@@ -1,5 +1,15 @@
 import { API_BASE_URL } from '../response/responseconfig';
 import { authFetch } from '../auth/auth';
+
+const TEMPATPARKIR_CACHE_TTL_MS = 12000;
+
+type CachedTempatParkir = {
+  value: unknown;
+  fetchedAt: number;
+};
+
+const tempatParkirCache = new Map<number, CachedTempatParkir>();
+const tempatParkirInFlight = new Map<number, Promise<unknown>>();
 import { ensureCurrentUserLoaded, getCurrentUser } from '../auth/session';
 
 function extractMessage(payload: unknown, fallback = 'request failed') {
@@ -173,6 +183,17 @@ async function readFirstEventData(response: Response) {
 }
 
 export async function getTempatParkir(idLokasiMall: number) {
+  const cached = tempatParkirCache.get(idLokasiMall);
+  if (cached && Date.now() - cached.fetchedAt < TEMPATPARKIR_CACHE_TTL_MS) {
+    return cached.value;
+  }
+
+  const existingRequest = tempatParkirInFlight.get(idLokasiMall);
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const request = (async () => {
   try {
     const res = await withTimeout(
       authFetch(`${API_BASE_URL}/api/tempatparkir?idlokasimall=${idLokasiMall}`, {
@@ -199,6 +220,7 @@ export async function getTempatParkir(idLokasiMall: number) {
     if (!res.ok) throw new Error(extractMessage(payload, 'fetching tempat parkir failed'));
     if (payload == null) throw new Error('empty tempatparkir payload');
 
+    tempatParkirCache.set(idLokasiMall, { value: payload, fetchedAt: Date.now() });
     return payload;
   } catch (primaryError) {
     // Fallback untuk Expo Go/RN ketika streaming fetch tidak memberi event awal.
@@ -206,7 +228,17 @@ export async function getTempatParkir(idLokasiMall: number) {
     if (payload == null) {
       throw primaryError;
     }
+    tempatParkirCache.set(idLokasiMall, { value: payload, fetchedAt: Date.now() });
     return payload;
+  }
+  })();
+
+  tempatParkirInFlight.set(idLokasiMall, request);
+
+  try {
+    return await request;
+  } finally {
+    tempatParkirInFlight.delete(idLokasiMall);
   }
 }
 

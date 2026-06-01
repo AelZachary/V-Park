@@ -40,6 +40,7 @@ export default function DetailLocation() {
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
@@ -70,6 +71,11 @@ export default function DetailLocation() {
   };
 
   const handlePressNext = async () => {
+    if (isSubmitting) return;
+
+    const loadingStartedAt = Date.now();
+    setIsSubmitting(true);
+
     try {
       const slotCode = params.slot || data?.TempatParkir?.KodeTempat || '';
       const mallId = Number(params.mallId || 0);
@@ -100,17 +106,26 @@ export default function DetailLocation() {
         PlatPengguna: profile.plate || '',
       });
 
+      const elapsed = Date.now() - loadingStartedAt;
+      const minimumLoadingMs = 650;
+      if (elapsed < minimumLoadingMs) {
+        await new Promise((resolve) => setTimeout(resolve, minimumLoadingMs - elapsed));
+      }
+
       router.push({
         pathname: '/user/konfirmasiKedatangan',
         params: {
           bookingID: String(bookingResult.Booking.IDBooking),
           slot: bookingResult.TempatParkir.KodeTempat || slotCode,
           floor: params.floor || 'Ground Floor',
+          mallId: String(mallId),
         },
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Gagal membuat booking';
       Alert.alert('Error', message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -305,13 +320,33 @@ export default function DetailLocation() {
       {/* FIXED BOTTOM BUTTON */}
       <View style={styles.bottomSection}>
         <TouchableOpacity 
-          style={styles.confirmButton} 
+          style={[styles.confirmButton, isSubmitting && styles.confirmButtonDisabled]} 
           activeOpacity={0.85} 
+          disabled={isSubmitting}
           onPress={handlePressNext}
         >
-          <Text style={styles.confirmText}>Selanjutnya</Text>
+          {isSubmitting ? (
+            <View style={styles.buttonLoadingRow}>
+              <ActivityIndicator size="small" color="#fff" />
+              <Text style={styles.confirmText}>Memproses...</Text>
+            </View>
+          ) : (
+            <Text style={styles.confirmText}>Selanjutnya</Text>
+          )}
         </TouchableOpacity>
       </View> 
+
+      {isSubmitting && (
+        <View style={styles.loadingOverlay} pointerEvents="auto">
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#1565C0" />
+            <Text style={styles.loadingTitle}>Menyiapkan booking...</Text>
+            <Text style={styles.loadingSubtitle}>
+              Mohon tunggu sebentar, kami sedang membuka halaman konfirmasi.
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -478,9 +513,54 @@ const styles = StyleSheet.create({
     height: 48,
     gap: 8,
   },
+  confirmButtonDisabled: {
+    opacity: 0.85,
+  },
+  buttonLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   confirmText: {
     fontSize: 14,
     fontWeight: '700',
     color: '#fff',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  loadingCard: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(21,101,192,0.12)',
+  },
+  loadingTitle: {
+    marginTop: 14,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1565C0',
+    textAlign: 'center',
+  },
+  loadingSubtitle: {
+    marginTop: 8,
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#607080',
+    textAlign: 'center',
   },
 });

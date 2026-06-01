@@ -3,14 +3,16 @@ import BottomNavbar from '@/components/navigation/BottomNavbar';
 import { useActivityCancelledVM } from '@/viewmodels/useActivityCancelledVM';
 import React from 'react';
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
+  Text,
   View
 } from 'react-native';
 
 export default function ActivityCancelledScreen() {
 
-  const { cancelledData } = useActivityCancelledVM();
+  const { cancelledData, loading, error } = useActivityCancelledVM();
 
   return (
     <View style={styles.container}>
@@ -19,16 +21,31 @@ export default function ActivityCancelledScreen() {
         contentContainerStyle={{ paddingBottom: 140 }}
       >
 
-        {cancelledData.map((item, index) => (
-
-          <ActivityCancelled
-            key={index}
-            mall={item.mall}
-            area={item.area}
-            date={item.date}
-          />
-
-        ))}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1565C0" />
+            <Text style={styles.loadingText}>Memuat riwayat batal...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.emptyTitle}>Gagal memuat riwayat batal</Text>
+            <Text style={styles.loadingText}>{error}</Text>
+          </View>
+        ) : cancelledData.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.emptyTitle}>Belum ada booking yang dibatalkan</Text>
+            <Text style={styles.loadingText}>Data batal akan muncul di sini.</Text>
+          </View>
+        ) : (
+          cancelledData.map((item, index) => (
+            <ActivityCancelled
+              key={index}
+              mall={item.mall}
+              area={item.area}
+              date={item.date}
+            />
+          ))
+        )}
 
       </ScrollView>
 
@@ -44,6 +61,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#EEF4FA',
+  },
+  loadingContainer: {
+    paddingTop: 120,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#607080',
+    textAlign: 'center',
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111',
+    textAlign: 'center',
   },
 
   header: {

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,271 +10,206 @@ import {
   View
 } from 'react-native';
 
+import { useActivityVM } from '@/viewmodels/useActivityVM';
+
 export default function ActivityScreen(){
-  const [timeLeft, setTimeLeft] = useState(1800);
+  const { loading, error, activities } = useActivityVM();
 
-  // STATE KETIKA SUDAH TIBA
-  const params = useLocalSearchParams();
-  const [isArrived, setIsArrived] = useState(
-    params.arrived == 'true'
-  )
-  const [parkingDuration, setParkingDuration] = useState(0);
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#1565C0" />
+          <Text style={styles.loadingText}>Memuat booking aktif...</Text>
+        </View>
+      </View>
+    );
+  }
 
-  useEffect(() => {
-    if (timeLeft <= 0) return;
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.emptyTitle}>Gagal memuat aktivitas</Text>
+          <Text style={styles.emptyText}>{error}</Text>
+        </View>
+      </View>
+    );
+  }
 
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
+  if (!activities || activities.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.emptyTitle}>Belum ada booking aktif</Text>
+          <Text style={styles.emptyText}>
+            Booking baru akan muncul di tab ini setelah berhasil dibuat.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+  const pending = activities.filter((a: any) => !a.isArrived);
+  const arrived = activities.filter((a: any) => a.isArrived);
 
-  // TIMER PARKIR BERJALAN 
-  useEffect(() => {
-    if (!isArrived) return;
-
-    const parkingTimer = setInterval(() => {
-      setParkingDuration(prev => prev + 1);
-    }, 1000);
-
-    return () => clearInterval(parkingTimer);
-  }, [isArrived]);
-
-  // FORMAT TIMER COUNTDOWN 
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-
-  const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-  // FORMAT TIMER PARKIR BERJALAN
-  const parkingHours = Math.floor(parkingDuration / 3600);
-  const parkingMinutes = Math.floor((parkingDuration % 3600) / 60);
-  const parkingSeconds = parkingDuration % 60;
-  const runningParkingTime =
-    `${String(parkingHours).padStart(2, '0')}:` +
-    `${String(parkingMinutes).padStart(2, '0')}:` +
-    `${String(parkingSeconds).padStart(2, '0')}`;
-  
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{paddingBottom: 120}}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* SEBELUM TIBA DI MALL */}
-        {!isArrived ? (
+        {pending.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>
-              Booking Aktif
-            </Text>
+            <Text style={styles.sectionTitle}>Booking Aktif</Text>
 
-            {/* STATUS */}
             <View style={styles.statusRow}>
-              <View style={styles.yellowDot}/>
-              <Text style={styles.statusText}>
-                Menunggu Kedatangan Anda di Mall
-              </Text>
+              <View style={styles.yellowDot} />
+              <Text style={styles.statusText}>{pending[0].statusLabel}</Text>
             </View>
 
-            {/* 👇 PERBAIKAN 1: Mengubah View menjadi TouchableOpacity agar seluruh kartu bisa diklik */}
-            <TouchableOpacity 
-              style={styles.card}
-              activeOpacity={0.85}
-              onPress={() => router.push('/user/konfirmasiKedatangan')}
-            >
-              <View style={styles.mallRow}>
-                <View style={styles.mallInfo}>
-                  <View style={styles.parkingIcon}>
-                    <Ionicons
-                      name="car-outline"
-                      size={26}
-                      color="#111"
-                    />
+            {pending.map((activity) => (
+              <TouchableOpacity
+                key={String(activity.bookingId)}
+                style={styles.card}
+                activeOpacity={0.85}
+                onPress={() =>
+                  router.push({
+                    pathname: '/user/konfirmasiKedatangan',
+                    params: {
+                      bookingID: String(activity.bookingId),
+                      slot: activity.slotLabel,
+                      bookingTimeIso: activity.bookingTimeIso,
+                    },
+                  })
+                }
+              >
+                <View style={styles.mallRow}>
+                  <View style={styles.mallInfo}>
+                    <View style={styles.parkingIcon}>
+                      <Ionicons name="car-outline" size={26} color="#111" />
+                    </View>
+                    <View>
+                      <Text style={styles.mallName}>{activity.mallLabel}</Text>
+                      <Text style={styles.location}>{activity.areaLabel}</Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={styles.mallName}>
-                      Mall Ratu Indah
-                    </Text>
-                    <Text style={styles.location}>
-                      Ground Floor - Area A
-                    </Text>
+
+                  <View style={styles.arrowButton}>
+                    <Ionicons name="chevron-forward-outline" size={24} color="#1565C0" />
                   </View>
                 </View>
 
-                {/* Indikator Panah (Kini murni menjadi pemanis visual/tanpa tombol pembungkus) */}
-                <View style={styles.arrowButton}>
-                  <Ionicons
-                    name='chevron-forward-outline'
-                    size={24}
-                    color="#1565C0"
-                  />
-                </View>
-              </View>
+                <View style={styles.detailRow}>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailTitle}>Slot Parkir</Text>
+                    <Text style={styles.bigText}>{activity.slotLabel}</Text>
+                    <Text style={styles.smallText}>{activity.areaLabel}</Text>
+                  </View>
 
-              {/* DETAIL */}
-              <View style={styles.detailRow}>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Slot Parkir
-                  </Text>
-                  <Text style={styles.bigText}>
-                    C4
-                  </Text>
-                  <Text style={styles.smallText}>
-                    Ground Floor - Area A
-                  </Text>
-                </View>
+                  <View style={styles.verticalLine} />
 
-                <View style={styles.verticalLine}/>
-                
-                {/* TIME */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Dipesan
-                  </Text>
-                  <Text style={styles.timeText}>
-                    ⏰ 12 Menit yang lalu
-                  </Text>
-                  <Text style={styles.smallText}>
-                    Ground Floor - Area A
-                  </Text>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailTitle}>Waktu Booking</Text>
+                    <Text style={styles.timeText}>{activity.bookingTimeLabel}</Text>
+                    <Text style={styles.smallText}>Plat {activity.plateNumber}</Text>
+                  </View>
+
+                  <View style={styles.verticalLine} />
+
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailTitle}>Plat Kendaraan</Text>
+                    <Text style={styles.plate}>{activity.plateNumber}</Text>
+                  </View>
                 </View>
 
-                <View style={styles.verticalLine}/>
-                
-                {/* PLATE */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Plat Kendaraan                  
-                  </Text>
-                  <Text style={styles.plate}>
-                    DD 1234 TNF
-                  </Text>
-                </View>
-              </View>
+                <View style={styles.warningBox}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.warningTitle}>Slot Anda sedang ditahan</Text>
+                    <Text style={styles.warningDesc}>Silahkan tiba di Mall sebelum waktu habis</Text>
+                  </View>
 
-              {/* WARNING */}
-              <View style={styles.warningBox}>
-                <View style={{ flex: 1}}>
-                  <Text style={styles.warningTitle}>
-                    Slot Anda sedang ditahan
-                  </Text>
-                  <Text style={styles.warningDesc}>
-                    Silahkan tiba di Mall sebelum waktu habis
-                  </Text>
+                  <View style={styles.timerBox}>
+                    <Text style={styles.timerLabel}>Sisa Waktu</Text>
+                    <Text style={styles.timer}>{activity.countdownLabel}</Text>
+                  </View>
                 </View>
-
-                <View style={styles.timerBox}>
-                  <Text style={styles.timerLabel}>
-                    Sisa Waktu
-                  </Text>
-                  <Text style={styles.timer}>
-                    {formattedTime}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
           </>
-        ):(
+        )}
 
-          // SUDAH TIBA DI MALL
+        {arrived.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>
-              Parkir Aktif
-            </Text>
+            <Text style={styles.sectionTitle}>Parkir Aktif</Text>
 
-            {/* STATUS */}
             <View style={styles.statusRow}>
-              <View style={styles.greenDot}/>
-              <Text style={styles.greenText}>
-                Parkir sedang berlangsung
-              </Text>
+              <View style={styles.greenDot} />
+              <Text style={styles.greenText}>{arrived[0].statusLabel}</Text>
             </View>
 
-            {/* 👇 PERBAIKAN 2: Mengubah kartu Parkir Aktif agar bisa diklik seutuhnya */}
-            <TouchableOpacity 
-              style={styles.card}
-              activeOpacity={0.85}
-              onPress={() => router.push('/user/KonfirmasiSelesaiParkir')}
-            >
-              <View style={styles.mallRow}>
-                <View style={styles.mallInfo}>
-                  <View style={styles.parkingIcon}>
-                    <Ionicons
-                      name="car-outline"
-                      size={26}
-                      color="#111"
-                    />
+            {arrived.map((activity) => (
+              <TouchableOpacity
+                key={String(activity.bookingId)}
+                style={styles.card}
+                activeOpacity={0.85}
+                onPress={() =>
+                  router.push({
+                    pathname: '/user/KonfirmasiSelesaiParkir',
+                    params: {
+                      bookingID: String(activity.bookingId),
+                      slot: activity.slotLabel,
+                      floor: activity.areaLabel,
+                      arrivedAt: activity.arrivedAt,
+                    },
+                  })
+                }
+              >
+                <View style={styles.mallRow}>
+                  <View style={styles.mallInfo}>
+                    <View style={styles.parkingIcon}>
+                      <Ionicons name="car-outline" size={26} color="#111" />
+                    </View>
+                    <View>
+                      <Text style={styles.mallName}>{activity.mallLabel}</Text>
+                      <Text style={styles.location}>{activity.areaLabel}</Text>
+                    </View>
                   </View>
+
                   <View>
-                    <Text style={styles.mallName}>
-                      Mall Ratu Indah
-                    </Text>
-                    <Text style={styles.location}>
-                      Ground Floor - Area A
-                    </Text>
+                    <Ionicons name="chevron-forward-outline" size={24} color="#1565C0" />
                   </View>
                 </View>
 
-                {/* Indikator Panah */}
-                <View>
-                  <Ionicons
-                    name='chevron-forward-outline'
-                    size={24}
-                    color="#1565C0"
-                  />
-                </View>
-              </View>
+                <View style={styles.detailRow}>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailTitle}>Slot Parkir</Text>
+                    <Text style={styles.bigText}>{activity.slotLabel}</Text>
+                    <Text style={styles.smallText}>{activity.areaLabel}</Text>
+                  </View>
 
-              {/* DETAIL */}
-              <View style={styles.detailRow}>
-                {/* SLOT */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Slot Parkir
-                  </Text>
-                  <Text style={styles.bigText}>
-                    C4
-                  </Text>
-                  <Text style={styles.smallText}>
-                    Ground Floor - Area A
-                  </Text>
-                </View>
+                  <View style={styles.verticalLine} />
 
-                <View style={styles.verticalLine} />
-                
-                {/* PARKING */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Parkir Berjalan
-                  </Text>
-                  <Text style={styles.runningText}>
-                    🟢 {runningParkingTime}
-                  </Text>
-                  <Text style={styles.smallText}>
-                    Sejak 10 Mei 2024, 12:15
-                  </Text>
-                </View>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailTitle}>Parkir Berjalan</Text>
+                    <Text style={styles.runningText}>🟢 {activity.runningLabel}</Text>
+                    <Text style={styles.smallText}>Sejak {activity.bookingTimeLabel}</Text>
+                  </View>
 
-                <View style={styles.verticalLine} />
-                
-                {/* PLATE */}
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailTitle}>
-                    Plat Kendaraan 
-                  </Text>
-                  <Text style={styles.plate}>
-                    DD 1234 TNF
-                  </Text>
+                  <View style={styles.verticalLine} />
+
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailTitle}>Plat Kendaraan</Text>
+                    <Text style={styles.plate}>{activity.plateNumber}</Text>
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
           </>
         )}
       </ScrollView>
     </View>
-  )
+  );
 }
 
 // Style bawaan kamu tetap aman di bawah ini tanpa ada yang berubah
@@ -281,6 +217,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1, 
     backgroundColor: '#EEF4FA',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 120,
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#1565C0',
+    fontWeight: '600',
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111',
+    textAlign: 'center',
+  },
+  emptyText: {
+    marginTop: 8,
+    color: '#607080',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   sectionTitle: {
     fontSize: 18,

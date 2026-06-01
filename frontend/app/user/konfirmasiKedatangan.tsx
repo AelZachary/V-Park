@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Modal,
   ScrollView,
@@ -16,9 +17,11 @@ import {
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import GroundFloorA from '@/components/booking/floors/GroundFloorA';
+import { cancelBookingPengunjung } from '@/fetching/services/bookingActivityService';
 import { konfirmasiTiba } from '@/fetching/services/konfirmasiTibaService';
 
 const INITIAL_SECONDS = 30 * 60 + 0;
+const ARRIVAL_WINDOW_SECONDS = 30 * 60;
 
 function formatCountdown(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60);
@@ -140,22 +143,28 @@ function PlatCarIcon() {
 
 export default function KonfirmasiKedatangan() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string }>();
-  const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS);
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; mallId?: string; bookingTimeIso?: string }>();
+  const [now, setNow] = useState(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // 🌟 STATES KONTROL UNTUK KEDUA POP-UP MODAL DIALOG
   const [popupVisible, setPopupVisible] = useState(false);       // Pop-up Tiba di Mall
   const [cancelPopupVisible, setCancelPopupVisible] = useState(false); // Pop-up Batal Booking
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setNow(Date.now());
     }, 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  const bookingTimeMs = params.bookingTimeIso ? new Date(params.bookingTimeIso).getTime() : NaN;
+  const secondsLeft = Number.isNaN(bookingTimeMs)
+    ? INITIAL_SECONDS
+    : Math.max(0, ARRIVAL_WINDOW_SECONDS - Math.floor((now - bookingTimeMs) / 1000));
 
   const parkingFloor = params.floor || 'Ground Floor';
   const rawSlotValue = params.slot || 'Unknown';
@@ -190,7 +199,16 @@ export default function KonfirmasiKedatangan() {
 
       const result = await konfirmasiTiba(bookingID);
       console.log('✓ Konfirmasi Tiba berhasil:', result);
-      router.push('/user/KonfirmasiSelesaiParkir');
+      router.push({
+        pathname: '/user/KonfirmasiSelesaiParkir',
+        params: {
+          bookingID: String(bookingID),
+          slot: rawSlotValue,
+          floor: parkingFloor,
+          mallId: params.mallId || '',
+          arrivedAt: result?.RiwayatBooking?.WaktuMasuk || new Date().toISOString(),
+        },
+      });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Gagal konfirmasi kedatangan';
       console.error('❌ Konfirmasi Tiba gagal:', errorMsg);
@@ -199,9 +217,22 @@ export default function KonfirmasiKedatangan() {
   };
 
   // Handler jika klik 'Yes' di Pop-up Pembatalan
-  const handleCancelBooking = () => {
-    setCancelPopupVisible(false);
-    router.push('/user/activityCancelled');
+  const handleCancelBooking = async () => {
+    try {
+      if (!bookingID) {
+        throw new Error('bookingID tidak ditemukan');
+      }
+
+      setIsCancelling(true);
+      await cancelBookingPengunjung(bookingID);
+      setCancelPopupVisible(false);
+      router.replace('/user/activityCancelled');
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Gagal membatalkan booking';
+      Alert.alert('Pembatalan Gagal', errorMsg);
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   return (
@@ -429,9 +460,14 @@ export default function KonfirmasiKedatangan() {
               <TouchableOpacity 
                 style={styles.cancelBtnBlue} 
                 onPress={handleCancelBooking}
+                disabled={isCancelling}
                 activeOpacity={0.85}
               >
-                <Text style={styles.cancelBtnText}>Yes</Text>
+                {isCancelling ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.cancelBtnText}>Yes</Text>
+                )}
               </TouchableOpacity>
 
               {/* Tombol NO (Kanan) -> Tutup Pop-up saja */}

@@ -1,7 +1,7 @@
 import { COLORS } from '@/constants/theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -25,12 +25,25 @@ function formatTime(totalSeconds: number) {
 
 export default function KonfirmasiSelesaiParkir() {
   const router = useRouter();
-  const [elapsed, setElapsed] = useState(INITIAL_SECONDS);
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string }>();
+  const [now, setNow] = useState(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const bookingID = Number(params.bookingID);
+  const parkingFloor = params.floor || 'Ground Floor';
+  const rawSlotValue = params.slot || 'Unknown';
+
+  const arrivedAtMs = useMemo(() => {
+    if (!params.arrivedAt) {
+      return null;
+    }
+
+    const parsed = new Date(params.arrivedAt).getTime();
+    return Number.isNaN(parsed) ? null : parsed;
+  }, [params.arrivedAt]);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
-      setElapsed((prev) => prev + 1);
+      setNow(Date.now());
     }, 1000);
 
     return () => {
@@ -52,6 +65,7 @@ export default function KonfirmasiSelesaiParkir() {
     }
   };
 
+  const elapsed = arrivedAtMs ? Math.max(0, Math.floor((now - arrivedAtMs) / 1000)) : INITIAL_SECONDS;
   const { hours, minutes, seconds } = formatTime(elapsed);
 
   return (
@@ -93,15 +107,15 @@ export default function KonfirmasiSelesaiParkir() {
             </View>
             <View style={styles.locationInfo}>
               <Text style={styles.mallName}>Trans Studio Mall Makassar</Text>
-              <Text style={styles.locationSub}>Basement</Text>
+              <Text style={styles.locationSub}>{parkingFloor}</Text>
             </View>
           </View>
           <View style={styles.slotDivider} />
           <View style={styles.slotRow}>
             <View style={styles.slotBlock}>
               <Text style={styles.slotLabel}>Slot Parkir</Text>
-              <Text style={styles.slotValue}>C4</Text>
-              <Text style={styles.slotSub}>Basement</Text>
+              <Text style={styles.slotValue}>{rawSlotValue}</Text>
+              <Text style={styles.slotSub}>{parkingFloor}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.slotBlock}>
@@ -158,7 +172,16 @@ export default function KonfirmasiSelesaiParkir() {
         </View>
 
         <TouchableOpacity style={styles.confirmButton} activeOpacity={0.85}
-        onPress={() => router.push('/user/payment')}>
+        onPress={() => router.push({
+          pathname: '/user/payment',
+          params: {
+            bookingID: Number.isFinite(bookingID) && bookingID > 0 ? String(bookingID) : '',
+            slot: rawSlotValue,
+            floor: parkingFloor,
+            arrivedAt: params.arrivedAt || '',
+            mallId: params.mallId || '',
+          },
+        })}>
           <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
           <Text style={styles.confirmText}>Konfirmasi Selesai Parkir</Text>
         </TouchableOpacity>

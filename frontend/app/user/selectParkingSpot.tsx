@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -84,6 +85,7 @@ export default function SelectParkingSpot() {
   const [selectedFloor, setSelectedFloor] = useState<string>(initialFloor);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [slotStatuses, setSlotStatuses] = useState<Record<string, 'available' | 'occupied' | 'online' | 'manual' | 'selected'>>({});
+  const [isSlotStatusesLoading, setIsSlotStatusesLoading] = useState(true);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [dashboardLocations, setDashboardLocations] = useState<DashboardLokasiMallResponse[]>([]);
   const [activeMallId, setActiveMallId] = useState<number>(0);
@@ -143,11 +145,16 @@ export default function SelectParkingSpot() {
   }, [selectedFloor, mallId]);
 
   useEffect(() => {
+    let isActive = true;
+
     async function loadSlotStatuses() {
       if (!activeMallId) return;
 
+      setIsSlotStatusesLoading(true);
+
       try {
         const payload = await getTempatParkir(activeMallId);
+        if (!isActive) return;
         const source = payload as any;
         const slots = Array.isArray(source?.tempat_parkir)
           ? source.tempat_parkir
@@ -213,12 +220,21 @@ export default function SelectParkingSpot() {
 
         setSlotStatuses(mappedStatuses);
       } catch (error) {
+        if (!isActive) return;
         console.log('❌ Error fetching slot status:', error);
         setSlotStatuses({});
+      } finally {
+        if (isActive) {
+          setIsSlotStatusesLoading(false);
+        }
       }
     }
 
     loadSlotStatuses();
+
+    return () => {
+      isActive = false;
+    };
   }, [activeMallId]);
 
   useEffect(() => {
@@ -245,6 +261,7 @@ export default function SelectParkingSpot() {
   }, [activeMallId, dashboardLocations]);
 
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
+    if (isSlotStatusesLoading) return;
     if (currentStatus === 'available') {
       if (selectedSlot === slotId) {
         setSelectedSlot(null);
@@ -407,6 +424,8 @@ export default function SelectParkingSpot() {
             options={floorOptions}
             selectedValue={selectedFloor}
             onValueChange={(value) => {
+              setIsSlotStatusesLoading(true);
+              setSlotStatuses({});
               setSelectedFloor(value);
               setSelectedSlot(null);
             }}
@@ -430,7 +449,16 @@ export default function SelectParkingSpot() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.mapContainer}>{renderFloorLayout()}</View>
+        <View style={[styles.mapContainer, isSlotStatusesLoading && styles.loadingMapContainer]}>
+          {isSlotStatusesLoading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator size="large" color="#FFFFFF" />
+              <Text style={styles.loadingText}>Memuat status slot parkir...</Text>
+            </View>
+          ) : (
+            renderFloorLayout()
+          )}
+        </View>
       </ScrollView>
 
       {/* DYNAMIC CARD POP-UP */}
@@ -569,6 +597,23 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 'auto',
     minWidth: 300,
+  },
+  loadingMapContainer: {
+    minHeight: 360,
+    justifyContent: 'center',
+  },
+  loadingState: {
+    minHeight: 320,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   scrollContent: {
     paddingHorizontal: 17,

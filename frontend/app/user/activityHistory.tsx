@@ -6,12 +6,13 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
+  ActivityIndicator,
 } from 'react-native';
 
 export default function ActivityHistoryScreen() {
 
-  const { historyData } = useActivityHistoryVM();
+  const { historyData, loading, error } = useActivityHistoryVM();
 
   return (
     <View style={styles.container}>
@@ -29,20 +30,35 @@ export default function ActivityHistoryScreen() {
           Daftar parkir yang sudah selesai.
         </Text>
 
-        {historyData.map((item, index) => (
-
-          <ActivityHistoryCard
-            key={index}
-            mall={item.mall}
-            area={item.area}
-            date={item.date} 
-            checkIn={item.checkIn}   
-            checkOut={item.checkOut} 
-            duration={item.duration}
-            total={item.total}
-          />
-
-        ))}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1565C0" />
+            <Text style={styles.loadingText}>Memuat riwayat...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.emptyTitle}>Gagal memuat riwayat</Text>
+            <Text style={styles.loadingText}>{error}</Text>
+          </View>
+        ) : historyData.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.emptyTitle}>Belum ada riwayat transaksi</Text>
+            <Text style={styles.loadingText}>Riwayat transaksi akan muncul di sini.</Text>
+          </View>
+        ) : (
+          historyData.map((item, index) => (
+            <ActivityHistoryCard
+              key={String(item.id)}
+              mall={item.mall}
+              area={item.area}
+              date={item.date}
+              checkIn={item.checkIn}
+              checkOut={item.checkOut}
+              duration={item.duration}
+              total={item.total}
+            />
+          ))
+        )}
 
       </ScrollView>
 
