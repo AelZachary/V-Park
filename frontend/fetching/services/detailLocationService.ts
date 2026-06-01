@@ -62,7 +62,11 @@ export async function getDetailLokasi(): Promise<DetailLokasiResponse | null> {
   const payload = text ? JSON.parse(text) : null;
 
   if (!res.ok) {
-    throw new Error(extractErrorMessage(payload, `Failed to fetch detail lokasi (${res.status})`));
+    const errorMessage = extractErrorMessage(payload, `Failed to fetch detail lokasi (${res.status})`);
+    if (res.status === 404 && /riwayat aktif not found/i.test(errorMessage)) {
+      return null;
+    }
+    throw new Error(errorMessage);
   }
 
   if (!Array.isArray(payload)) {
