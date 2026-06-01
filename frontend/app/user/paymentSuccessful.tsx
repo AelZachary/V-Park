@@ -1,5 +1,5 @@
 import { COLORS } from '@/constants/theme';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
   SafeAreaView,
@@ -32,18 +32,6 @@ const TRANSACTION = {
   waktuTransaksi: '20 Mar 2024, 19:29',
   totalPembayaran: 'Rp20.000',
 };
-
-const DETAIL_ROWS = [
-  { label: 'No. Order', value: TRANSACTION.noOrder },
-  { label: 'Lokasi', value: TRANSACTION.lokasi },
-  { label: 'Area', value: TRANSACTION.area },
-  { label: 'Slot', value: TRANSACTION.slot },
-  { label: 'Plat Kendaraan', value: TRANSACTION.platKendaraan },
-  { label: 'Waktu Tiba', value: TRANSACTION.waktuTiba },
-  { label: 'Durasi', value: TRANSACTION.durasi },
-  { label: 'Total Biaya', value: TRANSACTION.totalBiaya },
-  { label: 'Waktu Transaksi', value: TRANSACTION.waktuTransaksi },
-];
 
 function SuccessIcon() {
   return (
@@ -108,6 +96,21 @@ function HomeIcon() {
 }
 
 export default function PaymentSuccessful() {
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string; bookingTimeIso?: string; noOrder?: string; lokasi?: string; area?: string; slotLabel?: string; platKendaraan?: string; waktuTiba?: string; durasi?: string; totalBiaya?: string; totalPembayaran?: string; waktuTransaksi?: string }>();
+
+  const transaction = {
+    noOrder: params.noOrder || TRANSACTION.noOrder,
+    lokasi: params.lokasi || TRANSACTION.lokasi,
+    area: params.area || TRANSACTION.area,
+    slot: params.slotLabel || params.slot || TRANSACTION.slot,
+    platKendaraan: params.platKendaraan || params.platNumber || TRANSACTION.platKendaraan,
+    waktuTiba: params.waktuTiba || TRANSACTION.waktuTiba,
+    durasi: params.durasi || TRANSACTION.durasi,
+    totalBiaya: params.totalBiaya || TRANSACTION.totalBiaya,
+    waktuTransaksi: params.waktuTransaksi || TRANSACTION.waktuTransaksi,
+    totalPembayaran: params.totalPembayaran || TRANSACTION.totalPembayaran,
+  };
+
   const handleDownloadReceipt = () => {
     // Download receipt logic
   };
@@ -141,7 +144,17 @@ export default function PaymentSuccessful() {
 
           <View style={styles.detailDivider} />
 
-          {DETAIL_ROWS.map((row) => (
+          {[
+            { label: 'No. Order', value: transaction.noOrder },
+            { label: 'Lokasi', value: transaction.lokasi },
+            { label: 'Area', value: transaction.area },
+            { label: 'Slot', value: transaction.slot },
+            { label: 'Plat Kendaraan', value: transaction.platKendaraan },
+            { label: 'Waktu Tiba', value: transaction.waktuTiba },
+            { label: 'Durasi', value: transaction.durasi },
+            { label: 'Total Biaya', value: transaction.totalBiaya },
+            { label: 'Waktu Transaksi', value: transaction.waktuTransaksi },
+          ].map((row) => (
             <View key={row.label} style={styles.detailRow}>
               <Text style={styles.detailLabel}>{row.label}</Text>
               <Text style={styles.detailValue}>{row.value}</Text>
@@ -151,7 +164,7 @@ export default function PaymentSuccessful() {
           <View style={styles.totalDivider} />
 
           <Text style={styles.totalPaymentLabel}>Total Pembayaran</Text>
-          <Text style={styles.totalPaymentAmount}>{TRANSACTION.totalPembayaran}</Text>
+          <Text style={styles.totalPaymentAmount}>{transaction.totalPembayaran}</Text>
           <Text style={styles.taxNote}>(Termasuk pajak &amp; biaya layanan)</Text>
         </View>
 

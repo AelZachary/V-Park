@@ -77,7 +77,7 @@ export const useActivityVM = () => {
     } catch (fetchError) {
       const message = fetchError instanceof Error ? fetchError.message : 'Unknown error occurred';
       setError(message);
-      setBookingData(null);
+      setBookingList([]);
     } finally {
       if (!hasLoadedOnceRef.current) {
         hasLoadedOnceRef.current = true;

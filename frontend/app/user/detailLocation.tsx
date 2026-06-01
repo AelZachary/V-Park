@@ -100,10 +100,10 @@ export default function DetailLocation() {
 
       const bookingResult = await createBookingPengunjung({
         IDTempatParkir: Number(matchedSlot.IDTempatParkir),
-        NamaPengguna: profile.name || '',
-        NoPengguna: profile.phone || '',
-        KendaraanPengguna: profile.vehicle || '',
-        PlatPengguna: profile.plate || '',
+        NamaPengguna: username || profile.name || '',
+        NoPengguna: phone || profile.phone || '',
+        KendaraanPengguna: vehicleType || profile.vehicle || '',
+        PlatPengguna: platNumber || profile.plate || '',
       });
 
       const elapsed = Date.now() - loadingStartedAt;
@@ -119,6 +119,11 @@ export default function DetailLocation() {
           slot: bookingResult.TempatParkir.KodeTempat || slotCode,
           floor: params.floor || 'Ground Floor',
           mallId: String(mallId),
+          bookingTimeIso: bookingResult.Booking.WaktuBooking,
+          bookingName: username || profile.name || '',
+          phone: phone || profile.phone || '',
+          vehicleType: vehicleType || profile.vehicle || '',
+          platNumber: platNumber || profile.plate || '',
         },
       });
     } catch (err) {
