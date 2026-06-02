@@ -1,8 +1,10 @@
 import { COLORS } from '@/constants/theme';
+import { getPembayaranByBooking, initiatePembayaran, type PembayaranByBookingResponse } from '@/fetching/services/pembayaranService';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -70,24 +72,149 @@ function formatCountdown(totalSeconds: number) {
 
 export default function PembayaranQris() {
   const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string; bookingTimeIso?: string }>();
+  const bookingID = Number(params.bookingID);
   const [detailExpanded, setDetailExpanded] = useState(true);
   const [stepsExpanded, setStepsExpanded] = useState(true);
   const [countdown, setCountdown] = useState(PAYMENT_COUNTDOWN_SECONDS);
+  const [paymentInfo, setPaymentInfo] = useState<PembayaranByBookingResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [apiStatusMessage, setApiStatusMessage] = useState<string>('Menunggu koneksi API pembayaran...');
+  const [qrPayload, setQrPayload] = useState<string>(() =>
+    JSON.stringify({
+      bookingID: Number.isFinite(bookingID) ? bookingID : 0,
+      amount: 20000,
+      slot: params.slot || 'Unknown',
+      floor: params.floor || 'Unknown',
+      createdAt: new Date().toISOString(),
+    }),
+  );
 
-  // 🌟 FIKS 2: Buat data transaksi tiruan agar QR Code-nya berisi informasi valid saat di-scan
-  const [transactionData, setTransactionData] = useState({
-    ticketId: 'VPK-20260522-88',
-    slotCode: 'GA-L2',
-    amount: 20000,
-  });
+  const paymentAmount = paymentInfo?.Pembayaran.TotalPembayaran ?? 20000;
+  const paymentStatus = paymentInfo?.Pembayaran.StatusPembayaran ?? 'MemprosesPembayaran';
+  const expiresIn = paymentInfo?.MetodePembayaran.ExpiresIn ?? countdown;
+  const qrisValue = paymentInfo?.MetodePembayaran?.QRCodeBase64?.trim()
+    ? paymentInfo.MetodePembayaran.QRCodeBase64
+    : qrPayload;
 
-  // 🌟 FIKS 3: Gabungkan data di atas menjadi string JSON untuk di-inject ke QR Code
-  const qrisValue = JSON.stringify({
-    id: transactionData.ticketId,
-    slot: transactionData.slotCode,
-    total: transactionData.amount,
-    gateway: 'V-PARK_QRIS_GATEWAY'
-  });
+  function base64Encode(value: string) {
+    if (typeof globalThis.btoa === 'function') {
+      return globalThis.btoa(value);
+    }
+
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    let str = value;
+    let output = '';
+    let i = 0;
+
+    while (i < str.length) {
+      const chr1 = str.charCodeAt(i++);
+      const chr2 = str.charCodeAt(i++);
+      const chr3 = str.charCodeAt(i++);
+
+      const enc1 = chr1 >> 2;
+      const enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+      const enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+      const enc4 = chr3 & 63;
+
+      if (Number.isNaN(chr2)) {
+        output += chars.charAt(enc1) + chars.charAt(enc2) + '==';
+      } else if (Number.isNaN(chr3)) {
+        output += chars.charAt(enc1) + chars.charAt(enc2) + chars.charAt(enc3) + '=';
+      } else {
+        output +=
+          chars.charAt(enc1) +
+          chars.charAt(enc2) +
+          chars.charAt(enc3) +
+          chars.charAt(enc4);
+      }
+    }
+
+    return output;
+  }
+
+  const buildQrPayload = useCallback(() => {
+    return JSON.stringify({
+      bookingID: Number.isFinite(bookingID) ? bookingID : 0,
+      amount: paymentAmount,
+      slot: params.slot || 'Unknown',
+      floor: params.floor || 'Unknown',
+      generatedAt: new Date().toISOString(),
+    });
+  }, [bookingID, paymentAmount, params.floor, params.slot]);
+
+  const createPayment = useCallback(async () => {
+    if (!Number.isFinite(bookingID) || bookingID <= 0) {
+      setPaymentError('Booking ID tidak valid.');
+      setIsLoading(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setPaymentError(null);
+
+    const payload = buildQrPayload();
+    setQrPayload(payload);
+
+    try {
+      const response = await initiatePembayaran(bookingID, 'QRIS', base64Encode(payload));
+      setPaymentInfo(response);
+      setPaymentError(null);
+      setQrPayload(response.MetodePembayaran.QRCodeBase64 || payload);
+      setApiStatusMessage('Pembayaran berhasil diinisiasi dan tersimpan di tabel pembayaran + metode_pembayaran.');
+      console.log('Pembayaran berhasil diinisiasi dan terhubung ke API:', {
+        bookingID,
+        pembayaran: response.Pembayaran,
+        metodePembayaran: response.MetodePembayaran,
+      });
+    } catch (error) {
+      setPaymentError(error instanceof Error ? error.message : 'Gagal memulai pembayaran.');
+    } finally {
+      setIsSubmitting(false);
+      setIsLoading(false);
+    }
+  }, [bookingID, buildQrPayload]);
+
+  const refreshPaymentInfo = useCallback(async () => {
+    if (!Number.isFinite(bookingID) || bookingID <= 0) {
+      setPaymentError('Booking ID tidak valid.');
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const info = await getPembayaranByBooking(bookingID);
+      setPaymentInfo(info);
+      setPaymentError(null);
+      setQrPayload(info.MetodePembayaran.QRCodeBase64 || buildQrPayload());
+      setApiStatusMessage('Terhubung ke API pembayaran. Data tabel pembayaran dan metode_pembayaran berhasil dimuat.');
+      console.log('Pembayaran info berhasil dimuat dari API:', {
+        bookingID,
+        pembayaran: info.Pembayaran,
+        metodePembayaran: info.MetodePembayaran,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('404')) {
+        await createPayment();
+        return;
+      }
+      setPaymentError(error instanceof Error ? error.message : 'Gagal memuat informasi pembayaran.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [bookingID, buildQrPayload, createPayment]);
+
+  useEffect(() => {
+    if (!Number.isFinite(bookingID) || bookingID <= 0) {
+      setPaymentError('Booking ID tidak ditemukan.');
+      setIsLoading(false);
+      return;
+    }
+
+    refreshPaymentInfo();
+  }, [bookingID, refreshPaymentInfo]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -112,18 +239,9 @@ export default function PembayaranQris() {
       } else {
         router.replace('/user/home');
       }
-    } catch (_error) {
+    } catch {
       router.replace('/user/home');
     }
-  };
-
-  const handleRefreshQr = () => {
-    // Refresh QR logic: Simulasi ganti ID tiket baru agar QR berubah bentuk
-    setTransactionData(prev => ({
-      ...prev,
-      ticketId: `VPK-20260522-${Math.floor(10 + Math.random() * 90)}`
-    }));
-    setCountdown(PAYMENT_COUNTDOWN_SECONDS);
   };
 
   return (
@@ -141,6 +259,19 @@ export default function PembayaranQris() {
         <Text style={styles.subtitle}>
           Selesaikan pembayaran untuk mengamankan slot parkir Anda.
         </Text>
+
+        <Text style={styles.apiStatusText}>{apiStatusMessage}</Text>
+
+        {paymentError ? (
+          <Text style={styles.errorText}>{paymentError}</Text>
+        ) : null}
+
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#1565C0" />
+            <Text style={styles.loadingText}>Memuat informasi pembayaran...</Text>
+          </View>
+        ) : null}
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -163,7 +294,11 @@ export default function PembayaranQris() {
           <View style={styles.paymentHeaderRow}>
             <View>
               <Text style={styles.paymentLabel}>Total Pembayaran</Text>
-              <Text style={styles.paymentAmount}>Rp {transactionData.amount.toLocaleString('id-ID')}</Text>
+              <Text style={styles.paymentAmount}>Rp {paymentAmount.toLocaleString('id-ID')}</Text>
+              <Text style={styles.paymentStatusText}>Status: {paymentStatus}</Text>
+              <Text style={styles.paymentMetaText}>
+                Jumlah metode pembayaran: Rp {paymentInfo?.MetodePembayaran?.JumlahPembayaran?.toLocaleString('id-ID') ?? paymentAmount.toLocaleString('id-ID')}
+              </Text>
             </View>
             <TouchableOpacity
               style={styles.detailToggle}
@@ -217,12 +352,16 @@ export default function PembayaranQris() {
             })}
             activeOpacity={0.9}
           >
-            <QRCode
-              value={qrisValue}         // Data string transaksi unik
-              size={140}                // Pas dengan ukuran container wrapper kamu
-              backgroundColor="#FFF"    // Latar belakang putih bersih
-              color="#000"              // Warna batang hitam QR
-            />
+            {qrisValue ? (
+              <QRCode
+                value={qrisValue}
+                size={140}
+                backgroundColor="#FFF"
+                color="#000"
+              />
+            ) : (
+              <Text style={styles.qrPlaceholderText}>QR belum tersedia, silakan refresh pembayaran.</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.qrisLabelRow}>
@@ -255,6 +394,8 @@ export default function PembayaranQris() {
               </View>
             </View>
           </View>
+          <Text style={styles.expiryText}>Masa berlaku QR: {expiresIn > 0 ? `${expiresIn} detik` : 'Kadaluarsa'}</Text>
+          <Text style={styles.paymentStatusNote}>Metode: {paymentInfo?.MetodePembayaran?.MetodePembayaran ?? 'QRIS'}</Text>
         </View>
 
         {/* How to Pay Card */}
@@ -296,9 +437,13 @@ export default function PembayaranQris() {
         </View>
 
         {/* Refresh QR Button */}
-        <TouchableOpacity style={styles.refreshButton} onPress={handleRefreshQr}>
+        <TouchableOpacity
+          style={[styles.refreshButton, isSubmitting && styles.refreshButtonDisabled]}
+          onPress={createPayment}
+          disabled={isSubmitting}
+        >
           <Ionicons name="refresh-outline" size={20} color="#1565C0" />
-          <Text style={styles.refreshButtonText}>Refresh QR</Text>
+          <Text style={styles.refreshButtonText}>{isSubmitting ? 'Memperbarui...' : 'Refresh QR'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -624,6 +769,81 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1565C0',
     lineHeight: 22,
+  },
+  errorText: {
+    fontFamily: 'Poppins',
+    fontWeight: '600',
+    fontSize: 12,
+    color: '#D32F2F',
+    lineHeight: 16,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  loadingText: {
+    fontFamily: 'Poppins',
+    fontWeight: '500',
+    fontSize: 12,
+    color: '#1565C0',
+    lineHeight: 16,
+  },
+  apiStatusText: {
+    fontFamily: 'Poppins',
+    fontWeight: '500',
+    fontSize: 12,
+    color: '#2E7D32',
+    lineHeight: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  paymentMetaText: {
+    fontFamily: 'Poppins',
+    fontWeight: '500',
+    fontSize: 12,
+    color: '#1E88E5',
+    lineHeight: 16,
+    marginTop: 4,
+  },
+  paymentStatusText: {
+    fontFamily: 'Poppins',
+    fontWeight: '600',
+    fontSize: 12,
+    color: '#1565C0',
+    lineHeight: 16,
+    marginTop: 4,
+  },
+  expiryText: {
+    fontFamily: 'Poppins',
+    fontWeight: '500',
+    fontSize: 12,
+    color: '#000',
+    lineHeight: 16,
+    marginTop: 10,
+  },
+  paymentStatusNote: {
+    fontFamily: 'Poppins',
+    fontWeight: '500',
+    fontSize: 12,
+    color: '#545454',
+    lineHeight: 16,
+    marginTop: 4,
+  },
+  qrPlaceholderText: {
+    fontFamily: 'Poppins',
+    fontWeight: '500',
+    fontSize: 12,
+    color: '#D32F2F',
+    textAlign: 'center',
+    paddingHorizontal: 8,
+  },
+  refreshButtonDisabled: {
+    opacity: 0.6,
   },
   bottomSection: {
     paddingHorizontal: 17,

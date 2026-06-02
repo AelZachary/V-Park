@@ -117,7 +117,6 @@ export default function KonfirmasiSelesaiParkir() {
             <View style={styles.slotBlock}>
               <Text style={styles.slotLabel}>Slot Parkir</Text>
               <Text style={styles.slotValue}>{rawSlotValue}</Text>
-              <Text style={styles.slotSub}>{parkingFloor}</Text>
             </View>
             <View style={styles.verticalDivider} />
             <View style={styles.slotBlock}>
