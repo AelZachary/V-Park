@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useProfileVM } from '@/viewmodels/useProfileVM';
 import { updatePengunjungProfile } from '@/fetching/services/profileService';
 import {
@@ -8,7 +9,7 @@ import {
   type SessionUser,
 } from '@/fetching/auth/session';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Alert,
   Image,
@@ -36,6 +37,11 @@ export default function ProfileScreen() {
 
     const [vehicle, setVehicle] = useState(profile.vehicle);
     const [plate, setPlate] = useState(profile.plate);
+
+    useEffect(() => {
+      setVehicle(profile.vehicle);
+      setPlate(profile.plate);
+    }, [profile.vehicle, profile.plate]);
 
     const saveVehicleChanges = async () => {
       try {

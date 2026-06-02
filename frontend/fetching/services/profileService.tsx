@@ -9,6 +9,22 @@ type UpdatePengunjungProfileResponse = {
   PlatKendaraan: string;
 };
 
+type ProfileInformasiPengunjungResponse = {
+  User: {
+    Username: string;
+  };
+  Pengunjung: {
+    NoPengguna: string;
+    KendaraanPengguna: string;
+    PlatPengguna: string;
+    FotoPengunjung?: string | null;
+  };
+  Statistik: {
+    TotalBooking: number;
+    TotalJumlahPembayaran: number;
+  };
+};
+
 function extractErrorMessage(payload: unknown, fallback: string) {
   if (!payload || typeof payload !== 'object') {
     return fallback;
@@ -25,6 +41,11 @@ function extractErrorMessage(payload: unknown, fallback: string) {
   }
 
   return fallback;
+}
+
+async function readJsonPayload(response: Response) {
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function updatePengunjungProfile(
@@ -66,4 +87,34 @@ export async function updatePengunjungProfile(
   }
 
   return payload as UpdatePengunjungProfileResponse;
+}
+
+export async function getPengunjungProfile(): Promise<ProfileInformasiPengunjungResponse> {
+  const url = `${API_BASE_URL}/api/profile/informasi/pengunjung`;
+  const response = await authFetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  const payload = await readJsonPayload(response);
+
+  if (!response.ok) {
+    throw new Error(
+      extractErrorMessage(payload, `failed to load profile (${response.status})`)
+    );
+  }
+
+  if (
+    !payload ||
+    typeof payload !== 'object' ||
+    !('User' in payload) ||
+    !('Pengunjung' in payload) ||
+    !('Statistik' in payload)
+  ) {
+    throw new Error('Invalid profile response');
+  }
+
+  return payload as ProfileInformasiPengunjungResponse;
 }

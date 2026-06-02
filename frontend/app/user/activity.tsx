@@ -232,21 +232,19 @@ export default function ActivityScreen(){
                   <View style={styles.detailItem}>
                     <Text style={styles.detailTitle}>Slot Parkir</Text>
                     <Text style={styles.bigText}>{activity.slotLabel}</Text>
-                    <Text style={styles.smallText}>{activity.areaLabel}</Text>
                   </View>
 
                   <View style={styles.verticalLine} />
 
                   <View style={styles.detailItem}>
-                    <Text style={styles.detailTitle}>Parkir Berjalan</Text>
+                    <Text style={styles.detailTitle}>Waktu</Text>
                     <Text style={styles.runningText}>🟢 {activity.runningLabel}</Text>
-                    <Text style={styles.smallText}>Sejak {activity.bookingTimeLabel}</Text>
                   </View>
 
                   <View style={styles.verticalLine} />
 
                   <View style={styles.detailItem}>
-                    <Text style={styles.detailTitle}>Plat Kendaraan</Text>
+                    <Text style={styles.detailTitle}>Plat</Text>
                     <Text style={styles.plate}>{activity.plateNumber}</Text>
                   </View>
                 </View>
@@ -442,6 +440,7 @@ const styles = StyleSheet.create({
   runningText: {
     fontWeight: '800',
     color: '#111',
-    fontSize: 15,
+    fontSize: 13.2,
+    marginBottom: 12,
   },
 });

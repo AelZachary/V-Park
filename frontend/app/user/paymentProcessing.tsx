@@ -235,7 +235,7 @@ export default function MemprosesPembayaran() {
               bookingTimeIso: params.bookingTimeIso || '',
               noOrder: completion?.Pembayaran.IDPembayaran ? String(completion.Pembayaran.IDPembayaran) : '',
               lokasi: completion?.LokasiMall.AlamatLokasi || params.floor || '',
-              area: params.floor || '',
+              area: 'Mall Ratu Indah',
               slotLabel: params.slot || '',
               platKendaraan: params.platNumber || '',
               waktuTiba: completion?.RiwayatBooking.WaktuMasuk || params.arrivedAt || '',

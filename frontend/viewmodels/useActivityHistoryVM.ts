@@ -78,6 +78,7 @@ export function useActivityHistoryVM() {
           .slice()
           .sort((a, b) => b.Booking.IDBooking - a.Booking.IDBooking)
           .map((item: FinishedBookingRecord) => {
+            // Parse times
             const waktuMasukValue = getStringField(item.RiwayatBooking, ['WaktuMasuk', 'waktu_masuk']);
             const waktuKeluarValue = getStringField(item.RiwayatBooking, ['WaktuKeluar', 'waktu_keluar']);
             const durasiValue = getNumberField(item.RiwayatBooking, ['DurasiParkir', 'durasi_parkir']);
@@ -89,15 +90,23 @@ export function useActivityHistoryVM() {
             const checkOut = formatTime(waktuKeluar);
             const date = new Date(item.Booking.WaktuBooking).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
-            const durationSeconds = typeof durasiValue === 'number'
-              ? durasiValue
-              : waktuMasuk && waktuKeluar
-                ? Math.max(0, Math.floor((waktuKeluar.getTime() - waktuMasuk.getTime()) / 1000))
-                : 0;
+            // Calculate duration
+            let durationSeconds = 0;
+            if (typeof durasiValue === 'number' && durasiValue > 0) {
+              durationSeconds = durasiValue;
+            } else if (waktuMasuk && waktuKeluar) {
+              durationSeconds = Math.max(0, Math.floor((waktuKeluar.getTime() - waktuMasuk.getTime()) / 1000));
+            }
 
             const duration = durationSeconds > 0 ? formatParkingDuration(durationSeconds) : '';
-            const paymentAmount = getNumberField(item.MetodePembayaran, ['JumlahPembayaran', 'jumlah_pembayaran']);
-            const total = typeof paymentAmount === 'number'
+
+            // Parse payment
+            let paymentAmount: number | undefined;
+            if (item.MetodePembayaran) {
+              paymentAmount = getNumberField(item.MetodePembayaran, ['JumlahPembayaran', 'jumlah_pembayaran']);
+            }
+
+            const total = typeof paymentAmount === 'number' && paymentAmount > 0
               ? formatRupiah(paymentAmount)
               : '';
 
