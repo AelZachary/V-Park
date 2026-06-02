@@ -63,7 +63,7 @@ export default function ActivityHistoryCard({
             <Text style={styles.detailTitle}>Masuk</Text>
           </View>
 
-          <Text style={styles.timeText}>{checkIn}</Text>
+          <Text style={styles.timeText}>{checkIn || '—'}</Text>
           <Text style={styles.dateText}>{date}</Text>
         </View>
 
@@ -80,7 +80,7 @@ export default function ActivityHistoryCard({
             <Text style={styles.detailTitle}>Keluar</Text>
           </View>
 
-          <Text style={styles.timeText}>{checkOut}</Text>
+          <Text style={styles.timeText}>{checkOut || '—'}</Text>
           <Text style={styles.dateText}>{date}</Text>
         </View>
 
@@ -97,7 +97,7 @@ export default function ActivityHistoryCard({
             <Text style={styles.detailTitle}>Durasi</Text>
           </View>
 
-          <Text style={styles.durationText}>{duration}</Text>
+          <Text style={styles.durationText}>{duration || '—'}</Text>
         </View>
 
       </View>
@@ -112,7 +112,7 @@ export default function ActivityHistoryCard({
         </Text>
 
         <Text style={styles.paymentValue}>
-          {total}
+          {total || '—'}
         </Text>
       </View>
 

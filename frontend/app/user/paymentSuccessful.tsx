@@ -21,17 +21,61 @@ import Svg, {
 } from 'react-native-svg';
 
 const TRANSACTION = {
-  noOrder: '1876543234567876',
+  noOrder: '56',
   lokasi: 'Mall Ratu Indah',
   area: 'Lantai P1 - Area A',
   slot: 'C4',
   platKendaraan: 'DD 2605 TA',
-  waktuTiba: '20 Mar 2024, 19:28',
+  waktuTiba: '3, Juni 2026',
   durasi: '4 Jam',
-  totalBiaya: 'Rp 20.000',
-  waktuTransaksi: '20 Mar 2024, 19:29',
-  totalPembayaran: 'Rp20.000',
+  totalBiaya: 'Rp. 20.000',
+  waktuTransaksi: '3, Juni 2026',
+  totalPembayaran: 'Rp. 20.000',
 };
+
+const MONTH_NAMES_ID = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+];
+
+function formatIndonesianDate(value?: string) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const day = date.getDate();
+  const month = MONTH_NAMES_ID[date.getMonth()] || '';
+  const year = date.getFullYear();
+  return `${day}, ${month} ${year}`;
+}
+
+function formatOrderNumber(value?: string) {
+  if (!value) return TRANSACTION.noOrder;
+  return value;
+}
+
+function formatDuration(value?: string) {
+  if (!value) return TRANSACTION.durasi;
+  const match = String(value).match(/\d+/);
+  return match ? `${match[0]} Jam` : value;
+}
+
+function formatRupiah(value?: string) {
+  if (!value) return 'Rp. 20.000';
+  const digits = String(value).replace(/[^0-9]/g, '');
+  const amount = Number(digits);
+  if (!Number.isFinite(amount) || amount === 0) return 'Rp. 20.000';
+  return `Rp. ${amount.toLocaleString('id-ID')}`;
+}
 
 function SuccessIcon() {
   return (
@@ -99,16 +143,16 @@ export default function PaymentSuccessful() {
   const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string; bookingTimeIso?: string; noOrder?: string; lokasi?: string; area?: string; slotLabel?: string; platKendaraan?: string; waktuTiba?: string; durasi?: string; totalBiaya?: string; totalPembayaran?: string; waktuTransaksi?: string }>();
 
   const transaction = {
-    noOrder: params.noOrder || TRANSACTION.noOrder,
-    lokasi: params.lokasi || TRANSACTION.lokasi,
-    area: params.area || TRANSACTION.area,
+    noOrder: formatOrderNumber(params.bookingID || params.noOrder),
+    lokasi: 'Mall Ratu Indah',
+    area: params.area || params.floor || TRANSACTION.area,
     slot: params.slotLabel || params.slot || TRANSACTION.slot,
     platKendaraan: params.platKendaraan || params.platNumber || TRANSACTION.platKendaraan,
-    waktuTiba: params.waktuTiba || TRANSACTION.waktuTiba,
-    durasi: params.durasi || TRANSACTION.durasi,
-    totalBiaya: params.totalBiaya || TRANSACTION.totalBiaya,
-    waktuTransaksi: params.waktuTransaksi || TRANSACTION.waktuTransaksi,
-    totalPembayaran: params.totalPembayaran || TRANSACTION.totalPembayaran,
+    waktuTiba: formatIndonesianDate(params.waktuTiba || params.arrivedAt || TRANSACTION.waktuTiba),
+    durasi: formatDuration(params.durasi || TRANSACTION.durasi),
+    totalBiaya: formatRupiah(params.totalBiaya || TRANSACTION.totalBiaya),
+    waktuTransaksi: formatIndonesianDate(params.waktuTransaksi || TRANSACTION.waktuTransaksi),
+    totalPembayaran: formatRupiah(params.totalPembayaran || TRANSACTION.totalPembayaran),
   };
 
   const handleDownloadReceipt = () => {
