@@ -30,6 +30,34 @@ function formatTime(date: Date | null) {
   return date ? date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
 }
 
+function getStringField(source: unknown, keys: string[]) {
+  if (!source || typeof source !== 'object') return undefined;
+  const typedSource = source as Record<string, unknown>;
+
+  for (const key of keys) {
+    const value = typedSource[key];
+    if (typeof value === 'string') {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function getNumberField(source: unknown, keys: string[]) {
+  if (!source || typeof source !== 'object') return undefined;
+  const typedSource = source as Record<string, unknown>;
+
+  for (const key of keys) {
+    const value = typedSource[key];
+    if (typeof value === 'number') {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
 export function useActivityHistoryVM() {
   const [historyData, setHistoryData] = useState<ParkingHistory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,36 +74,44 @@ export function useActivityHistoryVM() {
         const data = await getFinishedBookings();
         if (!mounted) return;
 
-        const mapped = data.map((item: FinishedBookingRecord) => {
-          const waktuMasuk = item.RiwayatBooking?.WaktuMasuk ? new Date(item.RiwayatBooking.WaktuMasuk) : null;
-          const waktuKeluar = item.RiwayatBooking?.WaktuKeluar ? new Date(item.RiwayatBooking.WaktuKeluar) : null;
+        const mapped = data
+          .slice()
+          .sort((a, b) => b.Booking.IDBooking - a.Booking.IDBooking)
+          .map((item: FinishedBookingRecord) => {
+            const waktuMasukValue = getStringField(item.RiwayatBooking, ['WaktuMasuk', 'waktu_masuk']);
+            const waktuKeluarValue = getStringField(item.RiwayatBooking, ['WaktuKeluar', 'waktu_keluar']);
+            const durasiValue = getNumberField(item.RiwayatBooking, ['DurasiParkir', 'durasi_parkir']);
 
-          const checkIn = formatTime(waktuMasuk);
-          const checkOut = formatTime(waktuKeluar);
-          const date = new Date(item.Booking.WaktuBooking).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            const waktuMasuk = waktuMasukValue ? new Date(waktuMasukValue) : null;
+            const waktuKeluar = waktuKeluarValue ? new Date(waktuKeluarValue) : null;
 
-          const durationSeconds = typeof item.RiwayatBooking?.DurasiParkir === 'number'
-            ? item.RiwayatBooking.DurasiParkir
-            : waktuMasuk && waktuKeluar
-              ? Math.max(0, Math.floor((waktuKeluar.getTime() - waktuMasuk.getTime()) / 1000))
-              : 0;
+            const checkIn = formatTime(waktuMasuk);
+            const checkOut = formatTime(waktuKeluar);
+            const date = new Date(item.Booking.WaktuBooking).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
-          const duration = durationSeconds > 0 ? formatParkingDuration(durationSeconds) : '';
-          const total = typeof item.MetodePembayaran?.JumlahPembayaran === 'number'
-            ? formatRupiah(item.MetodePembayaran.JumlahPembayaran)
-            : '';
+            const durationSeconds = typeof durasiValue === 'number'
+              ? durasiValue
+              : waktuMasuk && waktuKeluar
+                ? Math.max(0, Math.floor((waktuKeluar.getTime() - waktuMasuk.getTime()) / 1000))
+                : 0;
 
-          return {
-            id: item.Booking.IDBooking,
-            date,
-            mall: getLokasiDisplayName(item.LokasiMall),
-            area: item.TempatParkir.KodeTempat,
-            checkIn,
-            checkOut,
-            duration,
-            total,
-          } as ParkingHistory;
-        });
+            const duration = durationSeconds > 0 ? formatParkingDuration(durationSeconds) : '';
+            const paymentAmount = getNumberField(item.MetodePembayaran, ['JumlahPembayaran', 'jumlah_pembayaran']);
+            const total = typeof paymentAmount === 'number'
+              ? formatRupiah(paymentAmount)
+              : '';
+
+            return {
+              id: item.Booking.IDBooking,
+              date,
+              mall: getLokasiDisplayName(item.LokasiMall),
+              area: item.TempatParkir.KodeTempat,
+              checkIn,
+              checkOut,
+              duration,
+              total,
+            } as ParkingHistory;
+          });
 
         setHistoryData(mapped);
       } catch (err) {

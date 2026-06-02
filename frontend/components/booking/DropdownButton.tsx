@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Dimensions,
 } from 'react-native';
 
 type DropdownButtonProps = {
@@ -30,9 +31,24 @@ export default function DropdownButton({
   const buttonRef = useRef<any>(null);
 
   const openDropdown = () => {
+    const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
     buttonRef.current?.measure((fx: number, fy: number, width: number, height: number, px: number, py: number) => {
-      setDropdownTop(py + height + 2); // Tepat berada di bawah tombol utama dengan jarak 2px
-      setDropdownLeft(px);
+      const estimatedMenuHeight = Math.min(options.length * 44, 240);
+
+      // Prefer membuka di bawah; jika tidak muat, buka ke atas.
+      let top = py + height + 6;
+      if (py + height + estimatedMenuHeight + 12 > screenHeight) {
+        top = Math.max(py - estimatedMenuHeight - 6, 8);
+      }
+
+      // Pastikan dropdown tidak keluar ke kanan layar
+      let left = px;
+      if (px + width + 12 > screenWidth) {
+        left = Math.max(screenWidth - width - 12, 8);
+      }
+
+      setDropdownTop(top);
+      setDropdownLeft(left);
       setDropdownWidth(width);
       setIsOpen(true);
     });
@@ -157,24 +173,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 5,
+    marginTop: -41,
   },
   scrollMenu: {
     maxHeight: 240,
   },
   menuItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#FFF',
   },
   menuItemSelected: {
     backgroundColor: '#F3F8FD',
   },
   menuItemText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#1565C0',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   menuItemTextSelected: {
-    fontWeight: '900',
+    fontWeight: '800',
   },
 });

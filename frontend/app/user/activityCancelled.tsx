@@ -71,6 +71,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+    marginTop: -150
   },
   loadingText: {
     marginTop: 12,

@@ -179,8 +179,18 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses, 
               side="left" 
               onPress={() => onSelectSlot('R24', resolveSlotStatus("R24", "available", slotStatuses, selectedSlot))}
             />
-            <ParkingSlot slot="R25s" status={resolveSlotStatus("R25", "online", slotStatuses, selectedSlot)} side="left" />
-            <ParkingSlot slot="R26" status={resolveSlotStatus("R26", "online", slotStatuses, selectedSlot)} side="left" />
+            <ParkingSlot disabled={false}
+              slot="R25" 
+              status={resolveSlotStatus("R25", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R25", resolveSlotStatus("R25", "manual", slotStatuses, selectedSlot))}
+            />
+            <ParkingSlot disabled={false}
+              slot="R26" 
+              status={resolveSlotStatus("R26", "manual", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot("R26", resolveSlotStatus("R26", "manual", slotStatuses, selectedSlot))}
+            />
           </View>
           <View style={styles.groupDividerLeft} />
         </View>
@@ -262,7 +272,12 @@ export default function GroundFloor({ selectedSlot, onSelectSlot, slotStatuses, 
 
           {/* BLOK 3: L7, L8, L9 (Manual) */}
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="L7" status={resolveSlotStatus("L7", "online", slotStatuses, selectedSlot)} side="right" />
+            <ParkingSlot disabled={false}
+              slot="L7" 
+              status={resolveSlotStatus("L7", "available", slotStatuses, selectedSlot)} 
+              side="right" 
+              onPress={() => onSelectSlot('L7', resolveSlotStatus("L7", "available", slotStatuses, selectedSlot))}
+            />
             <ParkingSlot disabled={false}
               slot="L8" 
               status={resolveSlotStatus("L8", "available", slotStatuses, selectedSlot)} 

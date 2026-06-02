@@ -1,16 +1,23 @@
 import { API_BASE_URL } from '@/fetching/response/responseconfig';
 import { authFetch } from '@/fetching/auth/auth';
 
+export type RiwayatBookingFields = {
+  WaktuMasuk?: string | null;
+  waktu_masuk?: string | null;
+  WaktuKeluar?: string | null;
+  waktu_keluar?: string | null;
+  DurasiParkir?: number | null;
+  durasi_parkir?: number | null;
+  StatusBooking: string;
+};
+
 export type ActiveBookingRecord = {
   Booking: {
     IDBooking: number;
     PlatPengguna: string;
     WaktuBooking: string;
   };
-  RiwayatBooking: {
-    WaktuMasuk: string | null;
-    StatusBooking: string;
-  };
+  RiwayatBooking: RiwayatBookingFields;
   TempatParkir: {
     KodeTempat: string;
   };
@@ -20,12 +27,9 @@ export type ActiveBookingRecord = {
 };
 
 export type FinishedBookingRecord = ActiveBookingRecord & {
-  RiwayatBooking: ActiveBookingRecord['RiwayatBooking'] & {
-    WaktuKeluar: string | null;
-    DurasiParkir: number | null;
-  };
   MetodePembayaran?: {
-    JumlahPembayaran: number;
+    JumlahPembayaran?: number;
+    jumlah_pembayaran?: number;
   } | null;
 };
 

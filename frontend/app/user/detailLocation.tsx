@@ -250,6 +250,9 @@ export default function DetailLocation() {
     locationInfo?.LokasiMall?.AlamatLokasi ||
     data?.LokasiMall?.AlamatLokasi ||
     'Alamat tidak tersedia';
+  const parkingDescription = params.floor
+    ? `${parkingFloor} • ${locationAddress}`
+    : locationAddress;
   const bookingTime = data?.Booking?.WaktuBooking
     ? new Date(data.Booking.WaktuBooking).toLocaleString('id-ID')
     : 'Belum ada riwayat aktif';
@@ -315,7 +318,7 @@ export default function DetailLocation() {
             <View style={styles.descriptionContainer}>
               <Text style={styles.descriptionTitle}>Deskripsi</Text>
               <Text style={styles.descriptionText}>
-                {locationAddress}
+                {parkingDescription}
               </Text>
             </View>
           </View>

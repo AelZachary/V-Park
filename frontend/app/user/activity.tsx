@@ -270,6 +270,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+    marginTop: -150
   },
   loadingText: {
     marginTop: 12,
@@ -281,12 +282,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#111',
     textAlign: 'center',
+    marginBottom: 14,
   },
   emptyText: {
     marginTop: 8,
     color: '#607080',
     textAlign: 'center',
     lineHeight: 20,
+    marginBottom: 140,
   },
   sectionTitle: {
     fontSize: 18,
@@ -381,6 +384,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
     color: '#111',
+    marginTop: 2.99,
   },
   verticalLine: {
     width: 1,
