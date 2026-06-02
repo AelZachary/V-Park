@@ -20,6 +20,8 @@ const STORAGE_KEY = 'VPARK_CURRENT_USER';
 let currentUser: CurrentUser = null;
 let loadPromise: Promise<void> | null = null;
 let isHydrated = false;
+type UserChangeListener = (user: CurrentUser) => void;
+const userChangeListeners: UserChangeListener[] = [];
 
 async function hydrateFromStorage() {
   if (isHydrated) {
@@ -61,6 +63,14 @@ function saveToStorage(user: CurrentUser) {
   void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(user)).catch(() => null);
 }
 
+export function onCurrentUserChanged(cb: UserChangeListener) {
+  userChangeListeners.push(cb);
+  return () => {
+    const idx = userChangeListeners.indexOf(cb);
+    if (idx >= 0) userChangeListeners.splice(idx, 1);
+  };
+}
+
 function isSessionWrapper(value: CurrentUser): value is { user: SessionUser; token: string } {
   return (
     !!value &&
@@ -83,6 +93,13 @@ function isSessionUser(value: unknown): value is SessionUser {
 export function setCurrentUser(user: CurrentUser) {
   currentUser = user;
   saveToStorage(user);
+  try {
+    userChangeListeners.forEach((cb) => {
+      try { cb(user); } catch { /* ignore listener errors */ }
+    });
+  } catch {
+    // ignore
+  }
 }
 
 export async function ensureCurrentUserLoaded() {

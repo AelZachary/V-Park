@@ -1,5 +1,6 @@
 import { COLORS } from '@/constants/theme';
 import { router, useLocalSearchParams } from 'expo-router';
+import { getCurrentSessionUser, getCurrentUser, setCurrentUser } from '@/fetching/auth/session';
 import React from 'react';
 import {
   SafeAreaView,
@@ -162,6 +163,42 @@ export default function PaymentSuccessful() {
   const handleBackToHome = () => {
     router.replace('/user/home');
   };
+
+  // When arriving at this screen, increment the locally persisted
+  // total booking and total expenses so they survive app restarts.
+  React.useEffect(() => {
+    try {
+      const rawAmount = transaction.totalPembayaran || 'Rp 0';
+      const digits = String(rawAmount).replace(/[^0-9]/g, '');
+      const amount = Number(digits) || 0;
+
+      const sessionUser = getCurrentSessionUser();
+      const current = getCurrentUser();
+      if (!sessionUser) return;
+
+      const updatedUser = JSON.parse(JSON.stringify(sessionUser));
+      if (!updatedUser.Pengunjung) updatedUser.Pengunjung = {};
+
+      if (!updatedUser.Pengunjung.Statistik) {
+        updatedUser.Pengunjung.Statistik = { TotalBooking: 0, TotalJumlahPembayaran: 0 };
+      }
+
+      const prevBooking = Number(updatedUser.Pengunjung.Statistik.TotalBooking) || 0;
+      const prevExpenses = Number(updatedUser.Pengunjung.Statistik.TotalJumlahPembayaran) || 0;
+
+      updatedUser.Pengunjung.Statistik.TotalBooking = prevBooking + 1;
+      updatedUser.Pengunjung.Statistik.TotalJumlahPembayaran = prevExpenses + amount;
+
+      const newCurrent = current && typeof current === 'object' && 'user' in current && 'token' in current
+        ? { ...current, user: updatedUser }
+        : updatedUser;
+
+      setCurrentUser(newCurrent);
+      console.log('✅ Local profile stats updated:', updatedUser.Pengunjung.Statistik);
+    } catch (err) {
+      console.warn('Failed to update local profile stats', err);
+    }
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>

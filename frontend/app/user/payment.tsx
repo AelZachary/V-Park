@@ -80,7 +80,6 @@ export default function PembayaranQris() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [apiStatusMessage, setApiStatusMessage] = useState<string>('Menunggu koneksi API pembayaran...');
   const [qrPayload, setQrPayload] = useState<string>(() =>
     JSON.stringify({
       bookingID: Number.isFinite(bookingID) ? bookingID : 0,
@@ -162,12 +161,6 @@ export default function PembayaranQris() {
       setPaymentInfo(response);
       setPaymentError(null);
       setQrPayload(response.MetodePembayaran.QRCodeBase64 || payload);
-      setApiStatusMessage('Pembayaran berhasil diinisiasi dan tersimpan di tabel pembayaran + metode_pembayaran.');
-      console.log('Pembayaran berhasil diinisiasi dan terhubung ke API:', {
-        bookingID,
-        pembayaran: response.Pembayaran,
-        metodePembayaran: response.MetodePembayaran,
-      });
     } catch (error) {
       setPaymentError(error instanceof Error ? error.message : 'Gagal memulai pembayaran.');
     } finally {
@@ -189,12 +182,6 @@ export default function PembayaranQris() {
       setPaymentInfo(info);
       setPaymentError(null);
       setQrPayload(info.MetodePembayaran.QRCodeBase64 || buildQrPayload());
-      setApiStatusMessage('Terhubung ke API pembayaran. Data tabel pembayaran dan metode_pembayaran berhasil dimuat.');
-      console.log('Pembayaran info berhasil dimuat dari API:', {
-        bookingID,
-        pembayaran: info.Pembayaran,
-        metodePembayaran: info.MetodePembayaran,
-      });
     } catch (error) {
       if (error instanceof Error && error.message.includes('404')) {
         await createPayment();
@@ -233,15 +220,7 @@ export default function PembayaranQris() {
   const { minutes, seconds } = formatCountdown(countdown);
 
   const handleBack = () => {
-    try {
-      if (router.canGoBack?.()) {
-        router.back();
-      } else {
-        router.replace('/user/home');
-      }
-    } catch {
-      router.replace('/user/home');
-    }
+    router.replace('/user/home');
   };
 
   return (
@@ -259,8 +238,6 @@ export default function PembayaranQris() {
         <Text style={styles.subtitle}>
           Selesaikan pembayaran untuk mengamankan slot parkir Anda.
         </Text>
-
-        <Text style={styles.apiStatusText}>{apiStatusMessage}</Text>
 
         {paymentError ? (
           <Text style={styles.errorText}>{paymentError}</Text>
@@ -374,7 +351,11 @@ export default function PembayaranQris() {
           {/* Payment Methods */}
           <View style={styles.paymentMethodsBox}>
             <Text style={styles.paymentMethodsTitle}>Bisa dibayar dengan :</Text>
-            <View style={styles.paymentMethodsRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.paymentMethodsRow}
+            >
               {PAYMENT_METHODS.map((method) => (
                 <View key={method.key} style={styles.paymentMethodItem}>
                   <Image
@@ -392,7 +373,7 @@ export default function PembayaranQris() {
               <View style={styles.paymentMethodItem}>
                 <Text style={styles.andMoreText}>dan{'\n'}lainnya</Text>
               </View>
-            </View>
+            </ScrollView>
           </View>
           <Text style={styles.expiryText}>Masa berlaku QR: {expiresIn > 0 ? `${expiresIn} detik` : 'Kadaluarsa'}</Text>
           <Text style={styles.paymentStatusNote}>Metode: {paymentInfo?.MetodePembayaran?.MetodePembayaran ?? 'QRIS'}</Text>
@@ -670,15 +651,13 @@ const styles = StyleSheet.create({
   paymentMethodsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'nowrap',
-    gap: 2,
+    paddingVertical: 4,
   },
   paymentMethodItem: {
     alignItems: 'center',
-    flex: 1,
-    minWidth: 48,
-    paddingVertical: 0,
+    minWidth: 65,
+    marginRight: 8,
+    paddingVertical: 4,
   },
   paymentLogo: {
     width: 24,
