@@ -66,7 +66,7 @@ function getNumericByKnownKeys(source: AnyObject, keys: string[]) {
 
 export function getLokasiDisplayName(lokasiMall: unknown) {
   if (!lokasiMall || typeof lokasiMall !== 'object') {
-    return 'Mall';
+    return 'Ground Floor';
   }
 
   const source = lokasiMall as AnyObject;
@@ -105,5 +105,5 @@ export function getLokasiDisplayName(lokasiMall: unknown) {
     return `Mall ${idLokasiMall}`;
   }
 
-  return 'Mall';
+  return 'Ground Floor';
 }

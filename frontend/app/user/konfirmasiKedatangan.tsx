@@ -29,6 +29,7 @@ import P4A from '@/components/booking/floors/P4A';
 import P5 from '@/components/booking/floors/P5';
 import { cancelBookingPengunjung } from '@/fetching/services/bookingActivityService';
 import { konfirmasiTiba } from '@/fetching/services/konfirmasiTibaService';
+import { getTempatParkir } from '@/fetching/services/tempatparkirService';
 
 const INITIAL_SECONDS = 30 * 60 + 0;
 const ARRIVAL_WINDOW_SECONDS = 30 * 60;
@@ -161,6 +162,8 @@ export default function KonfirmasiKedatangan() {
   const [popupVisible, setPopupVisible] = useState(false);       // Pop-up Tiba di Mall
   const [cancelPopupVisible, setCancelPopupVisible] = useState(false); // Pop-up Batal Booking
   const [isCancelling, setIsCancelling] = useState(false);
+  const [slotStatuses, setSlotStatuses] = useState<Record<string, 'available' | 'occupied' | 'online' | 'manual'>>({});
+  const [isSlotStatusesLoading, setIsSlotStatusesLoading] = useState(true);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -170,6 +173,106 @@ export default function KonfirmasiKedatangan() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    let isActive = true;
+    const rawMallId = Number(params.mallId || 0);
+
+    const normalizeSlotCode = (rawCode: string) => {
+      const trimmed = String(rawCode || '').trim();
+      if (!trimmed) return '';
+      const collapsed = trimmed.replace(/\s+/g, ' ');
+      const parts = collapsed.split(/\s*[-–—/]\s*|\s+/).filter(Boolean);
+      const normalized = parts.length > 0 ? parts[parts.length - 1] : collapsed;
+      return normalized.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    };
+
+    const normalizeStatusLabel = (rawStatus: string) =>
+      String(rawStatus || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+
+    const mapBackendStatus = (rawStatus: string): 'available' | 'occupied' | 'online' | 'manual' | null => {
+      switch (normalizeStatusLabel(rawStatus)) {
+        case 'tersedia':
+        case 'kosong':
+        case 'available':
+        case 'empty':
+          return 'available';
+        case 'terisi':
+        case 'occupied':
+        case 'penuh':
+          return 'occupied';
+        case 'dipesan':
+        case 'booked':
+        case 'bookingonline':
+          return 'online';
+        case 'bookingmanual':
+        case 'manual':
+        case 'perawatan':
+          return 'manual';
+        default:
+          return null;
+      }
+    };
+
+    async function loadSlotStatuses() {
+      if (!rawMallId) {
+        setSlotStatuses({});
+        setIsSlotStatusesLoading(false);
+        return;
+      }
+
+      setIsSlotStatusesLoading(true);
+      try {
+        const payload = await getTempatParkir(rawMallId);
+        if (!isActive) return;
+
+        const source = payload as any;
+        const slots = Array.isArray(source?.tempat_parkir)
+          ? source.tempat_parkir
+          : Array.isArray(source?.TempatParkir)
+            ? source.TempatParkir
+            : Array.isArray(source?.data?.tempat_parkir)
+              ? source.data.tempat_parkir
+              : Array.isArray(source?.ControllerData?.tempat_parkir)
+                ? source.ControllerData.tempat_parkir
+                : [];
+
+        const mappedStatuses: Record<string, 'available' | 'occupied' | 'online' | 'manual'> = {};
+
+        slots.forEach((slot: any) => {
+          const rawCode = String(slot.KodeTempat || slot.kode_tempat || '').trim();
+          const code = normalizeSlotCode(rawCode);
+          if (!code) return;
+
+          const mappedStatus = mapBackendStatus(slot.StatusTempatParkir || slot.status_tempat_parkir || '');
+          if (mappedStatus) {
+            mappedStatuses[code] = mappedStatus;
+          }
+        });
+
+        if (isActive) {
+          setSlotStatuses(mappedStatuses);
+        }
+      } catch (error) {
+        if (!isActive) return;
+        console.error('❌ Gagal memuat status slot konfirmasi:', error);
+        setSlotStatuses({});
+      } finally {
+        if (isActive) {
+          setIsSlotStatusesLoading(false);
+        }
+      }
+    }
+
+    loadSlotStatuses();
+
+    return () => {
+      isActive = false;
+    };
+  }, [params.mallId]);
 
   const bookingTimeMs = params.bookingTimeIso ? new Date(params.bookingTimeIso).getTime() : NaN;
   const secondsLeft = Number.isNaN(bookingTimeMs)
@@ -254,7 +357,7 @@ export default function KonfirmasiKedatangan() {
     const layoutProps = {
       selectedSlot: targetSlotId,
       onSelectSlot: () => {},
-      slotStatuses: {},
+      slotStatuses,
     };
 
     switch (parkingFloor) {

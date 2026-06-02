@@ -108,7 +108,7 @@ export default function KonfirmasiSelesaiParkir() {
               <MaterialCommunityIcons name="parking" size={18} color="#141B34" />
             </View>
             <View style={styles.locationInfo}>
-              <Text style={styles.mallName}>Trans Studio Mall Makassar</Text>
+              <Text style={styles.mallName}>Mall Ratu Indah Makassar</Text>
               <Text style={styles.locationSub}>{parkingFloor}</Text>
             </View>
           </View>

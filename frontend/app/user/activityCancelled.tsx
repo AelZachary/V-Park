@@ -14,40 +14,44 @@ export default function ActivityCancelledScreen() {
 
   const { cancelledData, loading, error } = useActivityCancelledVM();
 
+  const isEmpty = !loading && !error && cancelledData.length === 0;
+
   return (
     <View style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 140 }}
-      >
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#1565C0" />
-            <Text style={styles.loadingText}>Memuat riwayat batal...</Text>
-          </View>
-        ) : error ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.emptyTitle}>Gagal memuat riwayat batal</Text>
-            <Text style={styles.loadingText}>{error}</Text>
-          </View>
-        ) : cancelledData.length === 0 ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.emptyTitle}>Belum ada booking yang dibatalkan</Text>
-            <Text style={styles.loadingText}>Data batal akan muncul di sini.</Text>
-          </View>
-        ) : (
-          cancelledData.map((item, index) => (
+      {loading || error || isEmpty ? (
+        <View style={styles.loadingContainer}>
+          {loading ? (
+            <>
+              <ActivityIndicator size="large" color="#1565C0" />
+              <Text style={styles.loadingText}>Memuat riwayat batal...</Text>
+            </>
+          ) : error ? (
+            <>
+              <Text style={styles.emptyTitle}>Gagal memuat riwayat batal</Text>
+              <Text style={styles.loadingText}>{error}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.emptyTitle}>Belum ada booking yang dibatalkan</Text>
+              <Text style={styles.loadingText}>Data batal akan muncul di sini.</Text>
+            </>
+          )}
+        </View>
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 140 }}
+        >
+          {cancelledData.map((item, index) => (
             <ActivityCancelled
               key={index}
               mall={item.mall}
               area={item.area}
               date={item.date}
             />
-          ))
-        )}
-
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
 
       {/* BOTTOM NAV */}
       <BottomNavbar active="activity" />
@@ -63,7 +67,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF4FA',
   },
   loadingContainer: {
-    paddingTop: 120,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
   },
