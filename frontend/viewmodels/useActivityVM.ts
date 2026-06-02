@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActiveBookingRecord, getActiveBookings } from '@/fetching/services/bookingActivityService';
 import { getLokasiDisplayName } from '@/fetching/response/locationDisplayName';
 
@@ -46,7 +47,23 @@ export const useActivityVM = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [bookingFloors, setBookingFloors] = useState<Record<string, string>>({});
   const hasLoadedOnceRef = useRef(false);
+
+  // Load booking floors from AsyncStorage
+  useEffect(() => {
+    const loadBookingFloors = async () => {
+      try {
+        const stored = await AsyncStorage.getItem('bookingFloors');
+        if (stored) {
+          setBookingFloors(JSON.parse(stored));
+        }
+      } catch (err) {
+        console.log('Error loading booking floors:', err);
+      }
+    };
+    loadBookingFloors();
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -56,6 +73,16 @@ export const useActivityVM = () => {
       setError(null);
 
       const data = await getActiveBookings();
+
+      // Also reload booking floors from AsyncStorage
+      try {
+        const stored = await AsyncStorage.getItem('bookingFloors');
+        if (stored) {
+          setBookingFloors(JSON.parse(stored));
+        }
+      } catch (err) {
+        console.log('Error loading booking floors:', err);
+      }
 
       if (!Array.isArray(data) || data.length === 0) {
         setBookingList([]);
@@ -117,9 +144,13 @@ export const useActivityVM = () => {
       const elapsedSeconds = isArrived && startTime ? Math.max(0, Math.floor((now - startTime) / 1000)) : 0;
       const remainingSeconds = Math.max(0, ARRIVAL_WINDOW_SECONDS - Math.floor((now - bookingTime) / 1000));
 
+      // Use floor from AsyncStorage if available, otherwise use location name
+      const storedFloor = bookingFloors[String(bookingData.Booking.IDBooking)];
+      const displayFloor = storedFloor || getLokasiDisplayName(bookingData.LokasiMall);
+
       return {
         bookingId: bookingData.Booking.IDBooking,
-        mallLabel: getLokasiDisplayName(bookingData.LokasiMall),
+        mallLabel: displayFloor,
         areaLabel: bookingData.TempatParkir.KodeTempat,
         slotLabel: bookingData.TempatParkir.KodeTempat,
         plateNumber: bookingData.Booking.PlatPengguna,
@@ -135,7 +166,7 @@ export const useActivityVM = () => {
         raw: bookingData,
       };
     });
-  }, [bookingList, now]);
+  }, [bookingList, now, bookingFloors]);
 
   return {
     loading,

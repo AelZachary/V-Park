@@ -19,6 +19,16 @@ export type ActiveBookingRecord = {
   };
 };
 
+export type FinishedBookingRecord = ActiveBookingRecord & {
+  RiwayatBooking: ActiveBookingRecord['RiwayatBooking'] & {
+    WaktuKeluar: string | null;
+    DurasiParkir: number | null;
+  };
+  MetodePembayaran?: {
+    JumlahPembayaran: number;
+  } | null;
+};
+
 export type CancelledBookingRecord = {
   Booking: {
     IDBooking: number;
@@ -126,7 +136,7 @@ export async function cancelBookingPengunjung(bookingID: number) {
   return payload;
 }
 
-export async function getFinishedBookings(): Promise<ActiveBookingRecord[]> {
+export async function getFinishedBookings(): Promise<FinishedBookingRecord[]> {
   const res = await authFetch(`${API_BASE_URL}/api/riwayatselesai/pengunjung`, {
     method: 'GET',
     headers: {
@@ -148,5 +158,5 @@ export async function getFinishedBookings(): Promise<ActiveBookingRecord[]> {
     throw new Error(`Invalid finished booking response: expected array but got ${typeof payload}`);
   }
 
-  return payload as ActiveBookingRecord[];
+  return payload as FinishedBookingRecord[];
 }

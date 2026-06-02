@@ -18,7 +18,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const TRANSACTION = {
-  lokasi: 'Trans Studio Mall Makassar',
+  lokasi: 'Mall Ratu Indah Makassar',
   slotParkir: 'Ground Floor',
   totalPembayaran: 'Rp 20.000',
 };
@@ -159,7 +159,7 @@ export default function MemprosesPembayaran() {
   const [stepTwoStatus, setStepTwoStatus] = useState<'pending' | 'loading' | 'success'>('pending');
   const [completionData, setCompletionData] = useState<KonfirmasiSelesaiResponse | null>(null);
   const [transaction, setTransaction] = useState({
-    lokasi: 'Trans Studio Mall Makassar',
+    lokasi: 'Mall Ratu Indah Makassar',
     slotParkir: params.floor || 'Ground Floor',
     totalPembayaran: 'Rp 20.000',
   });

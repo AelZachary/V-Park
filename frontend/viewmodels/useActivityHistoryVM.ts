@@ -1,7 +1,34 @@
 import { ParkingHistory } from "@/models/ParkingHistory";
 import { useEffect, useState } from 'react';
-import { getFinishedBookings } from '@/fetching/services/bookingActivityService';
+import { FinishedBookingRecord, getFinishedBookings } from '@/fetching/services/bookingActivityService';
 import { getLokasiDisplayName } from '@/fetching/response/locationDisplayName';
+
+function formatParkingDuration(seconds: number) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const parts = [];
+
+  if (hours > 0) {
+    parts.push(`${hours} jam`);
+  }
+  if (minutes > 0 || parts.length === 0) {
+    parts.push(`${minutes} menit`);
+  }
+
+  return parts.join(' ');
+}
+
+function formatRupiah(value: number) {
+  return value.toLocaleString('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  });
+}
+
+function formatTime(date: Date | null) {
+  return date ? date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+}
 
 export function useActivityHistoryVM() {
   const [historyData, setHistoryData] = useState<ParkingHistory[]>([]);
@@ -19,13 +46,24 @@ export function useActivityHistoryVM() {
         const data = await getFinishedBookings();
         if (!mounted) return;
 
-        const mapped = data.map((item, idx) => {
+        const mapped = data.map((item: FinishedBookingRecord) => {
           const waktuMasuk = item.RiwayatBooking?.WaktuMasuk ? new Date(item.RiwayatBooking.WaktuMasuk) : null;
-          const waktuKeluar = (item as any).RiwayatBooking?.WaktuKeluar ? new Date((item as any).RiwayatBooking.WaktuKeluar) : null;
+          const waktuKeluar = item.RiwayatBooking?.WaktuKeluar ? new Date(item.RiwayatBooking.WaktuKeluar) : null;
 
-          const checkIn = waktuMasuk ? waktuMasuk.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
-          const checkOut = waktuKeluar ? waktuKeluar.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+          const checkIn = formatTime(waktuMasuk);
+          const checkOut = formatTime(waktuKeluar);
           const date = new Date(item.Booking.WaktuBooking).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
+          const durationSeconds = typeof item.RiwayatBooking?.DurasiParkir === 'number'
+            ? item.RiwayatBooking.DurasiParkir
+            : waktuMasuk && waktuKeluar
+              ? Math.max(0, Math.floor((waktuKeluar.getTime() - waktuMasuk.getTime()) / 1000))
+              : 0;
+
+          const duration = durationSeconds > 0 ? formatParkingDuration(durationSeconds) : '';
+          const total = typeof item.MetodePembayaran?.JumlahPembayaran === 'number'
+            ? formatRupiah(item.MetodePembayaran.JumlahPembayaran)
+            : '';
 
           return {
             id: item.Booking.IDBooking,
@@ -34,8 +72,8 @@ export function useActivityHistoryVM() {
             area: item.TempatParkir.KodeTempat,
             checkIn,
             checkOut,
-            duration: '',
-            total: '',
+            duration,
+            total,
           } as ParkingHistory;
         });
 

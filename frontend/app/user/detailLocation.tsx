@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -19,7 +20,7 @@ import InfoRow from '@/components/common/InfoRow';
 import InputField from '@/components/common/InputField';
 import { createBookingPengunjung } from '@/fetching/services/bookingPengunjungService';
 import { getTempatParkir } from '@/fetching/services/tempatparkirService';
-import { getDashboardLokasiMall } from '@/fetching/services/dashboardService';
+import { getDashboardLokasiMall, DashboardLokasiMallResponse } from '@/fetching/services/dashboardService';
 import { API_BASE_URL } from '@/fetching/response/responseconfig';
 import { useDetailLokasiVM } from '@/viewmodels/useDetailLokasiVM';
 import { useProfileVM } from '@/viewmodels/useProfileVM';
@@ -42,6 +43,7 @@ export default function DetailLocation() {
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [galleryImages, setGalleryImages] = useState<any[]>(PARKING_IMAGES);
+  const [locationInfo, setLocationInfo] = useState<DashboardLokasiMallResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -71,6 +73,8 @@ export default function DetailLocation() {
         const matched = locations.find(
           (item) => Number(item?.LokasiMall?.IDLokasiMall) === mallId,
         );
+        setLocationInfo(matched ?? null);
+
         const imageSources = matched?.FotoLokasiMall?.filter(Boolean).map((foto) => ({
           uri: `${API_BASE_URL}/${String(foto.FotoLokasi).replace(/^\/+/, '')}`,
         })) ?? [];
@@ -81,6 +85,7 @@ export default function DetailLocation() {
         }
       })
       .catch(() => {
+        setLocationInfo(null);
         setGalleryImages(PARKING_IMAGES);
       });
 
@@ -146,6 +151,11 @@ export default function DetailLocation() {
         KendaraanPengguna: vehicleType || profile.vehicle || '',
         PlatPengguna: platNumber || profile.plate || '',
       });
+
+      // Store floor location with booking for activity display
+      const floorData = JSON.parse(await AsyncStorage.getItem('bookingFloors') || '{}');
+      floorData[String(bookingResult.Booking.IDBooking)] = params.floor || 'Ground Floor';
+      await AsyncStorage.setItem('bookingFloors', JSON.stringify(floorData));
 
       const elapsed = Date.now() - loadingStartedAt;
       const minimumLoadingMs = 650;
@@ -236,7 +246,10 @@ export default function DetailLocation() {
   const hasActiveHistory = Boolean(data);
   const parkingCode = params.slot || data?.TempatParkir?.KodeTempat?.split(' ').pop() || data?.TempatParkir?.KodeTempat || '';
   const parkingFloor = params.floor || 'Ground Floor';
-  const locationAddress = data?.LokasiMall?.AlamatLokasi || 'Alamat tidak tersedia';
+  const locationAddress =
+    locationInfo?.LokasiMall?.AlamatLokasi ||
+    data?.LokasiMall?.AlamatLokasi ||
+    'Alamat tidak tersedia';
   const bookingTime = data?.Booking?.WaktuBooking
     ? new Date(data.Booking.WaktuBooking).toLocaleString('id-ID')
     : 'Belum ada riwayat aktif';
@@ -300,13 +313,9 @@ export default function DetailLocation() {
             </View>
 
             <View style={styles.descriptionContainer}>
-              <Text style={styles.descriptionTitle}>Lokasi</Text>
+              <Text style={styles.descriptionTitle}>Deskripsi</Text>
               <Text style={styles.descriptionText}>
                 {locationAddress}
-              </Text>
-              <Text style={[styles.descriptionTitle, { marginTop: 8 }]}>Waktu Booking</Text>
-              <Text style={styles.descriptionText}>
-                {bookingTime}
               </Text>
             </View>
           </View>

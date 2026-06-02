@@ -57,7 +57,8 @@ export default function ActivityScreen(){
             }, 500);
           } catch (err) {
             console.error('Auto-cancel failed:', err);
-            autoCancelledRef.current.delete(activity.bookingId);
+            // Jangan delete dari set, karena kalau fail berarti booking tidak bisa dibatalkan
+            // Biarkan tetap di-track agar tidak retry terus-menerus
           }
         }
       });
@@ -140,7 +141,6 @@ export default function ActivityScreen(){
                     </View>
                     <View>
                       <Text style={styles.mallName}>{activity.mallLabel}</Text>
-                      <Text style={styles.location}>{activity.areaLabel}</Text>
                     </View>
                   </View>
 
@@ -153,21 +153,19 @@ export default function ActivityScreen(){
                   <View style={styles.detailItem}>
                     <Text style={styles.detailTitle}>Slot Parkir</Text>
                     <Text style={styles.bigText}>{activity.slotLabel}</Text>
-                    <Text style={styles.smallText}>{activity.areaLabel}</Text>
                   </View>
 
                   <View style={styles.verticalLine} />
 
                   <View style={styles.detailItem}>
-                    <Text style={styles.detailTitle}>Waktu Booking</Text>
+                    <Text style={styles.detailTitle}>Dipesan</Text>
                     <Text style={styles.timeText}>{activity.bookingTimeLabel}</Text>
-                    <Text style={styles.smallText}>Plat {activity.plateNumber}</Text>
                   </View>
 
                   <View style={styles.verticalLine} />
 
                   <View style={styles.detailItem}>
-                    <Text style={styles.detailTitle}>Plat Kendaraan</Text>
+                    <Text style={styles.detailTitle}>Plat</Text>
                     <Text style={styles.plate}>{activity.plateNumber}</Text>
                   </View>
                 </View>
@@ -272,7 +270,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 120,
   },
   loadingText: {
     marginTop: 12,
@@ -371,9 +368,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   bigText: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '800',
     color: '#111',
+    marginBottom: 5,
   },
   smallText: {
     marginTop: 4,
@@ -381,6 +379,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontWeight: '700',
+    fontSize: 12,
     color: '#111',
   },
   verticalLine: {
@@ -391,8 +390,9 @@ const styles = StyleSheet.create({
   },
   plate: {
     fontWeight: '800',
-    fontSize: 16,
+    fontSize: 13,
     color: '#111',
+    marginBottom: 12,
   },
   warningBox: {
     marginTop: 15,
