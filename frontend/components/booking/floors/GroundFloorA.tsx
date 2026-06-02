@@ -37,7 +37,12 @@ export default function GroundFloorA({ selectedSlot, onSelectSlot, slotStatuses 
         {/* ========== LEFT (Kiri - Area L) ========== */}
         <View style={styles.sideColumn}>
           <View style={styles.block3Rows}>
-            <ParkingSlot slot="L1" status={resolveSlotStatus("L1", "online", slotStatuses, selectedSlot)} side="left" />
+            <ParkingSlot disabled={false}
+              slot="L1" 
+              status={resolveSlotStatus("L1", "available", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot('L1', resolveSlotStatus("L1", "available", slotStatuses, selectedSlot))}
+            />
           </View>
           <View style={styles.groupDividerLeft} />
 
@@ -73,7 +78,12 @@ export default function GroundFloorA({ selectedSlot, onSelectSlot, slotStatuses 
               side="left" 
               onPress={() => onSelectSlot('L6', resolveSlotStatus("L6", "available", slotStatuses, selectedSlot))}
             />
-            <ParkingSlot slot="L7" status={resolveSlotStatus("L7", "online", slotStatuses, selectedSlot)} side="left" />
+            <ParkingSlot disabled={false}
+              slot="L7" 
+              status={resolveSlotStatus("L7", "available", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot('L7', resolveSlotStatus("L7", "available", slotStatuses, selectedSlot))}
+            />
           </View>
           <View style={styles.groupDividerLeft} />
 
@@ -91,7 +101,12 @@ export default function GroundFloorA({ selectedSlot, onSelectSlot, slotStatuses 
               side="left" 
               onPress={() => onSelectSlot('L9', resolveSlotStatus("L9", "available", slotStatuses, selectedSlot))}
             />
-            <ParkingSlot slot="L10" status={resolveSlotStatus("L10", "online", slotStatuses, selectedSlot)} side="left" />
+            <ParkingSlot disabled={false}
+              slot="L10" 
+              status={resolveSlotStatus("L10", "available", slotStatuses, selectedSlot)} 
+              side="left" 
+              onPress={() => onSelectSlot('L10', resolveSlotStatus("L10", "available", slotStatuses, selectedSlot))}
+            />
           </View>
           <View style={styles.groupDividerLeft} />
 

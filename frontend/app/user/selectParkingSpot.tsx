@@ -15,6 +15,8 @@ import P1A from '@/components/booking/floors/P1A';
 import P2A from '@/components/booking/floors/P2A';
 import P3A from '@/components/booking/floors/P3A';
 import { getTempatParkir } from '@/fetching/services/tempatparkirService';
+import { getDashboardLokasiMall } from '@/fetching/services/dashboardService';
+import { getLokasiDisplayName } from '@/fetching/response/locationDisplayName';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -85,6 +87,8 @@ export default function SelectParkingSpot() {
   const [slotStatuses, setSlotStatuses] = useState<Record<string, 'available' | 'occupied' | 'online' | 'manual' | 'selected'>>({});
   const [isSlotStatusesLoading, setIsSlotStatusesLoading] = useState(true);
   const [activeMallId, setActiveMallId] = useState<number>(0);
+  const [locationInfo, setLocationInfo] = useState<any | null>(null);
+  
 
   const getFloorImage = (floor: string) => {
     switch (floor) {
@@ -249,7 +253,38 @@ export default function SelectParkingSpot() {
     };
   }, [activeMallId]);
 
+  useEffect(() => {
+    let isActive = true;
+    async function loadLocationInfo() {
+      if (!activeMallId) {
+        setLocationInfo(null);
+        return;
+      }
+
+      try {
+        const locations = await getDashboardLokasiMall();
+        if (!isActive) return;
+        const matched = locations.find(
+          (item: any) => Number(item?.LokasiMall?.IDLokasiMall) === Number(activeMallId),
+        );
+        setLocationInfo(matched ?? null);
+      } catch (err) {
+        if (!isActive) return;
+        setLocationInfo(null);
+      }
+    }
+
+    loadLocationInfo();
+    return () => {
+      isActive = false;
+    };
+  }, [activeMallId]);
+
   const availableSlotCount = Object.values(slotStatuses).filter((status) => status === 'available').length;
+
+  const parkingDescription = selectedFloor
+    ? `${selectedFloor} • Dekat Lift & Pintu Keluar`
+    : 'Area parkir yang dipilih melalui menu dropdown di bawah ini. Pastikan memilih slot yang tersedia (berwarna hijau).';
 
   const handleSelectSlot = (slotId: string, currentStatus: string) => {
     if (isSlotStatusesLoading) return;
@@ -405,9 +440,10 @@ export default function SelectParkingSpot() {
           </Text>
         </View>
         <View style={styles.rightSection}>
-          <Text style={styles.locationTitle}>{selectedFloor}</Text>
+          {/** Use mall name + address like Home if available */}
+          <Text style={styles.locationTitle}>{locationInfo ? getLokasiDisplayName(locationInfo.LokasiMall) : selectedFloor}</Text>
           <Text style={styles.locationDesc}>
-            Area parkir yang dipilih melalui menu dropdown di bawah ini. Pastikan memilih slot yang tersedia (berwarna hijau).
+            {locationInfo?.LokasiMall?.AlamatLokasi || parkingDescription}
           </Text>
           <DropdownButton
             options={floorOptions}
