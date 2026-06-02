@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"v-park/internal/loggers"
@@ -101,6 +102,29 @@ func (c *BookingPengunjungController) CreateBookingPengunjungHandler(w http.Resp
 				return fmt.Errorf("lokasi mall not found")
 			}
 			return err
+		}
+
+		var pengunjung models.Pengunjung
+		if err := tx.First(&pengunjung, idPengunjung).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return fmt.Errorf("pengunjung not found")
+			}
+			return err
+		}
+
+		updates := map[string]any{}
+		if strings.TrimSpace(pengunjung.JenisKendaraan) == "" && strings.TrimSpace(req.KendaraanPengguna) != "" {
+			updates["jenis_kendaraan"] = req.KendaraanPengguna
+		}
+		if strings.TrimSpace(pengunjung.PlatKendaraan) == "" && strings.TrimSpace(req.PlatPengguna) != "" {
+			updates["plat_kendaraan"] = req.PlatPengguna
+		}
+		if len(updates) > 0 {
+			if err := tx.Model(&models.Pengunjung{}).
+				Where("id_pengunjung = ?", idPengunjung).
+				Updates(updates).Error; err != nil {
+				return err
+			}
 		}
 
 		// generate unique NoOrderan
