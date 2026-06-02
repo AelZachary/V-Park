@@ -280,14 +280,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#111',
     textAlign: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   emptyText: {
     marginTop: 8,
     color: '#607080',
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 140,
+    marginBottom: 0,
   },
   sectionTitle: {
     fontSize: 18,

@@ -205,8 +205,8 @@ export default function MemprosesPembayaran() {
             completion = await konfirmasiSelesai(bookingID);
             setCompletionData(completion);
             setTransaction({
-              lokasi: completion.LokasiMall.AlamatLokasi || params.floor || 'Ground Floor',
-              slotParkir: params.floor || completion.TempatParkir.KodeTempat || 'Ground Floor',
+              lokasi: TRANSACTION.lokasi,
+              slotParkir: completion.TempatParkir.KodeTempat || params.slot || params.floor || 'Ground Floor',
               totalPembayaran: `Rp ${completion.Pembayaran.TotalPembayaran.toLocaleString('id-ID')}`,
             });
             console.log('✓ Konfirmasi selesai berhasil:', completion);
@@ -234,8 +234,8 @@ export default function MemprosesPembayaran() {
               platNumber: params.platNumber || '',
               bookingTimeIso: params.bookingTimeIso || '',
               noOrder: completion?.Pembayaran.IDPembayaran ? String(completion.Pembayaran.IDPembayaran) : '',
-              lokasi: completion?.LokasiMall.AlamatLokasi || params.floor || '',
-              area: 'Mall Ratu Indah',
+              lokasi: TRANSACTION.lokasi,
+              area: params.floor || '',
               slotLabel: params.slot || '',
               platKendaraan: params.platNumber || '',
               waktuTiba: completion?.RiwayatBooking.WaktuMasuk || params.arrivedAt || '',
