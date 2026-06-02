@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useProfileVM } from '@/fetching/viewmodels/useProfileVM';
 
 const INITIAL_SECONDS = 0 * 3600 + 0 * 60 + 0;
 
@@ -28,11 +29,12 @@ export default function KonfirmasiSelesaiParkir() {
   const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingTimeIso?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string }>();
   const [now, setNow] = useState(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { profile } = useProfileVM();
   const bookingID = Number(params.bookingID);
   const parkingFloor = params.floor || 'Ground Floor';
   const rawSlotValue = params.slot || 'Unknown';
-  const vehicleType = params.vehicleType || 'Mobil';
-  const platNumber = params.platNumber || 'DD 1234 TNF';
+  const vehicleType = params.vehicleType || profile.vehicle || 'Mobil';
+  const platNumber = params.platNumber || profile.plate || 'DD 1234 TNF';
 
   const arrivedAtMs = useMemo(() => {
     if (!params.arrivedAt) {
