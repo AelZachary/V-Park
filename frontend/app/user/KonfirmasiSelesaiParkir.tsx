@@ -56,15 +56,7 @@ export default function KonfirmasiSelesaiParkir() {
   }, []);
 
   const handlePressBack = () => {
-    try {
-      if (router.canGoBack?.()) {
-        router.back();
-      } else {
-        router.replace('/user/konfirmasiKedatangan');
-      }
-    } catch (_error) {
-      router.replace('/user/konfirmasiKedatangan');
-    }
+    router.replace('/user/home');
   };
 
   const elapsed = arrivedAtMs ? Math.max(0, Math.floor((now - arrivedAtMs) / 1000)) : INITIAL_SECONDS;
@@ -294,10 +286,11 @@ const styles = StyleSheet.create({
   timerLabel: {
     fontSize: 12,
     color: '#000',
-    width: 46,
+    width: 45,
+    marginLeft: 11,
   },
   timerLabelMenit: {
-    width: 60,
+    width: 50,
   },
   timerLabelDetik: {
     width: 40,

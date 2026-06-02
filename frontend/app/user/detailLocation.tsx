@@ -163,7 +163,7 @@ export default function DetailLocation() {
         await new Promise((resolve) => setTimeout(resolve, minimumLoadingMs - elapsed));
       }
 
-      router.push({
+      router.replace({
         pathname: '/user/konfirmasiKedatangan',
         params: {
           bookingID: String(bookingResult.Booking.IDBooking),
@@ -186,15 +186,7 @@ export default function DetailLocation() {
   };
 
   const handlePressBack = () => {
-    try {
-      if (router.canGoBack?.()) {
-        router.back();
-      } else {
-        router.replace('/user/selectParkingSpot');
-      }
-    } catch (_error) {
-      router.replace('/user/selectParkingSpot');
-    }
+    router.replace('/user/home');
   };
 
   const handleSaveEdit = () => {

@@ -287,15 +287,7 @@ export default function KonfirmasiKedatangan() {
   const platNumber = params.platNumber || 'DD 1234 TNF';
 
   const handlePressBack = () => {
-    try {
-      if (router.canGoBack?.()) {
-        router.back();
-      } else {
-        router.replace('/user/detailLocation');
-      }
-    } catch (_error) {
-      router.replace('/user/detailLocation');
-    }
+    router.replace('/user/home');
   };
 
   // Handler jika klik 'Ya, Saya Tiba' di Pop-up Kedatangan
@@ -450,16 +442,23 @@ export default function KonfirmasiKedatangan() {
         <View style={styles.locationMapCard}>
           <Text style={styles.locationMapHeading}>Detail Lokasi Tempat Parkir</Text>
 
-          <View style={styles.miniMapFrame}>
-            <ScrollView 
-              nestedScrollEnabled={true}
-              showsVerticalScrollIndicator={true}
-              contentContainerStyle={styles.miniMapVerticalContent}
-            >
-              <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                {renderFloorLayout()}
+          <View style={[styles.miniMapFrame, isSlotStatusesLoading && styles.loadingMapContainer]}>
+            {isSlotStatusesLoading ? (
+              <View style={styles.loadingState}>
+                <ActivityIndicator size="large" color="#FFFFFF" />
+                <Text style={styles.loadingText}>Memuat layout parkir...</Text>
+              </View>
+            ) : (
+              <ScrollView 
+                nestedScrollEnabled={true}
+                showsVerticalScrollIndicator={true}
+                contentContainerStyle={styles.miniMapVerticalContent}
+              >
+                <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+                  {renderFloorLayout()}
+                </ScrollView>
               </ScrollView>
-            </ScrollView>
+            )}
           </View>
         </View>
 
@@ -798,6 +797,22 @@ const styles = StyleSheet.create({
   miniMapVerticalContent: {
     paddingVertical: 10,
     alignItems: 'center',
+  },
+  loadingMapContainer: {
+    justifyContent: 'center',
+  },
+  loadingState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 240,
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   card: {
     backgroundColor: '#fff',
