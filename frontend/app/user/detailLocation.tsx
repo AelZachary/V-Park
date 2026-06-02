@@ -54,9 +54,9 @@ export default function DetailLocation() {
 
   React.useEffect(() => {
     setUsername(profile.name || '');
-    setPhone(profile.phone || '');
-    setVehicleType(profile.vehicle || '');
-    setPlatNumber(profile.plate || '');
+    setPhone(sanitizeProfileValue(profile.phone || '', DEFAULT_PHONE_PLACEHOLDER));
+    setVehicleType(sanitizeProfileValue(profile.vehicle || '', DEFAULT_VEHICLE_PLACEHOLDER));
+    setPlatNumber(sanitizeProfileValue(profile.plate || '', DEFAULT_PLAT_PLACEHOLDER));
   }, [profile]);
 
   React.useEffect(() => {
@@ -106,6 +106,10 @@ export default function DetailLocation() {
     }
   }, [error]);
 
+  const DEFAULT_PLAT_PLACEHOLDER = 'DD 1234 TNF';
+  const DEFAULT_VEHICLE_PLACEHOLDER = 'Toyota Fortuner';
+  const DEFAULT_PHONE_PLACEHOLDER = '+628213456789';
+
   const normalizeSlotCode = (rawCode: string) => {
     const trimmed = String(rawCode || '').trim();
     if (!trimmed) return '';
@@ -114,6 +118,10 @@ export default function DetailLocation() {
     const parts = collapsed.split(/\s*[-–—/]\s*|\s+/).filter(Boolean);
     const normalized = parts.length > 0 ? parts[parts.length - 1] : collapsed;
     return normalized.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  };
+
+  const sanitizeProfileValue = (value: string, placeholder: string) => {
+    return value && value !== placeholder ? value : '';
   };
 
   const handlePressNext = async () => {
@@ -144,12 +152,16 @@ export default function DetailLocation() {
         throw new Error('Slot parkir tidak ditemukan');
       }
 
+      const effectivePhone = phone || sanitizeProfileValue(profile.phone || '', DEFAULT_PHONE_PLACEHOLDER);
+      const effectiveVehicle = vehicleType || sanitizeProfileValue(profile.vehicle || '', DEFAULT_VEHICLE_PLACEHOLDER);
+      const effectivePlate = platNumber || sanitizeProfileValue(profile.plate || '', DEFAULT_PLAT_PLACEHOLDER);
+
       const bookingResult = await createBookingPengunjung({
         IDTempatParkir: Number(matchedSlot.IDTempatParkir),
         NamaPengguna: username || profile.name || '',
-        NoPengguna: phone || profile.phone || '',
-        KendaraanPengguna: vehicleType || profile.vehicle || '',
-        PlatPengguna: platNumber || profile.plate || '',
+        NoPengguna: effectivePhone,
+        KendaraanPengguna: effectiveVehicle,
+        PlatPengguna: effectivePlate,
       });
 
       // Store floor location with booking for activity display
@@ -172,9 +184,9 @@ export default function DetailLocation() {
           mallId: String(mallId),
           bookingTimeIso: bookingResult.Booking.WaktuBooking,
           bookingName: username || profile.name || '',
-          phone: phone || profile.phone || '',
-          vehicleType: vehicleType || profile.vehicle || '',
-          platNumber: platNumber || profile.plate || '',
+          phone: effectivePhone,
+          vehicleType: effectiveVehicle,
+          platNumber: effectivePlate,
         },
       });
     } catch (err) {

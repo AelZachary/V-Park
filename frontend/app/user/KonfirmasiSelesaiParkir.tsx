@@ -91,7 +91,6 @@ export default function KonfirmasiSelesaiParkir() {
             <Text style={[styles.timerLabel, styles.timerLabelMenit]}>Menit</Text>
             <Text style={[styles.timerLabel, styles.timerLabelDetik]}>Detik</Text>
           </View>
-          <Text style={[styles.activeText, { marginTop: 6 }]}>Parkir sedang berlangsung</Text>
         </View>
 
         <View style={styles.card}>
@@ -353,7 +352,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#000',
-    marginTop: 2,
+    marginTop: 8,
   },
   verticalDivider: {
     width: 1,

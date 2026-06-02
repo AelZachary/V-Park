@@ -24,8 +24,8 @@ export const useProfileVM = () => {
       currentUser && 'Pengunjung' in currentUser
         ? currentUser.Pengunjung.NoHandphone
         : '+628213456789',
-    totalBooking: 28,
-    totalExpenses: 'Rp 500.000',
+    totalBooking: 0,
+    totalExpenses: 'Rp 0',
     vehicle:
       currentUser && 'Pengunjung' in currentUser
         ? currentUser.Pengunjung.JenisKendaraan
@@ -54,23 +54,30 @@ export const useProfileVM = () => {
         // Prefer server statistics, but fall back to locally persisted
         // statistics stored in the current session user when available.
         const sessionUser = getCurrentSessionUser();
-        const fallbackBooking = sessionUser && 'Pengunjung' in sessionUser && sessionUser.Pengunjung?.Statistik?.TotalBooking
-          ? Number(sessionUser.Pengunjung.Statistik.TotalBooking)
+        const sessionPengunjung = sessionUser && 'Pengunjung' in sessionUser
+          ? (sessionUser.Pengunjung as { Statistik?: { TotalBooking?: number; TotalJumlahPembayaran?: number } })
           : undefined;
 
-        const fallbackExpenses = sessionUser && 'Pengunjung' in sessionUser && sessionUser.Pengunjung?.Statistik?.TotalJumlahPembayaran
-          ? Number(sessionUser.Pengunjung.Statistik.TotalJumlahPembayaran)
+        const fallbackBookingRaw = sessionPengunjung?.Statistik?.TotalBooking;
+        const fallbackBooking = fallbackBookingRaw != null
+          ? Number(fallbackBookingRaw)
           : undefined;
 
-        const serverBooking = typeof data.Statistik?.TotalBooking === 'number' ? data.Statistik.TotalBooking : undefined;
-        const serverExpenses = typeof data.Statistik?.TotalJumlahPembayaran === 'number' ? data.Statistik.TotalJumlahPembayaran : undefined;
+        const fallbackExpensesRaw = sessionPengunjung?.Statistik?.TotalJumlahPembayaran;
+        const fallbackExpenses = fallbackExpensesRaw != null
+          ? Number(fallbackExpensesRaw)
+          : undefined;
 
-        // Treat server 0 as missing (prefer local persisted values when available)
-        const serverBookingValid = typeof serverBooking === 'number' && serverBooking > 0;
-        const serverExpensesValid = typeof serverExpenses === 'number' && serverExpenses > 0;
+        const serverBooking = data.Statistik?.TotalBooking != null ? Number(data.Statistik.TotalBooking) : undefined;
+        const serverExpenses = data.Statistik?.TotalJumlahPembayaran != null ? Number(data.Statistik.TotalJumlahPembayaran) : undefined;
 
-        const finalBooking = serverBookingValid ? serverBooking : (fallbackBooking ?? defaultProfile.totalBooking);
-        const finalExpenses = serverExpensesValid ? serverExpenses : (fallbackExpenses ?? 0);
+        // Accept 0 as a valid server statistic value.
+        const finalBooking = serverBooking !== undefined && !Number.isNaN(serverBooking)
+          ? serverBooking
+          : (fallbackBooking ?? defaultProfile.totalBooking);
+        const finalExpenses = serverExpenses !== undefined && !Number.isNaN(serverExpenses)
+          ? serverExpenses
+          : (fallbackExpenses ?? 0);
 
         setProfile({
           name: data.User.Username || defaultProfile.name,
@@ -85,7 +92,8 @@ export const useProfileVM = () => {
         // If fetch failed, try to use persisted session values
         const sessionUser = getCurrentSessionUser();
         if (sessionUser && 'Pengunjung' in sessionUser) {
-          const stats = sessionUser.Pengunjung?.Statistik || { TotalBooking: undefined, TotalJumlahPembayaran: undefined };
+          const sessionPengunjung = sessionUser.Pengunjung as { Statistik?: { TotalBooking?: number; TotalJumlahPembayaran?: number } };
+          const stats = sessionPengunjung.Statistik || { TotalBooking: undefined, TotalJumlahPembayaran: undefined };
           setProfile({
             name: sessionUser.Username || defaultProfile.name,
             phone: sessionUser.Pengunjung?.NoHandphone || defaultProfile.phone,
@@ -109,7 +117,8 @@ export const useProfileVM = () => {
       if (!mounted) return;
       const sessionUser = getCurrentSessionUser();
       if (sessionUser && 'Pengunjung' in sessionUser) {
-        const stats = sessionUser.Pengunjung?.Statistik || { TotalBooking: undefined, TotalJumlahPembayaran: undefined };
+        const sessionPengunjung = sessionUser.Pengunjung as { Statistik?: { TotalBooking?: number; TotalJumlahPembayaran?: number } };
+        const stats = sessionPengunjung.Statistik || { TotalBooking: undefined, TotalJumlahPembayaran: undefined };
         setProfile((prev) => ({
           ...prev,
           totalBooking: stats.TotalBooking ?? prev.totalBooking,

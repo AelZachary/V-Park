@@ -272,10 +272,6 @@ export default function PembayaranQris() {
             <View>
               <Text style={styles.paymentLabel}>Total Pembayaran</Text>
               <Text style={styles.paymentAmount}>Rp {paymentAmount.toLocaleString('id-ID')}</Text>
-              <Text style={styles.paymentStatusText}>Status: {paymentStatus}</Text>
-              <Text style={styles.paymentMetaText}>
-                Jumlah metode pembayaran: Rp {paymentInfo?.MetodePembayaran?.JumlahPembayaran?.toLocaleString('id-ID') ?? paymentAmount.toLocaleString('id-ID')}
-              </Text>
             </View>
             <TouchableOpacity
               style={styles.detailToggle}

@@ -145,7 +145,7 @@ export default function PaymentSuccessful() {
 
   const transaction = {
     noOrder: formatOrderNumber(params.bookingID || params.noOrder),
-    lokasi: 'Mall Ratu Indah',
+    lokasi: params.lokasi || TRANSACTION.lokasi,
     area: params.area || params.floor || TRANSACTION.area,
     slot: params.slotLabel || params.slot || TRANSACTION.slot,
     platKendaraan: params.platKendaraan || params.platNumber || TRANSACTION.platKendaraan,
