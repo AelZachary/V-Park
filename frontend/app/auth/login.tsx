@@ -77,13 +77,6 @@ export default function LoginScreen() {
               secureTextEntry
             />
 
-            {/* Forgot */}
-            <TouchableOpacity>
-              <Text style={styles.forgot}>
-                Forgot Password?
-              </Text>
-            </TouchableOpacity>
-
             {/* Button */}
             <ButtonPrimary
               title="Log In"

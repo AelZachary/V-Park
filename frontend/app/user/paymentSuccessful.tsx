@@ -249,12 +249,6 @@ export default function PaymentSuccessful() {
           <Text style={styles.taxNote}>(Termasuk pajak &amp; biaya layanan)</Text>
         </View>
 
-        {/* Action Buttons */}
-        <TouchableOpacity style={styles.downloadButton} onPress={handleDownloadReceipt}>
-          <DownloadIcon />
-          <Text style={styles.downloadButtonText}>Download Receipt</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity style={styles.homeButton} onPress={handleBackToHome}>
           <HomeIcon />
           <Text style={styles.homeButtonText}>Back to Home</Text>
