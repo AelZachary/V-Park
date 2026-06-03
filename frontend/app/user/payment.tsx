@@ -371,8 +371,6 @@ export default function PembayaranQris() {
               </View>
             </ScrollView>
           </View>
-          <Text style={styles.expiryText}>Masa berlaku QR: {expiresIn > 0 ? `${expiresIn} detik` : 'Kadaluarsa'}</Text>
-          <Text style={styles.paymentStatusNote}>Metode: {paymentInfo?.MetodePembayaran?.MetodePembayaran ?? 'QRIS'}</Text>
         </View>
 
         {/* How to Pay Card */}
