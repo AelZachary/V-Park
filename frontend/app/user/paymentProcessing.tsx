@@ -1,7 +1,4 @@
 import { COLORS } from '@/constants/theme';
-import { konfirmasiSelesai, type KonfirmasiSelesaiResponse } from '@/fetching/services/konfirmasiSelesaiService';
-import { getDashboardLokasiMall } from '@/fetching/services/dashboardService';
-import { getTempatParkir } from '@/fetching/services/tempatparkirService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -157,7 +154,6 @@ export default function MemprosesPembayaran() {
   const hasSubmittedCompletionRef = useRef(false);
   const [stepOneStatus, setStepOneStatus] = useState<'pending' | 'loading' | 'success'>('loading');
   const [stepTwoStatus, setStepTwoStatus] = useState<'pending' | 'loading' | 'success'>('pending');
-  const [completionData, setCompletionData] = useState<KonfirmasiSelesaiResponse | null>(null);
   const [transaction, setTransaction] = useState({
     lokasi: 'Mall Ratu Indah Makassar',
     slotParkir: params.floor || 'Ground Floor',
@@ -190,71 +186,37 @@ export default function MemprosesPembayaran() {
 
   useEffect(() => {
     if (stepTwoStatus === 'success') {
-      const submitCompletion = async () => {
-        if (hasSubmittedCompletionRef.current) {
-          return;
-        }
+      const timeoutId = setTimeout(() => {
+        router.replace({
+          pathname: '/user/paymentSuccessful',
+          params: {
+            bookingID: params.bookingID || '',
+            slot: params.slot || '',
+            floor: params.floor || '',
+            arrivedAt: params.arrivedAt || '',
+            mallId: params.mallId || '',
+            bookingName: params.bookingName || '',
+            phone: params.phone || '',
+            vehicleType: params.vehicleType || '',
+            platNumber: params.platNumber || '',
+            bookingTimeIso: params.bookingTimeIso || '',
+            noOrder: params.bookingID || '',
+            lokasi: params.floor || 'Mall Ratu Indah Makassar',
+            area: params.floor || '',
+            slotLabel: params.slot || '',
+            platKendaraan: params.platNumber || '',
+            waktuTiba: params.arrivedAt || '',
+            durasi: '',
+            totalBiaya: 'Rp 20.000',
+            totalPembayaran: 'Rp 20.000',
+            waktuTransaksi: new Date().toISOString(),
+          },
+        });
+      }, 1000);
 
-        hasSubmittedCompletionRef.current = true;
-
-        const bookingID = Number(params.bookingID);
-
-        try {
-          let completion: KonfirmasiSelesaiResponse | null = null;
-          if (Number.isFinite(bookingID) && bookingID > 0) {
-            completion = await konfirmasiSelesai(bookingID);
-            setCompletionData(completion);
-            setTransaction({
-              lokasi: TRANSACTION.lokasi,
-              slotParkir: completion.TempatParkir.KodeTempat || params.slot || params.floor || 'Ground Floor',
-              totalPembayaran: `Rp ${completion.Pembayaran.TotalPembayaran.toLocaleString('id-ID')}`,
-            });
-            console.log('✓ Konfirmasi selesai berhasil:', completion);
-          }
-
-          const mallId = Number(params.mallId);
-          if (Number.isFinite(mallId) && mallId > 0) {
-            await Promise.all([
-              getDashboardLokasiMall().catch(() => null),
-              getTempatParkir(mallId).catch(() => null),
-            ]);
-          }
-
-          router.replace({
-            pathname: '/user/paymentSuccessful',
-            params: {
-              bookingID: params.bookingID || '',
-              slot: params.slot || '',
-              floor: params.floor || '',
-              arrivedAt: params.arrivedAt || '',
-              mallId: params.mallId || '',
-              bookingName: params.bookingName || '',
-              phone: params.phone || '',
-              vehicleType: params.vehicleType || '',
-              platNumber: params.platNumber || '',
-              bookingTimeIso: params.bookingTimeIso || '',
-              noOrder: completion?.Pembayaran.IDPembayaran ? String(completion.Pembayaran.IDPembayaran) : '',
-              lokasi: TRANSACTION.lokasi,
-              area: params.floor || '',
-              slotLabel: params.slot || '',
-              platKendaraan: params.platNumber || '',
-              waktuTiba: completion?.RiwayatBooking.WaktuMasuk || params.arrivedAt || '',
-              durasi: completion?.RiwayatBooking.DurasiParkir ? `${completion.RiwayatBooking.DurasiParkir} Jam` : '',
-              totalBiaya: completion ? `Rp ${((completion.Pembayaran.BiayaLayanan || 0) + (completion.Pembayaran.BiayaPajak || 0)).toLocaleString('id-ID')}` : 'Rp 20.000',
-              totalPembayaran: completion ? `Rp ${completion.Pembayaran.TotalPembayaran.toLocaleString('id-ID')}` : 'Rp 20.000',
-              waktuTransaksi: completion?.Pembayaran.WaktuPembayaran || new Date().toISOString(),
-            },
-          });
-        } catch (error) {
-          hasSubmittedCompletionRef.current = false;
-          const errorMsg = error instanceof Error ? error.message : 'Gagal menyelesaikan parkir';
-          Alert.alert('Konfirmasi Selesai Gagal', errorMsg);
-        }
-      };
-
-      submitCompletion();
+      return () => clearTimeout(timeoutId);
     }
-  }, [stepTwoStatus, router, params.bookingID, params.slot, params.floor, params.arrivedAt, params.mallId]);
+  }, [stepTwoStatus, router, params.bookingID, params.slot, params.floor, params.arrivedAt, params.mallId, params.bookingName, params.phone, params.vehicleType, params.platNumber, params.bookingTimeIso]);
 
   const isAllDone = stepTwoStatus === 'success';
 

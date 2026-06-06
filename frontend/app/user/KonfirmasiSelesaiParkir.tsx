@@ -7,8 +7,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Alert,
 } from 'react-native';
+import { konfirmasiSelesai } from '@/fetching/services/konfirmasiSelesaiService';
 import { useProfileVM } from '@/fetching/viewmodels/useProfileVM';
 
 const INITIAL_SECONDS = 0 * 3600 + 0 * 60 + 0;
@@ -165,22 +167,40 @@ export default function KonfirmasiSelesaiParkir() {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.confirmButton} activeOpacity={0.85}
-        onPress={() => router.replace({
-          pathname: '/user/payment',
-          params: {
-            bookingID: Number.isFinite(bookingID) && bookingID > 0 ? String(bookingID) : '',
-            slot: rawSlotValue,
-            floor: parkingFloor,
-            arrivedAt: params.arrivedAt || '',
-            mallId: params.mallId || '',
-            bookingName: params.bookingName || '',
-            phone: params.phone || '',
-            vehicleType: params.vehicleType || vehicleType,
-            platNumber: params.platNumber || platNumber,
-            bookingTimeIso: params.bookingTimeIso || '',
-          },
-        })}>
+        <TouchableOpacity
+          style={styles.confirmButton}
+          activeOpacity={0.85}
+          onPress={async () => {
+            try {
+              if (Number.isFinite(bookingID) && bookingID > 0) {
+                await konfirmasiSelesai(bookingID);
+              }
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              if (!msg.toLowerCase().includes('status booking tidak dapat diselesaikan')) {
+                Alert.alert('Konfirmasi Gagal', msg);
+                return;
+              }
+              // if message says status cannot be completed, assume it's already finished and continue
+            }
+
+            router.replace({
+              pathname: '/user/payment',
+              params: {
+                bookingID: Number.isFinite(bookingID) && bookingID > 0 ? String(bookingID) : '',
+                slot: rawSlotValue,
+                floor: parkingFloor,
+                arrivedAt: params.arrivedAt || '',
+                mallId: params.mallId || '',
+                bookingName: params.bookingName || '',
+                phone: params.phone || '',
+                vehicleType: params.vehicleType || vehicleType,
+                platNumber: params.platNumber || platNumber,
+                bookingTimeIso: params.bookingTimeIso || '',
+              },
+            });
+          }}
+        >
           <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
           <Text style={styles.confirmText}>Konfirmasi Selesai Parkir</Text>
         </TouchableOpacity>

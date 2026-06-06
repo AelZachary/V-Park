@@ -1,5 +1,6 @@
 import { COLORS } from '@/constants/theme';
-import { getPembayaranByBooking, initiatePembayaran, type PembayaranByBookingResponse } from '@/fetching/services/pembayaranService';
+import { getPembayaranByBooking, initiatePembayaran, submitPembayaranWebhook, type PembayaranByBookingResponse } from '@/fetching/services/pembayaranService';
+import { konfirmasiSelesai } from '@/fetching/services/konfirmasiSelesaiService';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -90,9 +91,9 @@ export default function PembayaranQris() {
     }),
   );
 
-  const paymentAmount = paymentInfo?.Pembayaran.TotalPembayaran ?? 20000;
-  const paymentStatus = paymentInfo?.Pembayaran.StatusPembayaran ?? 'MemprosesPembayaran';
-  const expiresIn = paymentInfo?.MetodePembayaran.ExpiresIn ?? countdown;
+  const paymentAmount = paymentInfo?.Pembayaran?.TotalPembayaran ?? 20000;
+  const paymentStatus = paymentInfo?.Pembayaran?.StatusPembayaran ?? 'MemprosesPembayaran';
+  const expiresIn = paymentInfo?.MetodePembayaran?.ExpiresIn ?? countdown;
   const qrisValue = paymentInfo?.MetodePembayaran?.QRCodeBase64?.trim()
     ? paymentInfo.MetodePembayaran.QRCodeBase64
     : qrPayload;
@@ -143,6 +144,10 @@ export default function PembayaranQris() {
     });
   }, [bookingID, paymentAmount, params.floor, params.slot]);
 
+  // NOTE: We do not automatically call arrival confirmation from the payment screen.
+  // If backend rejects payment because booking is not finished, we show a friendly
+  // UI to guide the user to confirm parking completion from the Activity flow instead.
+
   const createPayment = useCallback(async () => {
     if (!Number.isFinite(bookingID) || bookingID <= 0) {
       setPaymentError('Booking ID tidak valid.');
@@ -154,20 +159,87 @@ export default function PembayaranQris() {
     setPaymentError(null);
 
     const payload = buildQrPayload();
+    const transactionId = `TRX-${bookingID}-${Date.now()}`;
+    const timestamp = new Date().toISOString();
     setQrPayload(payload);
 
     try {
-      const response = await initiatePembayaran(bookingID, 'QRIS', base64Encode(payload));
+      const response = await initiatePembayaran(
+        bookingID,
+        'QRIS',
+        base64Encode(payload),
+        paymentAmount,
+        transactionId,
+        timestamp,
+      );
       setPaymentInfo(response);
       setPaymentError(null);
       setQrPayload(response.MetodePembayaran.QRCodeBase64 || payload);
+
+      await submitPembayaranWebhook({
+        IDMetodePembayaran: response.MetodePembayaran.IDMetodePembayaran,
+        StatusPembayaran: 'SUCCESS',
+        JumlahPembayaran: response.MetodePembayaran.JumlahPembayaran,
+        MetodePembayaran: response.MetodePembayaran.MetodePembayaran,
+        SuccessTimestamp: Math.floor(Date.now() / 1000),
+      });
+
+      router.push({
+        pathname: '/user/paymentProcessing',
+        params: {
+          bookingID: String(bookingID),
+          slot: params.slot || '',
+          floor: params.floor || '',
+          arrivedAt: params.arrivedAt || '',
+          mallId: params.mallId || '',
+          bookingName: params.bookingName || '',
+          phone: params.phone || '',
+          vehicleType: params.vehicleType || '',
+          platNumber: params.platNumber || '',
+          bookingTimeIso: params.bookingTimeIso || '',
+        },
+      });
     } catch (error) {
-      setPaymentError(error instanceof Error ? error.message : 'Gagal memulai pembayaran.');
+      const errorMessage = error instanceof Error ? error.message : 'Gagal memulai pembayaran.';
+      // If backend requires completion confirmation, attempt to call konfirmasiSelesai and retry once.
+      if (errorMessage.includes('KonfirmasiTiba') || errorMessage.includes('only KonfirmasiTiba')) {
+        try {
+          await konfirmasiSelesai(bookingID);
+        } catch (confErr) {
+          const confMsg = confErr instanceof Error ? confErr.message.toLowerCase() : '';
+          if (confMsg.includes('status booking tidak dapat diselesaikan')) {
+            setPaymentError('Silakan selesaikan parkir terlebih dahulu sebelum membayar.');
+            return;
+          }
+          setPaymentError(confErr instanceof Error ? confErr.message : errorMessage);
+          return;
+        }
+
+        try {
+          const retryResponse = await initiatePembayaran(
+            bookingID,
+            'QRIS',
+            base64Encode(payload),
+            paymentAmount,
+            transactionId,
+            timestamp,
+          );
+          setPaymentInfo(retryResponse);
+          setPaymentError(null);
+          setQrPayload(retryResponse.MetodePembayaran.QRCodeBase64 || payload);
+          return;
+        } catch (retryErr) {
+          setPaymentError(retryErr instanceof Error ? retryErr.message : 'Gagal memulai pembayaran setelah konfirmasi.');
+          return;
+        }
+      }
+
+      setPaymentError(errorMessage);
     } finally {
       setIsSubmitting(false);
       setIsLoading(false);
     }
-  }, [bookingID, buildQrPayload]);
+  }, [bookingID, buildQrPayload, paymentAmount]);
 
   const refreshPaymentInfo = useCallback(async () => {
     if (!Number.isFinite(bookingID) || bookingID <= 0) {
@@ -306,24 +378,11 @@ export default function PembayaranQris() {
           <Text style={styles.cardTitle}>Scan QR untuk Membayar</Text>
 
           {/* 🌟 FIKS 4: Ganti Image statis menjadi komponen QRCode dinamis library */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.qrWrapper}
-            onPress={() => router.replace({
-              pathname: '/user/paymentProcessing',
-              params: {
-                bookingID: params.bookingID || '',
-                slot: params.slot || '',
-                floor: params.floor || '',
-                arrivedAt: params.arrivedAt || '',
-                mallId: params.mallId || '',
-                bookingName: params.bookingName || '',
-                phone: params.phone || '',
-                vehicleType: params.vehicleType || '',
-                platNumber: params.platNumber || '',
-                bookingTimeIso: params.bookingTimeIso || '',
-              },
-            })}
-            activeOpacity={0.9}
+            onPress={createPayment}
+            activeOpacity={0.8}
+            disabled={isSubmitting}
           >
             {qrisValue ? (
               <QRCode
@@ -752,6 +811,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
+  
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
