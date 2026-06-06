@@ -26,11 +26,20 @@ type PembayaranResponse = {
 };
 
 type MetodePembayaranResponse = {
+  IDMetodePembayaran: number;
   QRCodeBase64: string;
   ExpiresAt?: string | null;
   ExpiresIn: number;
   JumlahPembayaran: number;
   MetodePembayaran: string;
+};
+
+export type PembayaranWebhookRequest = {
+  IDMetodePembayaran: number;
+  StatusPembayaran: string;
+  JumlahPembayaran: number;
+  MetodePembayaran: string;
+  SuccessTimestamp: number;
 };
 
 export type PembayaranByBookingResponse = {
@@ -75,13 +84,31 @@ export async function initiatePembayaran(
   bookingID: number,
   paymentMethod: string,
   qrCodeBase64: string,
+  totalHarga?: number,
+  transactionId?: string,
+  timestamp?: string,
 ): Promise<PembayaranByBookingResponse> {
+  const bodyPayload: Record<string, unknown> = {
+    PaymentMethod: paymentMethod,
+    QRCodeBase64: qrCodeBase64,
+  };
+
+  if (typeof totalHarga === 'number') {
+    bodyPayload.TotalHarga = totalHarga;
+  }
+  if (transactionId) {
+    bodyPayload.TransactionId = transactionId;
+  }
+  if (timestamp) {
+    bodyPayload.Timestamp = timestamp;
+  }
+
   const res = await authFetch(`${API_BASE_URL}/api/pembayaran/bayar/booking/${bookingID}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ PaymentMethod: paymentMethod, QRCodeBase64: qrCodeBase64 }),
+    body: JSON.stringify(bodyPayload),
   });
 
   const text = await res.text();
@@ -92,4 +119,25 @@ export async function initiatePembayaran(
   }
 
   return payload as PembayaranByBookingResponse;
+}
+
+export async function submitPembayaranWebhook(
+  webhookRequest: PembayaranWebhookRequest,
+): Promise<{ ResponseMessage: string }> {
+  const res = await authFetch(`${API_BASE_URL}/api/pembayaran/webhook`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(webhookRequest),
+  });
+
+  const text = await res.text();
+  const payload = text ? JSON.parse(text) : null;
+
+  if (!res.ok) {
+    throw new Error(extractErrorMessage(payload, `Failed to send payment webhook (${res.status})`));
+  }
+
+  return payload as { ResponseMessage: string };
 }

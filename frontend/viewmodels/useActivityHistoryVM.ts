@@ -39,6 +39,9 @@ function getStringField(source: unknown, keys: string[]) {
     if (typeof value === 'string') {
       return value;
     }
+    if (typeof value === 'number') {
+      return String(value);
+    }
   }
 
   return undefined;
@@ -52,6 +55,12 @@ function getNumberField(source: unknown, keys: string[]) {
     const value = typedSource[key];
     if (typeof value === 'number') {
       return value;
+    }
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
     }
   }
 
