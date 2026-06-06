@@ -2,7 +2,7 @@ package logic
 
 import "v-park/internal/models"
 
-// CalculateTotalJumlahPembayaran menjumlahkan semua JumlahPembayaran milik pengunjung.
+// CalculateTotalJumlahPembayaran menjumlahkan nominal pembayaran Lunas milik pengunjung.
 func CalculateTotalJumlahPembayaran(bookings []models.Booking) int {
 	total := 0
 	for _, booking := range bookings {
@@ -12,10 +12,16 @@ func CalculateTotalJumlahPembayaran(bookings []models.Booking) int {
 		if booking.RiwayatBooking.Pembayaran == nil {
 			continue
 		}
-		if booking.RiwayatBooking.Pembayaran.MetodePembayaran == nil {
+		if booking.RiwayatBooking.Pembayaran.StatusPembayaran != "Lunas" {
 			continue
 		}
-		total += booking.RiwayatBooking.Pembayaran.MetodePembayaran.JumlahPembayaran
+
+		amount := booking.RiwayatBooking.Pembayaran.TotalPembayaran
+		if amount == 0 && booking.RiwayatBooking.Pembayaran.MetodePembayaran != nil {
+			amount = booking.RiwayatBooking.Pembayaran.MetodePembayaran.JumlahPembayaran
+		}
+
+		total += amount
 	}
 
 	return total
