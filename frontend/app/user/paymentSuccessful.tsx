@@ -59,9 +59,15 @@ function formatIndonesianDate(value?: string) {
   return `${day}, ${month} ${year}`;
 }
 
+function getNextBookingOrderNumber() {
+  const sessionUser = getCurrentSessionUser();
+  const totalBooking = Number((sessionUser as any)?.Pengunjung?.Statistik?.TotalBooking) || 0;
+  return String(totalBooking + 1);
+}
+
 function formatOrderNumber(value?: string) {
-  if (!value) return TRANSACTION.noOrder;
-  return value;
+  if (value) return value;
+  return getNextBookingOrderNumber();
 }
 
 function formatDuration(value?: string) {
@@ -144,7 +150,7 @@ export default function PaymentSuccessful() {
   const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string; bookingTimeIso?: string; noOrder?: string; lokasi?: string; area?: string; slotLabel?: string; platKendaraan?: string; waktuTiba?: string; durasi?: string; totalBiaya?: string; totalPembayaran?: string; waktuTransaksi?: string }>();
 
   const transaction = {
-    noOrder: formatOrderNumber(params.bookingID || params.noOrder),
+    noOrder: formatOrderNumber(params.noOrder),
     lokasi: params.lokasi || TRANSACTION.lokasi,
     area: params.area || params.floor || TRANSACTION.area,
     slot: params.slotLabel || params.slot || TRANSACTION.slot,

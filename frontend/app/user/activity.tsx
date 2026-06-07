@@ -440,7 +440,8 @@ const styles = StyleSheet.create({
   runningText: {
     fontWeight: '800',
     color: '#111',
-    fontSize: 13.2,
+    fontSize: 11.5,
+    marginTop: 3,
     marginBottom: 12,
   },
 });
