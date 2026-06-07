@@ -168,10 +168,6 @@ export default function PaymentSuccessful() {
   // total booking and total expenses so they survive app restarts.
   React.useEffect(() => {
     try {
-      const rawAmount = transaction.totalPembayaran || 'Rp 0';
-      const digits = String(rawAmount).replace(/[^0-9]/g, '');
-      const amount = Number(digits) || 0;
-
       const sessionUser = getCurrentSessionUser();
       const current = getCurrentUser();
       if (!sessionUser) return;
@@ -180,13 +176,18 @@ export default function PaymentSuccessful() {
       if (!updatedUser.Pengunjung) updatedUser.Pengunjung = {};
 
       if (!updatedUser.Pengunjung.Statistik) {
-        updatedUser.Pengunjung.Statistik = { TotalBooking: 0, TotalJumlahPembayaran: 0 };
+        updatedUser.Pengunjung.Statistik = { TotalBooking: 0 };
       }
+
+      const rawAmount = transaction.totalPembayaran || 'Rp 0';
+      const digits = String(rawAmount).replace(/[^0-9]/g, '');
+      const amount = Number(digits) || 0;
 
       const prevBooking = Number(updatedUser.Pengunjung.Statistik.TotalBooking) || 0;
       const prevExpenses = Number(updatedUser.Pengunjung.Statistik.TotalJumlahPembayaran) || 0;
+      const newBooking = prevBooking + 1;
 
-      updatedUser.Pengunjung.Statistik.TotalBooking = prevBooking + 1;
+      updatedUser.Pengunjung.Statistik.TotalBooking = newBooking;
       updatedUser.Pengunjung.Statistik.TotalJumlahPembayaran = prevExpenses + amount;
 
       const newCurrent = current && typeof current === 'object' && 'user' in current && 'token' in current
