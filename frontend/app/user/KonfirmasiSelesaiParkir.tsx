@@ -104,7 +104,6 @@ export default function KonfirmasiSelesaiParkir() {
             </View>
             <View style={styles.locationInfo}>
               <Text style={styles.mallName}>Mall Ratu Indah Makassar</Text>
-              <Text style={styles.locationSub}>{parkingFloor}</Text>
             </View>
           </View>
           <View style={styles.slotDivider} />
@@ -336,6 +335,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#1565C0',
+    marginTop: 4,
   },
   locationSub: {
     fontSize: 12,
@@ -345,7 +345,8 @@ const styles = StyleSheet.create({
   slotDivider: {
     height: 1,
     backgroundColor: 'rgba(21,101,192,0.2)',
-    marginBottom: 10,
+    marginBottom: 0,
+    marginTop: 4,
   },
   slotRow: {
     flexDirection: 'row',
@@ -359,29 +360,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#1565C0',
+    marginLeft: 0,
+    marginTop: 5
   },
   slotValue: {
     fontSize: 20,
     fontWeight: '700',
     color: '#000',
     marginTop: 2,
+    marginLeft: 14
   },
   slotSub: {
     fontSize: 12,
     color: '#000',
   },
   platValue: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: '#000',
     marginTop: 8,
+    marginLeft: 2,
   },
   verticalDivider: {
     width: 1,
     height: 58,
     backgroundColor: 'rgba(21,101,192,0.5)',
-    marginHorizontal: 16,
-    alignSelf: 'center',
+    marginHorizontal: 40,
+    marginLeft: -15,
   },
   sectionHeading: {
     fontSize: 16,
