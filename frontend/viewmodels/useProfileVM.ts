@@ -18,14 +18,20 @@ function formatRupiah(value: number) {
 export const useProfileVM = () => {
   const currentUser = getCurrentSessionUser();
 
+  const initialSessionStats = currentUser && 'Pengunjung' in currentUser
+    ? (currentUser.Pengunjung as { Statistik?: { TotalBooking?: number; TotalJumlahPembayaran?: number } }).Statistik
+    : undefined;
+
+  const initialTotalBooking = initialSessionStats?.TotalBooking ?? 0;
+
   const defaultProfile = {
     name: currentUser?.Username ?? '—',
     phone:
       currentUser && 'Pengunjung' in currentUser
         ? currentUser.Pengunjung.NoHandphone
         : '+628213456789',
-    totalBooking: 0,
-    totalExpenses: 'Rp 0',
+    totalBooking: initialTotalBooking,
+    totalExpenses: formatRupiah(initialTotalBooking * 20000),
     vehicle:
       currentUser && 'Pengunjung' in currentUser
         ? currentUser.Pengunjung.JenisKendaraan
@@ -75,9 +81,10 @@ export const useProfileVM = () => {
         const finalBooking = serverBooking !== undefined && !Number.isNaN(serverBooking)
           ? serverBooking
           : (fallbackBooking ?? defaultProfile.totalBooking);
-        const finalExpenses = serverExpenses !== undefined && !Number.isNaN(serverExpenses)
+        // Use server value only if it's > 0, otherwise calculate from booking count
+        const finalExpenses = (serverExpenses && serverExpenses > 0)
           ? serverExpenses
-          : (fallbackExpenses ?? 0);
+          : finalBooking * 20000;
 
         setProfile({
           name: data.User.Username || defaultProfile.name,
@@ -94,11 +101,14 @@ export const useProfileVM = () => {
         if (sessionUser && 'Pengunjung' in sessionUser) {
           const sessionPengunjung = sessionUser.Pengunjung as { Statistik?: { TotalBooking?: number; TotalJumlahPembayaran?: number } };
           const stats = sessionPengunjung.Statistik || { TotalBooking: undefined, TotalJumlahPembayaran: undefined };
+          const booking = stats.TotalBooking ?? defaultProfile.totalBooking;
+          // Use server expenses only if > 0, otherwise calculate from booking
+          const expenses = (stats.TotalJumlahPembayaran && stats.TotalJumlahPembayaran > 0) ? stats.TotalJumlahPembayaran : booking * 20000;
           setProfile({
             name: sessionUser.Username || defaultProfile.name,
             phone: sessionUser.Pengunjung?.NoHandphone || defaultProfile.phone,
-            totalBooking: stats.TotalBooking ?? defaultProfile.totalBooking,
-            totalExpenses: formatRupiah(stats.TotalJumlahPembayaran ?? 0),
+            totalBooking: booking,
+            totalExpenses: formatRupiah(expenses),
             vehicle: sessionUser.Pengunjung?.JenisKendaraan || defaultProfile.vehicle,
             plate: sessionUser.Pengunjung?.PlatKendaraan || defaultProfile.plate,
           });
@@ -118,11 +128,13 @@ export const useProfileVM = () => {
       const sessionUser = getCurrentSessionUser();
       if (sessionUser && 'Pengunjung' in sessionUser) {
         const sessionPengunjung = sessionUser.Pengunjung as { Statistik?: { TotalBooking?: number; TotalJumlahPembayaran?: number } };
-        const stats = sessionPengunjung.Statistik || { TotalBooking: undefined, TotalJumlahPembayaran: undefined };
+        const booking = sessionPengunjung.Statistik?.TotalBooking ?? 0;
+        // Use server expenses only if > 0, otherwise calculate from booking
+        const expenses = (sessionPengunjung.Statistik?.TotalJumlahPembayaran && sessionPengunjung.Statistik.TotalJumlahPembayaran > 0) ? sessionPengunjung.Statistik.TotalJumlahPembayaran : booking * 20000;
         setProfile((prev) => ({
           ...prev,
-          totalBooking: stats.TotalBooking ?? prev.totalBooking,
-          totalExpenses: formatRupiah(stats.TotalJumlahPembayaran ?? 0),
+          totalBooking: booking,
+          totalExpenses: formatRupiah(expenses),
         }));
       }
     });
