@@ -154,9 +154,17 @@ export default function MemprosesPembayaran() {
   const hasSubmittedCompletionRef = useRef(false);
   const [stepOneStatus, setStepOneStatus] = useState<'pending' | 'loading' | 'success'>('loading');
   const [stepTwoStatus, setStepTwoStatus] = useState<'pending' | 'loading' | 'success'>('pending');
+
+  const isSlotLikeValue = (value?: string) => {
+    if (!value) return false;
+    const normalized = String(value).trim().toUpperCase();
+    return /^[A-Z]+\d+[A-Z]*$/.test(normalized) && !/(GROUND|LANTAI|AREA)/.test(normalized);
+  };
+
+  const areaValue = params.floor && !isSlotLikeValue(params.floor) ? params.floor : 'Ground Floor';
   const transaction = {
     lokasi: 'Mall Ratu Indah Makassar',
-    area: params.floor || 'Ground Floor',
+    area: areaValue,
     slot: params.slot || 'L1',
     totalPembayaran: 'Rp 20.000',
   };
@@ -203,7 +211,7 @@ export default function MemprosesPembayaran() {
             bookingTimeIso: params.bookingTimeIso || '',
             noOrder: params.bookingID || '',
             lokasi: 'Mall Ratu Indah Makassar',
-            area: params.floor || '',
+            area: areaValue,
             slotLabel: params.slot || '',
             platKendaraan: params.platNumber || '',
             waktuTiba: params.arrivedAt || '',
