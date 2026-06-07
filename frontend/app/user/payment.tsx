@@ -1,5 +1,5 @@
 import { COLORS } from '@/constants/theme';
-import { getPembayaranByBooking, initiatePembayaran, submitPembayaranWebhook, type PembayaranByBookingResponse } from '@/fetching/services/pembayaranService';
+import { getPembayaranByBooking, initiatePembayaran, type PembayaranByBookingResponse } from '@/fetching/services/pembayaranService';
 import { konfirmasiSelesai } from '@/fetching/services/konfirmasiSelesaiService';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -176,29 +176,7 @@ export default function PembayaranQris() {
       setPaymentError(null);
       setQrPayload(response.MetodePembayaran.QRCodeBase64 || payload);
 
-      await submitPembayaranWebhook({
-        IDMetodePembayaran: response.MetodePembayaran.IDMetodePembayaran,
-        StatusPembayaran: 'SUCCESS',
-        JumlahPembayaran: response.MetodePembayaran.JumlahPembayaran,
-        MetodePembayaran: response.MetodePembayaran.MetodePembayaran,
-        SuccessTimestamp: Math.floor(Date.now() / 1000),
-      });
-
-      router.push({
-        pathname: '/user/paymentProcessing',
-        params: {
-          bookingID: String(bookingID),
-          slot: params.slot || '',
-          floor: params.floor || '',
-          arrivedAt: params.arrivedAt || '',
-          mallId: params.mallId || '',
-          bookingName: params.bookingName || '',
-          phone: params.phone || '',
-          vehicleType: params.vehicleType || '',
-          platNumber: params.platNumber || '',
-          bookingTimeIso: params.bookingTimeIso || '',
-        },
-      });
+      // Refresh QR only. Do not auto-submit webhook or navigate to the next screen here.
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Gagal memulai pembayaran.';
       // If backend requires completion confirmation, attempt to call konfirmasiSelesai and retry once.
@@ -272,8 +250,11 @@ export default function PembayaranQris() {
       return;
     }
 
-    refreshPaymentInfo();
-  }, [bookingID, refreshPaymentInfo]);
+    void refreshPaymentInfo();
+    // We intentionally omit refreshPaymentInfo from deps here because it is recreated when paymentAmount changes.
+    // That should not trigger a full refresh cycle; only bookingID changes should reload payment info.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingID]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -380,7 +361,23 @@ export default function PembayaranQris() {
           {/* 🌟 FIKS 4: Ganti Image statis menjadi komponen QRCode dinamis library */}
           <TouchableOpacity
             style={styles.qrWrapper}
-            onPress={createPayment}
+            onPress={() =>
+              router.push({
+                pathname: '/user/paymentProcessing',
+                params: {
+                  bookingID: String(bookingID),
+                  slot: params.slot || '',
+                  floor: params.floor || '',
+                  arrivedAt: params.arrivedAt || '',
+                  mallId: params.mallId || '',
+                  bookingName: params.bookingName || '',
+                  phone: params.phone || '',
+                  vehicleType: params.vehicleType || '',
+                  platNumber: params.platNumber || '',
+                  bookingTimeIso: params.bookingTimeIso || '',
+                },
+              })
+            }
             activeOpacity={0.8}
             disabled={isSubmitting}
           >
