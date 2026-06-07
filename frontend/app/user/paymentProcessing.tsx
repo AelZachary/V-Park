@@ -149,16 +149,17 @@ function StepIcon({ status }: { status: 'pending' | 'loading' | 'success' }) {
 
 export default function MemprosesPembayaran() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string; bookingTimeIso?: string }>();
+  const params = useLocalSearchParams<{ bookingID?: string; slot?: string; floor?: string; arrivedAt?: string; mallId?: string; bookingName?: string; phone?: string; vehicleType?: string; platNumber?: string; bookingTimeIso?: string; lokasi?: string }>();
   const progressAnim = useRef(new Animated.Value(0)).current;
   const hasSubmittedCompletionRef = useRef(false);
   const [stepOneStatus, setStepOneStatus] = useState<'pending' | 'loading' | 'success'>('loading');
   const [stepTwoStatus, setStepTwoStatus] = useState<'pending' | 'loading' | 'success'>('pending');
-  const [transaction, setTransaction] = useState({
+  const transaction = {
     lokasi: 'Mall Ratu Indah Makassar',
-    slotParkir: params.floor || 'Ground Floor',
+    area: params.floor || 'Ground Floor',
+    slot: params.slot || 'L1',
     totalPembayaran: 'Rp 20.000',
-  });
+  };
 
   useEffect(() => {
     Animated.timing(progressAnim, {
@@ -201,7 +202,7 @@ export default function MemprosesPembayaran() {
             platNumber: params.platNumber || '',
             bookingTimeIso: params.bookingTimeIso || '',
             noOrder: params.bookingID || '',
-            lokasi: params.floor || 'Mall Ratu Indah Makassar',
+            lokasi: 'Mall Ratu Indah Makassar',
             area: params.floor || '',
             slotLabel: params.slot || '',
             platKendaraan: params.platNumber || '',
@@ -289,13 +290,13 @@ export default function MemprosesPembayaran() {
           <Text style={styles.biayaTitle}>Rincian Biaya</Text>
 
           <View style={styles.biayaRow}>
-            <Text style={styles.biayaLabel}>Lokasi</Text>
-            <Text style={styles.biayaValue}>{transaction.lokasi}</Text>
+            <Text style={styles.biayaLabel}>Area</Text>
+            <Text style={styles.biayaValue}>{transaction.area}</Text>
           </View>
 
           <View style={styles.biayaRow}>
-            <Text style={styles.biayaLabel}>Area</Text>
-            <Text style={styles.biayaValue}>{transaction.slotParkir}</Text>
+            <Text style={styles.biayaLabel}>Slot</Text>
+            <Text style={styles.biayaValue}>{transaction.slot}</Text>
           </View>
 
           <View style={styles.biayaRow}>
