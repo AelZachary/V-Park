@@ -99,7 +99,7 @@ func main() {
 	pembayaranroutes.PembayaranBayarBookingRoutes(mux, db)
 	pembayaranroutes.PembayaranWebhookRoutes(mux, db)
 
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":5012", mux); err != nil {
 		log.Fatal("Server error:", err)
 	}
 }

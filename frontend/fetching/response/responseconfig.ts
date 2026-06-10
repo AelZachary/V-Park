@@ -20,14 +20,14 @@ function resolveExpoGoLanBaseUrl() {
     return null;
   }
 
-  return `http://${host}:8080`;
+  return `http://${host}:5012`;
 }
 
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ??
   resolveExpoGoLanBaseUrl() ??
   Platform.select({
-    android: 'http://10.0.2.2:8080',
-    ios: 'http://localhost:8080',
-    default: 'http://localhost:8080',
-  }) ?? 'http://localhost:8080';
+    android: 'http://10.0.2.2:5012',
+    ios: 'http://localhost:5012',
+    default: 'http://localhost:5012',
+  }) ?? 'http://localhost:5012';
