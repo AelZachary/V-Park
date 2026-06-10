@@ -27,7 +27,7 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ??
   resolveExpoGoLanBaseUrl() ??
   Platform.select({
-    android: 'http://10.0.2.2:5012',
-    ios: 'http://localhost:5012',
-    default: 'http://localhost:5012',
-  }) ?? 'http://localhost:5012';
+    android: 'https://vpark.mad24.dpdns.org',
+    ios: 'https://vpark.mad24.dpdns.org',
+    default: 'https://vpark.mad24.dpdns.org',
+  }) ?? 'https://vpark.mad24.dpdns.org';
