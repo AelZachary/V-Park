@@ -23,7 +23,7 @@ func Init(env string) {
 
 	baseLogger := slog.New(handler).With(
 		"env", env,
-		"website", "NPLC Back to the Future",
+		"website", "V-Park",
 	)
 
 	slog.SetDefault(baseLogger)
