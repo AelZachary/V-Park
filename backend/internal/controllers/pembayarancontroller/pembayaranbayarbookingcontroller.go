@@ -63,7 +63,7 @@ func getPaymentCallbackURL(r *http.Request) string {
 		scheme = "https"
 	}
 
-	host := "localhost:5012"
+	host := "vpark.mad24.dpdns.org"
 	if r != nil && r.Host != "" {
 		host = r.Host
 	}
