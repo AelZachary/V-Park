@@ -25,9 +25,4 @@ function resolveExpoGoLanBaseUrl() {
 
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ??
-  resolveExpoGoLanBaseUrl() ??
-  Platform.select({
-    android: 'https://vpark.mad24.dpdns.org',
-    ios: 'https://vpark.mad24.dpdns.org',
-    default: 'https://vpark.mad24.dpdns.org',
-  }) ?? 'https://vpark.mad24.dpdns.org';
+  'https://vpark.mad24.dpdns.org';
